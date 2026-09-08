@@ -1,0 +1,47 @@
+name: Normalize lowercase xdecaro vendor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/lowercase-vendor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: normalize-xdecaro-0.2.0
+          fetch-depth: 0
+      - name: Normalize vendor namespace
+        run: python3 tools/lowercase_vendor_namespace.py
+      - name: Validate PHP XML and namespace
+        run: |
+          set -euo pipefail
+          find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          for p in Path('.').rglob('*.xml'):
+              if '.git' not in p.parts and '.github' not in p.parts:
+                  ET.parse(p)
+          PY
+          grep -Fq 'xdecaro\Component\People' component/xdecaropeople.xml
+          if grep -RIn 'Xdecaro\\' component package tests README.md AGENTS.md 2>/dev/null; then
+            echo 'Uppercase Xdecaro vendor namespace remains.' >&2
+            exit 1
+          fi
+      - name: Commit normalized branch
+        run: |
+          set -euo pipefail
+          rm tools/lowercase_vendor_namespace.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Normalize People vendor namespace to lowercase xdecaro'
+          git push origin HEAD:normalize-xdecaro-0.2.0
