@@ -6,7 +6,7 @@ Joomla component for person master data in the xdecaro ecosystem.
 
 - Component: `com_xdecaropeople`
 - Package: `pkg_xdecaropeople`
-- PHP namespace: `Xdecaro\Component\People`
+- PHP namespace: `xdecaro\Component\People`
 - Database tables: `#__xdecaropeople_*`
 - Current prerelease line: `0.2.0`
 

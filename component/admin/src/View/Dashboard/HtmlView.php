@@ -1,5 +1,5 @@
 <?php
-namespace Xdecaro\Component\People\Administrator\View\Dashboard;
+namespace xdecaro\Component\People\Administrator\View\Dashboard;
 defined('_JEXEC') or die;
-use Joomla\CMS\Factory; use Joomla\CMS\Language\Text; use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView; use Joomla\CMS\Toolbar\ToolbarHelper; use Xdecaro\Component\People\Administrator\Service\CoreIntegrationService;
+use Joomla\CMS\Factory; use Joomla\CMS\Language\Text; use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView; use Joomla\CMS\Toolbar\ToolbarHelper; use xdecaro\Component\People\Administrator\Service\CoreIntegrationService;
 final class HtmlView extends BaseHtmlView { public bool $coreUiActive=false; public string $coreVersion=''; public function display($tpl=null): void { $app=Factory::getApplication(); if(!$app->getIdentity()->authorise('core.manage','com_xdecaropeople')) throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'),403); ToolbarHelper::title(Text::_('COM_XDECAROPEOPLE'),'users'); $wa=$app->getDocument()->getWebAssetManager(); $wa->getRegistry()->addExtensionRegistryFile('com_xdecaropeople'); try { $core=Factory::getContainer()->get(CoreIntegrationService::class); $this->coreVersion=$core->getVersion(); $this->coreUiActive=$core->enableUi($wa); } catch(\Throwable) { $this->coreUiActive=false; } $wa->useStyle('com_xdecaropeople.admin'); parent::display($tpl); } }

@@ -10,7 +10,7 @@ Core by xdecaro provides only shared infrastructure: Web Asset Manager assets, d
 
 Dependency direction is `People -> Core`, never `Core -> People`.
 
-Cross-product integration must use stable public APIs or `Xdecaro\Core\Integration\EntityReference` / `RelationReference`. Never read or write another product's private database tables as an integration mechanism.
+Cross-product integration must use stable public APIs or `xdecaro\Core\Integration\EntityReference` / `RelationReference`. Never read or write another product's private database tables as an integration mechanism.
 
 ## Joomla/security
 
