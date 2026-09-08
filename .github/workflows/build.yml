@@ -35,9 +35,10 @@ jobs:
           test "$(cat VERSION)" = '0.2.0'
           test -f component/xdecaropeople.xml
           test -f package/pkg_xdecaropeople.xml
-          grep -Fq 'Xdecaro\Component\People' component/xdecaropeople.xml
+          grep -Fq 'xdecaro\Component\People' component/xdecaropeople.xml
           grep -Fq '#__xdecaropeople_' component/admin/sql/install.mysql.utf8mb4.sql
           ! grep -RInE 'com_decaropeople|pkg_decaropeople|#__decaropeople_|Decaropeople' component package build tests updates README.md
+          ! grep -RIn 'Xdecaro\\' component package build tests updates README.md
       - name: Deterministic build
         run: |
           chmod +x build/build.sh
