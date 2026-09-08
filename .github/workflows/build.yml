@@ -30,6 +30,15 @@ jobs:
         run: |
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
           ! grep -RniE '#__(dcl|decaroforms|decarocourses|decarodocuments|decaromembership|decaroevents|decarofinance|decaroprotocol|decarodraw|decaroorganizations)_' component --exclude-dir=.git
+      - name: Verify technical identity
+        run: |
+          test "$(cat VERSION)" = '0.2.0'
+          test -f component/xdecaropeople.xml
+          test -f package/pkg_xdecaropeople.xml
+          grep -Fq 'xdecaro\Component\People' component/xdecaropeople.xml
+          grep -Fq '#__xdecaropeople_' component/admin/sql/install.mysql.utf8mb4.sql
+          ! grep -RInE 'com_decaropeople|pkg_decaropeople|#__decaropeople_|Decaropeople' component package build tests updates README.md
+          ! grep -RIn 'Xdecaro\\' component package build tests updates README.md
       - name: Deterministic build
         run: |
           chmod +x build/build.sh
@@ -41,5 +50,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: matrix.php == '8.3'
         with:
-          name: decaropeople-${{ github.sha }}
+          name: xdecaropeople-${{ github.sha }}
           path: dist/

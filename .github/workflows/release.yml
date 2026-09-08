@@ -30,6 +30,11 @@ jobs:
         run: |
           find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
           php tests/core-integration-smoke.php
+          test -f component/xdecaropeople.xml
+          test -f package/pkg_xdecaropeople.xml
+          grep -Fq 'xdecaro\Component\People' component/xdecaropeople.xml
+          grep -Fq '#__xdecaropeople_' component/admin/sql/install.mysql.utf8mb4.sql
+          ! grep -RIn 'Xdecaro\\' component package build tests updates README.md
           chmod +x build/build.sh
           build/build.sh
           cp dist/SHA256SUMS.txt /tmp/sums
@@ -40,14 +45,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v${VERSION}" dist/com_decaropeople_${VERSION}.zip dist/pkg_decaropeople_${VERSION}.zip dist/SHA256SUMS.txt --prerelease --title "People by xdecaro ${VERSION}" --notes "First Core-first People technical baseline. Person master data remains separate from Joomla authentication and product-specific workflows."
+          gh release create "v${VERSION}" dist/com_xdecaropeople_${VERSION}.zip dist/pkg_xdecaropeople_${VERSION}.zip dist/SHA256SUMS.txt --prerelease --title "People by xdecaro ${VERSION}" --notes "Fresh prerelease technical baseline using com_xdecaropeople, pkg_xdecaropeople, xdecaro\\Component\\People and #__xdecaropeople_*; no in-place upgrade from the experimental 0.1.0 identity is claimed."
       - name: Publish package checksum
         run: |
-          export PACKAGE_SHA="$(sha256sum "dist/pkg_decaropeople_${VERSION}.zip" | awk '{print $1}')"
+          export PACKAGE_SHA="$(sha256sum "dist/pkg_xdecaropeople_${VERSION}.zip" | awk '{print $1}')"
           python3 - <<'PY'
           import os,re
           from pathlib import Path
-          p=Path('updates/pkg_decaropeople.xml')
+          p=Path('updates/pkg_xdecaropeople.xml')
           t=p.read_text()
           t=re.sub(r'<sha256>[^<]*</sha256>','',t)
           t=t.replace('</downloads>',f'</downloads><sha256>{os.environ["PACKAGE_SHA"]}</sha256>',1)
@@ -55,6 +60,6 @@ jobs:
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add updates/pkg_decaropeople.xml
+          git add updates/pkg_xdecaropeople.xml
           git diff --cached --quiet || git commit -m "Publish SHA-256 for People ${VERSION}"
           git push
