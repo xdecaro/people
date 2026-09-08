@@ -1,0 +1,60 @@
+name: Release People package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - VERSION
+      - .github/workflows/release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Read version
+        run: echo "VERSION=$(cat VERSION)" >> "$GITHUB_ENV"
+      - name: Refuse existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then echo "Release already exists"; exit 1; fi
+      - name: Validate and build twice
+        run: |
+          find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          php tests/core-integration-smoke.php
+          chmod +x build/build.sh
+          build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/sums
+          build/build.sh
+          diff -u /tmp/sums dist/SHA256SUMS.txt
+          for z in dist/*.zip; do unzip -t "$z" >/dev/null; done
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${VERSION}" dist/com_decaropeople_${VERSION}.zip dist/pkg_decaropeople_${VERSION}.zip dist/SHA256SUMS.txt --prerelease --title "People by xdecaro ${VERSION}" --notes "First Core-first People technical baseline. Person master data remains separate from Joomla authentication and product-specific workflows."
+      - name: Publish package checksum
+        run: |
+          export PACKAGE_SHA="$(sha256sum "dist/pkg_decaropeople_${VERSION}.zip" | awk '{print $1}')"
+          python3 - <<'PY'
+          import os,re
+          from pathlib import Path
+          p=Path('updates/pkg_decaropeople.xml')
+          t=p.read_text()
+          t=re.sub(r'<sha256>[^<]*</sha256>','',t)
+          t=t.replace('</downloads>',f'</downloads><sha256>{os.environ["PACKAGE_SHA"]}</sha256>',1)
+          p.write_text(t)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add updates/pkg_decaropeople.xml
+          git diff --cached --quiet || git commit -m "Publish SHA-256 for People ${VERSION}"
+          git push
