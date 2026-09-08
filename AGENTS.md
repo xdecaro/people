@@ -18,4 +18,4 @@ Use modern Joomla APIs, server-side ACL, CSRF for state-changing operations, fil
 
 ## Releases
 
-Version 0.1.0 establishes the first technical baseline. Keep stable IDs `com_decaropeople` and `pkg_decaropeople`. Normal updates must preserve data and configuration. ZIPs must be directly installable in Joomla.
+Version 0.2.0 establishes the first technical baseline. Keep stable IDs `com_xdecaropeople` and `pkg_xdecaropeople`. Normal updates must preserve data and configuration. ZIPs must be directly installable in Joomla.
