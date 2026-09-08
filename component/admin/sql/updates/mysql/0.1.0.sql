@@ -1,0 +1,1 @@
+-- Initial schema is created by install.mysql.utf8mb4.sql.

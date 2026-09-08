@@ -1,0 +1,45 @@
+name: Build People
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1','8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Validate PHP and Core boundary
+        run: |
+          find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          php tests/core-integration-smoke.php
+      - name: Validate XML
+        run: |
+          python3 - <<'PY'
+          import pathlib,xml.etree.ElementTree as ET
+          for p in pathlib.Path('.').rglob('*.xml'): ET.parse(p)
+          PY
+      - name: Guard database boundary
+        run: |
+          ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
+          ! grep -RniE '#__(dcl|decaroforms|decarocourses|decarodocuments|decaromembership|decaroevents|decarofinance|decaroprotocol|decarodraw|decaroorganizations)_' component --exclude-dir=.git
+      - name: Deterministic build
+        run: |
+          chmod +x build/build.sh
+          build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/sums
+          build/build.sh
+          diff -u /tmp/sums dist/SHA256SUMS.txt
+          for z in dist/*.zip; do unzip -t "$z" >/dev/null; done
+      - uses: actions/upload-artifact@v4
+        if: matrix.php == '8.3'
+        with:
+          name: decaropeople-${{ github.sha }}
+          path: dist/
