@@ -1,0 +1,1 @@
+-- People 1.0.1 schema-version marker. Compatibility repair is performed idempotently by component/script.php.

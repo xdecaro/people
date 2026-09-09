@@ -1,1 +1,1 @@
-{"$schema":"https://developer.joomla.org/schemas/json-schema/web_assets.json","name":"com_xdecaropeople","version":"1.0.0","assets":[{"name":"com_xdecaropeople.admin","type":"style","uri":"com_xdecaropeople/css/admin.css"}]}
+{"$schema":"https://developer.joomla.org/schemas/json-schema/web_assets.json","name":"com_xdecaropeople","version":"1.0.1","assets":[{"name":"com_xdecaropeople.admin","type":"style","uri":"com_xdecaropeople/css/admin.css"}]}
