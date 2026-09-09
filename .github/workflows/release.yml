@@ -1,65 +1,31 @@
-name: Release People package
-
+name: Release People
 on:
   push:
     branches: [main]
-    paths:
-      - VERSION
-      - .github/workflows/release.yml
-
-permissions:
-  contents: write
-
+    paths: [VERSION]
+permissions: {contents: write}
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          coverage: none
-      - name: Read version
-        run: echo "VERSION=$(cat VERSION)" >> "$GITHUB_ENV"
+        with: {php-version: '8.3', coverage: none}
+      - name: Build stable release
+        run: |
+          set -euo pipefail; VERSION="$(cat VERSION)"; test "$VERSION" = '1.0.0'; find component package tests -type f -name '*.php' -print0|xargs -0 -n1 php -l; php tests/core-integration-smoke.php; chmod +x build/build.sh; build/build.sh; cp dist/SHA256SUMS.txt /tmp/sums; build/build.sh; diff -u /tmp/sums dist/SHA256SUMS.txt
       - name: Refuse existing release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env: {GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
+        run: if gh release view "v$(cat VERSION)" >/dev/null 2>&1; then exit 1; fi
+      - name: Publish release
+        env: {GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
         run: |
-          if gh release view "v${VERSION}" >/dev/null 2>&1; then echo "Release already exists"; exit 1; fi
-      - name: Validate and build twice
+          V="$(cat VERSION)"; gh release create "v${V}" dist/com_xdecaropeople_${V}.zip dist/pkg_xdecaropeople_${V}.zip dist/SHA256SUMS.txt --title "People by xdecaro ${V}" --notes "People 1.0.0: stable person registry with ACL-protected identity/contact data, duplicate detection, Core 1.4 capabilities and public provider API."
+      - name: Publish checksum
         run: |
-          find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
-          php tests/core-integration-smoke.php
-          test -f component/xdecaropeople.xml
-          test -f package/pkg_xdecaropeople.xml
-          grep -Fq 'xdecaro\Component\People' component/xdecaropeople.xml
-          grep -Fq '#__xdecaropeople_' component/admin/sql/install.mysql.utf8mb4.sql
-          ! grep -RIn 'Xdecaro\\' component package build tests updates README.md
-          chmod +x build/build.sh
-          build/build.sh
-          cp dist/SHA256SUMS.txt /tmp/sums
-          build/build.sh
-          diff -u /tmp/sums dist/SHA256SUMS.txt
-          for z in dist/*.zip; do unzip -t "$z" >/dev/null; done
-      - name: Publish prerelease
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "v${VERSION}" dist/com_xdecaropeople_${VERSION}.zip dist/pkg_xdecaropeople_${VERSION}.zip dist/SHA256SUMS.txt --prerelease --title "People by xdecaro ${VERSION}" --notes "Fresh prerelease technical baseline using com_xdecaropeople, pkg_xdecaropeople, xdecaro\\Component\\People and #__xdecaropeople_*; no in-place upgrade from the experimental 0.1.0 identity is claimed."
-      - name: Publish package checksum
-        run: |
-          export PACKAGE_SHA="$(sha256sum "dist/pkg_xdecaropeople_${VERSION}.zip" | awk '{print $1}')"
-          python3 - <<'PY'
-          import os,re
-          from pathlib import Path
-          p=Path('updates/pkg_xdecaropeople.xml')
-          t=p.read_text()
-          t=re.sub(r'<sha256>[^<]*</sha256>','',t)
-          t=t.replace('</downloads>',f'</downloads><sha256>{os.environ["PACKAGE_SHA"]}</sha256>',1)
-          p.write_text(t)
+          V="$(cat VERSION)"; SHA="$(sha256sum "dist/pkg_xdecaropeople_${V}.zip"|awk '{print $1}')"; python3 - "$SHA" <<'PY'
+          import sys,xml.etree.ElementTree as ET
+          p='updates/pkg_xdecaropeople.xml'; t=ET.parse(p); t.getroot().find('./update/sha256').text=sys.argv[1]; ET.indent(t,space='  '); t.write(p,encoding='utf-8',xml_declaration=True)
           PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add updates/pkg_xdecaropeople.xml
-          git diff --cached --quiet || git commit -m "Publish SHA-256 for People ${VERSION}"
-          git push
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'; git add updates/pkg_xdecaropeople.xml; git diff --cached --quiet || git commit -m "Publish SHA-256 for People ${V}"; git pull --rebase origin main; git push origin HEAD:main

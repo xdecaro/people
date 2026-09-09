@@ -1,17 +1,12 @@
 # People by xdecaro
 
-Joomla component for person master data in the xdecaro ecosystem.
-
-## Technical identity
+Stable Joomla component for reusable person master data in the xdecaro ecosystem.
 
 - Component: `com_xdecaropeople`
 - Package: `pkg_xdecaropeople`
-- PHP namespace: `xdecaro\Component\People`
-- Database tables: `#__xdecaropeople_*`
-- Current prerelease line: `0.2.0`
+- Namespace: `xdecaro\Component\People`
+- Tables: `#__xdecaropeople_*`
+- Stable version: `1.0.0`
+- Requires Core by xdecaro `1.4.0+`
 
-The vendor namespace is intentionally lowercase: `xdecaro`.
-
-Version 0.2.0 is a fresh prerelease identity baseline. It does not claim an in-place Joomla upgrade from the experimental 0.1.0 `decaropeople` identity.
-
-People owns person records and reusable identity/contact data. It integrates with Core by xdecaro for shared infrastructure and public cross-product references. Membership, Courses, Events and other product workflows remain in their owning components.
+People owns person identity/contact master records and an optional Joomla User link. Membership, Courses, Competitions, Events and other products own their domain roles and temporal relationships. Cross-product consumers must use the public provider and Core capability/entity-reference contracts, never direct People table access.
