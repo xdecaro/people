@@ -1,54 +1,61 @@
-name: Build People
+name: People CI
 on:
-  push:
-    branches: [main]
+  push: {branches: [main]}
   pull_request:
   workflow_dispatch:
+permissions: {contents: read}
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        php: ['8.1','8.3']
+    strategy: {fail-fast: false, matrix: {php: ['8.1','8.3']}}
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          coverage: none
-      - name: Validate PHP and Core boundary
+        with: {php-version: '${{ matrix.php }}', coverage: none}
+      - name: PHP syntax
+        run: find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Validate source
         run: |
-          find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          test "$(cat VERSION)" = '1.0.0'
           php tests/core-integration-smoke.php
-      - name: Validate XML
-        run: |
           python3 - <<'PY'
           import pathlib,xml.etree.ElementTree as ET
           for p in pathlib.Path('.').rglob('*.xml'): ET.parse(p)
           PY
-      - name: Guard database boundary
-        run: |
+          grep -Fq 'charset="utf8"' component/xdecaropeople.xml
+          grep -Fq 'final class pkg_xdecaropeopleInstallerScript' package/script.php
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
-          ! grep -RniE '#__(dcl|decaroforms|decarocourses|decarodocuments|decaromembership|decaroevents|decarofinance|decaroprotocol|decarodraw|decaroorganizations)_' component --exclude-dir=.git
-      - name: Verify technical identity
-        run: |
-          test "$(cat VERSION)" = '0.2.0'
-          test -f component/xdecaropeople.xml
-          test -f package/pkg_xdecaropeople.xml
-          grep -Fq 'xdecaro\Component\People' component/xdecaropeople.xml
-          grep -Fq '#__xdecaropeople_' component/admin/sql/install.mysql.utf8mb4.sql
-          ! grep -RInE 'com_decaropeople|pkg_decaropeople|#__decaropeople_|Decaropeople' component package build tests updates README.md
-          ! grep -RIn 'Xdecaro\\' component package build tests updates README.md
+          ! grep -RniE '#__(decarocourses|decarodocuments|decaromembership|xdecarocompetitions|xdecaroorganizations)_' component
       - name: Deterministic build
         run: |
-          chmod +x build/build.sh
-          build/build.sh
-          cp dist/SHA256SUMS.txt /tmp/sums
-          build/build.sh
-          diff -u /tmp/sums dist/SHA256SUMS.txt
-          for z in dist/*.zip; do unzip -t "$z" >/dev/null; done
-      - uses: actions/upload-artifact@v4
-        if: matrix.php == '8.3'
-        with:
-          name: xdecaropeople-${{ github.sha }}
-          path: dist/
+          chmod +x build/build.sh; build/build.sh; cp dist/SHA256SUMS.txt /tmp/sums; build/build.sh; diff -u /tmp/sums dist/SHA256SUMS.txt; for z in dist/*.zip; do unzip -t "$z" >/dev/null; done
+  joomla-runtime:
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy: {fail-fast: false, matrix: {joomla: ['5.4.8','6.1.3']}}
+    services:
+      mysql:
+        image: mysql:8.0
+        env: {MYSQL_ALLOW_EMPTY_PASSWORD: 'yes', MYSQL_DATABASE: joomla}
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost" --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: {php-version: '8.3', extensions: 'mysqli, zip, simplexml', coverage: none}
+      - run: chmod +x build/build.sh && build/build.sh
+      - name: Download verified dependencies
+        shell: bash
+        run: |
+          set -euo pipefail; J='${{ matrix.joomla }}'; if [ "$J" = '5.4.8' ]; then JSHA='8d3585939bca8e6b1d5f3e97dda2cc557c61e610daf488c871e1f62a97be9bd0'; else JSHA='a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1'; fi
+          curl -fL --retry 3 "https://github.com/joomla/joomla-cms/releases/download/${J}/Joomla_${J}-Stable-Full_Package.zip" -o /tmp/joomla.zip; echo "${JSHA}  /tmp/joomla.zip"|sha256sum --check --strict
+          curl -fL --retry 3 'https://github.com/xdecaro/core/releases/download/v1.4.0/pkg_xdecarocore_1.4.0.zip' -o /tmp/core.zip; echo '4248f7e3de514c2ae2402ffc8ba12845647dca1ebac963da370650e88ac45def  /tmp/core.zip'|sha256sum --check --strict
+          mkdir joomla; unzip -q /tmp/joomla.zip -d joomla
+      - name: Install and verify
+        shell: bash
+        run: |
+          set -euo pipefail; cd joomla; php installation/joomla.php install --site-name='People CI' --admin-user='People CI Admin' --admin-username=admin --admin-password="PeopleCI-${GITHUB_RUN_ID}!" --admin-email=admin@example.invalid --db-type=mysqli --db-host=127.0.0.1 --db-user=root --db-pass='' --db-name=joomla --db-prefix=ppl_ --db-encryption=0 --no-interaction
+          php cli/joomla.php extension:install --path=/tmp/core.zip -vvv; php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_xdecaropeople_1.0.0.zip" -vvv
+          MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla); test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_xdecaropeople';")" = 1; test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people';")" = 1
+          schema="$("${MYSQL[@]}" -e "SELECT s.version_id FROM ppl_schemas s JOIN ppl_extensions e ON e.extension_id=s.extension_id WHERE e.element='com_xdecaropeople' LIMIT 1;")"; test "$schema" = '1.0.0'
