@@ -1,0 +1,16 @@
+ALTER TABLE `#__xdecaropeople_people`
+  ADD COLUMN `user_id` INT UNSIGNED DEFAULT NULL AFTER `uuid`,
+  MODIFY COLUMN `first_name` VARCHAR(150) NOT NULL,
+  MODIFY COLUMN `last_name` VARCHAR(150) NOT NULL,
+  ADD COLUMN `birth_date` DATE DEFAULT NULL AFTER `last_name`,
+  ADD COLUMN `birth_place` VARCHAR(190) DEFAULT NULL AFTER `birth_date`,
+  ADD COLUMN `nationality_code` CHAR(3) DEFAULT NULL AFTER `birth_place`,
+  ADD COLUMN `tax_identifier` VARCHAR(64) DEFAULT NULL AFTER `nationality_code`,
+  ADD COLUMN `address_line` VARCHAR(255) DEFAULT NULL AFTER `phone`,
+  ADD COLUMN `postal_code` VARCHAR(32) DEFAULT NULL AFTER `address_line`,
+  ADD COLUMN `city` VARCHAR(190) DEFAULT NULL AFTER `postal_code`,
+  ADD COLUMN `region` VARCHAR(190) DEFAULT NULL AFTER `city`,
+  ADD COLUMN `country_code` CHAR(2) DEFAULT NULL AFTER `region`,
+  ADD COLUMN `language` VARCHAR(16) DEFAULT NULL AFTER `country_code`,
+  ADD COLUMN `notes` TEXT DEFAULT NULL AFTER `language`,
+  ADD UNIQUE KEY `idx_people_user_id` (`user_id`), ADD KEY `idx_people_email` (`email`), ADD KEY `idx_people_tax_identifier` (`tax_identifier`), ADD KEY `idx_people_birth` (`birth_date`);
