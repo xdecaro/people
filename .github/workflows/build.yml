@@ -15,24 +15,42 @@ jobs:
       - name: PHP syntax
         run: find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Validate source
+        shell: bash
         run: |
-          test "$(cat VERSION)" = '1.0.0'
+          set -euo pipefail
+          VERSION="$(tr -d '\r\n' < VERSION)"
+          test "$VERSION" = '1.0.1'
           php tests/core-integration-smoke.php
           python3 - <<'PY'
           import pathlib,xml.etree.ElementTree as ET
           for p in pathlib.Path('.').rglob('*.xml'): ET.parse(p)
           PY
+          grep -Fq "<version>${VERSION}</version>" component/xdecaropeople.xml
+          grep -Fq "<version>${VERSION}</version>" package/pkg_xdecaropeople.xml
           grep -Fq 'charset="utf8"' component/xdecaropeople.xml
+          grep -Fq '<scriptfile>script.php</scriptfile>' component/xdecaropeople.xml
+          grep -Fq 'final class com_xdecaropeopleInstallerScript' component/script.php
           grep -Fq 'final class pkg_xdecaropeopleInstallerScript' package/script.php
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
           ! grep -RniE '#__(decarocourses|decarodocuments|decaromembership|xdecarocompetitions|xdecaroorganizations)_' component
+          ! grep -Fq 'MODIFY COLUMN `first_name`' component/admin/sql/updates/mysql/1.0.0.sql
+          ! grep -Fq 'MODIFY COLUMN `last_name`' component/admin/sql/updates/mysql/1.0.0.sql
       - name: Deterministic build
         run: |
-          chmod +x build/build.sh; build/build.sh; cp dist/SHA256SUMS.txt /tmp/sums; build/build.sh; diff -u /tmp/sums dist/SHA256SUMS.txt; for z in dist/*.zip; do unzip -t "$z" >/dev/null; done
+          chmod +x build/build.sh
+          build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/sums
+          build/build.sh
+          diff -u /tmp/sums dist/SHA256SUMS.txt
+          for z in dist/*.zip; do unzip -t "$z" >/dev/null; done
   joomla-runtime:
     runs-on: ubuntu-latest
     needs: validate
-    strategy: {fail-fast: false, matrix: {joomla: ['5.4.8','6.1.3']}}
+    strategy:
+      fail-fast: false
+      matrix:
+        joomla: ['5.4.8','6.1.3']
+        mode: ['clean','upgrade-0.2.0']
     services:
       mysql:
         image: mysql:8.0
@@ -44,18 +62,63 @@ jobs:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with: {php-version: '8.3', extensions: 'mysqli, zip, simplexml', coverage: none}
-      - run: chmod +x build/build.sh && build/build.sh
+      - name: Build current package
+        run: chmod +x build/build.sh && build/build.sh
       - name: Download verified dependencies
         shell: bash
         run: |
-          set -euo pipefail; J='${{ matrix.joomla }}'; if [ "$J" = '5.4.8' ]; then JSHA='8d3585939bca8e6b1d5f3e97dda2cc557c61e610daf488c871e1f62a97be9bd0'; else JSHA='a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1'; fi
-          curl -fL --retry 3 "https://github.com/joomla/joomla-cms/releases/download/${J}/Joomla_${J}-Stable-Full_Package.zip" -o /tmp/joomla.zip; echo "${JSHA}  /tmp/joomla.zip"|sha256sum --check --strict
-          curl -fL --retry 3 'https://github.com/xdecaro/core/releases/download/v1.4.0/pkg_xdecarocore_1.4.0.zip' -o /tmp/core.zip; echo '4248f7e3de514c2ae2402ffc8ba12845647dca1ebac963da370650e88ac45def  /tmp/core.zip'|sha256sum --check --strict
+          set -euo pipefail
+          J='${{ matrix.joomla }}'
+          if [ "$J" = '5.4.8' ]; then JSHA='8d3585939bca8e6b1d5f3e97dda2cc557c61e610daf488c871e1f62a97be9bd0'; else JSHA='a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1'; fi
+          curl -fL --retry 3 "https://github.com/joomla/joomla-cms/releases/download/${J}/Joomla_${J}-Stable-Full_Package.zip" -o /tmp/joomla.zip
+          echo "${JSHA}  /tmp/joomla.zip" | sha256sum --check --strict
+          curl -fL --retry 3 'https://github.com/xdecaro/core/releases/download/v1.4.0/pkg_xdecarocore_1.4.0.zip' -o /tmp/core.zip
+          echo '4248f7e3de514c2ae2402ffc8ba12845647dca1ebac963da370650e88ac45def  /tmp/core.zip' | sha256sum --check --strict
+          if [ '${{ matrix.mode }}' = 'upgrade-0.2.0' ]; then
+            curl -fL --retry 3 'https://github.com/xdecaro/people/releases/download/v0.2.0/pkg_xdecaropeople_0.2.0.zip' -o /tmp/people-old.zip
+            echo 'fa53fe1279106d1aa81ba26d34c006de4a31c2ace061d5a2c7c19205639f72f5  /tmp/people-old.zip' | sha256sum --check --strict
+          fi
           mkdir joomla; unzip -q /tmp/joomla.zip -d joomla
-      - name: Install and verify
+      - name: Install Joomla and Core
         shell: bash
         run: |
-          set -euo pipefail; cd joomla; php installation/joomla.php install --site-name='People CI' --admin-user='People CI Admin' --admin-username=admin --admin-password="PeopleCI-${GITHUB_RUN_ID}!" --admin-email=admin@example.invalid --db-type=mysqli --db-host=127.0.0.1 --db-user=root --db-pass='' --db-name=joomla --db-prefix=ppl_ --db-encryption=0 --no-interaction
-          php cli/joomla.php extension:install --path=/tmp/core.zip -vvv; php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_xdecaropeople_1.0.0.zip" -vvv
-          MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla); test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_xdecaropeople';")" = 1; test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people';")" = 1
-          schema="$("${MYSQL[@]}" -e "SELECT s.version_id FROM ppl_schemas s JOIN ppl_extensions e ON e.extension_id=s.extension_id WHERE e.element='com_xdecaropeople' LIMIT 1;")"; test "$schema" = '1.0.0'
+          set -euo pipefail
+          cd joomla
+          php installation/joomla.php install --site-name='People CI' --admin-user='People CI Admin' --admin-username=admin --admin-password="PeopleCI-${GITHUB_RUN_ID}!" --admin-email=admin@example.invalid --db-type=mysqli --db-host=127.0.0.1 --db-user=root --db-pass='' --db-name=joomla --db-prefix=ppl_ --db-encryption=0 --no-interaction
+          php cli/joomla.php extension:install --path=/tmp/core.zip -vvv
+      - name: Prepare published 0.2.0 legacy state
+        if: matrix.mode == 'upgrade-0.2.0'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          php cli/joomla.php extension:install --path=/tmp/people-old.zip -vvv
+          MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla)
+          exists="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people';")"
+          if [ "$exists" = '0' ]; then
+            "${MYSQL[@]}" -e "CREATE TABLE ppl_xdecaropeople_people (id int unsigned NOT NULL AUTO_INCREMENT, uuid char(36) NOT NULL, display_name varchar(255) NOT NULL, first_name varchar(150) DEFAULT NULL, last_name varchar(150) DEFAULT NULL, email varchar(254) DEFAULT NULL, phone varchar(50) DEFAULT NULL, state tinyint NOT NULL DEFAULT 1, access int unsigned NOT NULL DEFAULT 1, created datetime NOT NULL, created_by int unsigned NOT NULL DEFAULT 0, modified datetime DEFAULT NULL, modified_by int unsigned NOT NULL DEFAULT 0, PRIMARY KEY(id), UNIQUE KEY idx_uuid(uuid), KEY idx_name(last_name,first_name), KEY idx_state_access(state,access)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
+          fi
+          "${MYSQL[@]}" -e "DELETE FROM ppl_xdecaropeople_people; INSERT INTO ppl_xdecaropeople_people (uuid,display_name,first_name,last_name,email,state,access,created,created_by) VALUES ('11111111-1111-4111-8111-111111111111','Legacy Person',NULL,NULL,'legacy@example.invalid',1,1,NOW(),0);"
+      - name: Install current People package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          VERSION="$(tr -d '\r\n' < "$GITHUB_WORKSPACE/VERSION")"
+          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_xdecaropeople_${VERSION}.zip" -vvv
+      - name: Verify schema and legacy preservation
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '\r\n' < VERSION)"
+          MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla)
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_xdecaropeople';")" = 1
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people';")" = 1
+          for column in user_id birth_date tax_identifier address_line language notes; do
+            test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people' AND column_name='${column}';")" = 1
+          done
+          schema="$("${MYSQL[@]}" -e "SELECT s.version_id FROM ppl_schemas s JOIN ppl_extensions e ON e.extension_id=s.extension_id WHERE e.element='com_xdecaropeople' LIMIT 1;")"
+          test "$schema" = "$VERSION"
+          if [ '${{ matrix.mode }}' = 'upgrade-0.2.0' ]; then
+            test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_xdecaropeople_people WHERE uuid='11111111-1111-4111-8111-111111111111' AND first_name IS NULL AND last_name IS NULL AND display_name='Legacy Person';")" = 1
+          fi
