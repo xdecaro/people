@@ -18,15 +18,27 @@ HTMLHelper::_('behavior.formvalidator');
     <div class="xdecaro-scope">
         <?php
         echo HTMLHelper::_('uitab.startTabSet', 'personTabs', ['active' => 'identity']);
+
         echo HTMLHelper::_('uitab.addTab', 'personTabs', 'identity', Text::_('COM_XDECAROPEOPLE_FIELDSET_IDENTITY'));
         echo $this->form->renderFieldset('identity');
         echo HTMLHelper::_('uitab.endTab');
+
         echo HTMLHelper::_('uitab.addTab', 'personTabs', 'contacts', Text::_('COM_XDECAROPEOPLE_FIELDSET_CONTACTS'));
         echo $this->form->renderFieldset('contacts');
         echo HTMLHelper::_('uitab.endTab');
+
+        echo HTMLHelper::_('uitab.addTab', 'personTabs', 'residence', Text::_('COM_XDECAROPEOPLE_FIELDSET_RESIDENCE'));
+        echo $this->form->renderFieldset('residence');
+        echo HTMLHelper::_('uitab.endTab');
+
+        echo HTMLHelper::_('uitab.addTab', 'personTabs', 'social', Text::_('COM_XDECAROPEOPLE_FIELDSET_SOCIAL'));
+        echo $this->form->renderFieldset('social');
+        echo HTMLHelper::_('uitab.endTab');
+
         echo HTMLHelper::_('uitab.addTab', 'personTabs', 'publishing', Text::_('JGLOBAL_FIELDSET_PUBLISHING'));
         echo $this->form->renderFieldset('publishing');
         echo HTMLHelper::_('uitab.endTab');
+
         echo HTMLHelper::_('uitab.endTabSet');
         ?>
     </div>
