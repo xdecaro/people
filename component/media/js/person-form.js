@@ -6,7 +6,7 @@
     ? JoomlaApi.getOptions('com_xdecaropeople.person', {})
     : {};
 
-  document.documentElement.dataset.xdecaroPeopleForm = '1.2.2';
+  document.documentElement.dataset.xdecaroPeopleForm = '1.2.4';
 
   const byField = (id, name) => document.getElementById(id)
     || document.querySelector(`[name="${name}"]`)
@@ -16,28 +16,17 @@
 
   const setVisible = (element, visible, compact = false) => {
     const group = fieldGroup(element);
-    if (!group) {
-      return;
-    }
-
+    if (!group) return;
     group.hidden = !visible;
     group.classList.toggle('xdecaro-conditional-small', Boolean(visible && compact));
   };
 
   const selectedValues = (select) => {
-    if (!select) {
-      return [];
-    }
-
+    if (!select) return [];
     if (select.selectedOptions) {
       return Array.from(select.selectedOptions).map((option) => option.value);
     }
-
-    if (select.value !== undefined) {
-      return [String(select.value)];
-    }
-
-    return [];
+    return select.value !== undefined ? [String(select.value)] : [];
   };
 
   const initConditionalFields = () => {
@@ -55,7 +44,6 @@
           setVisible(disabilityOther, enabled && selectedValues(disabilityTypes).includes('other'), true);
         }
       }
-
       if (accessibilityNeeds && accessibilityOther) {
         setVisible(accessibilityOther, selectedValues(accessibilityNeeds).includes('other'), true);
       }
@@ -69,23 +57,16 @@
 
     update();
     window.setTimeout(update, 100);
-    window.setTimeout(update, 500);
   };
 
   const tokenName = () => {
-    if (options.token) {
-      return options.token;
-    }
-
+    if (options.token) return options.token;
     const token = document.querySelector('#adminForm input[type="hidden"][name][value="1"]');
     return token?.name || '';
   };
 
   const setSelectValue = (select, value) => {
-    if (!select || !value) {
-      return;
-    }
-
+    if (!select || !value) return;
     select.value = value;
     select.dispatchEvent(new Event('change', { bubbles: true }));
   };
@@ -96,9 +77,7 @@
     const hiddenId = byField(placeId, placeName);
     const region = byField(regionId, regionName);
 
-    if (!input || !hiddenId || input.dataset.xdecaroLocationReady === '1') {
-      return;
-    }
+    if (!input || !hiddenId || input.dataset.xdecaroLocationReady === '1') return;
 
     input.dataset.xdecaroLocationReady = '1';
     input.setAttribute('autocomplete', 'off');
@@ -110,12 +89,39 @@
     container.hidden = true;
     container.setAttribute('role', 'listbox');
     container.setAttribute('aria-label', input.getAttribute('aria-label') || input.name || 'Location');
-    input.insertAdjacentElement('afterend', container);
+    document.body.appendChild(container);
 
     let timer = 0;
     let request = null;
     let activeIndex = -1;
     let items = [];
+
+    const positionMenu = () => {
+      if (container.hidden) return;
+
+      const rect = input.getBoundingClientRect();
+      const gap = 4;
+      const viewportPadding = 8;
+      const below = Math.max(0, window.innerHeight - rect.bottom - gap - viewportPadding);
+      const above = Math.max(0, rect.top - gap - viewportPadding);
+      const openAbove = below < 180 && above > below;
+      const available = Math.max(120, Math.min(240, (openAbove ? above : below)));
+      const left = Math.max(viewportPadding, Math.min(rect.left, window.innerWidth - viewportPadding - rect.width));
+      const width = Math.max(240, Math.min(rect.width, window.innerWidth - (viewportPadding * 2)));
+
+      container.classList.toggle('is-above', openAbove);
+      container.style.left = `${left}px`;
+      container.style.width = `${width}px`;
+      container.style.maxHeight = `${available}px`;
+
+      if (openAbove) {
+        container.style.top = 'auto';
+        container.style.bottom = `${Math.max(viewportPadding, window.innerHeight - rect.top + gap)}px`;
+      } else {
+        container.style.bottom = 'auto';
+        container.style.top = `${Math.min(window.innerHeight - viewportPadding, rect.bottom + gap)}px`;
+      }
+    };
 
     const close = () => {
       container.hidden = true;
@@ -126,30 +132,29 @@
       items = [];
     };
 
+    const showContainer = () => {
+      container.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+      positionMenu();
+    };
+
     const openMessage = (message, className = 'xdecaro-location-empty') => {
       container.replaceChildren();
       const row = document.createElement('div');
       row.className = className;
       row.textContent = message;
       container.appendChild(row);
-      container.hidden = false;
-      input.setAttribute('aria-expanded', 'true');
+      showContainer();
     };
 
     const selectItem = (index) => {
       const item = items[index];
-      if (!item) {
-        return;
-      }
+      if (!item) return;
 
       input.value = item.name || '';
       hiddenId.value = item.id || '';
-      if (region) {
-        region.value = item.admin1 || '';
-      }
-      if (country && item.country_code) {
-        setSelectValue(country, item.country_code);
-      }
+      if (region) region.value = item.admin1 || '';
+      if (country && item.country_code) setSelectValue(country, item.country_code);
       close();
       input.dispatchEvent(new Event('change', { bubbles: true }));
     };
@@ -170,22 +175,18 @@
         button.className = 'xdecaro-location-option';
         button.id = `${inputId}-location-${index}`;
         button.setAttribute('role', 'option');
-        button.dataset.index = String(index);
         button.textContent = item.label || item.name || '';
         button.addEventListener('mousedown', (event) => event.preventDefault());
         button.addEventListener('click', () => selectItem(index));
         container.appendChild(button);
       });
 
-      container.hidden = false;
-      input.setAttribute('aria-expanded', 'true');
+      showContainer();
     };
 
     const setActive = (index) => {
       const buttons = Array.from(container.querySelectorAll('.xdecaro-location-option'));
-      if (!buttons.length) {
-        return;
-      }
+      if (!buttons.length) return;
 
       activeIndex = Math.max(0, Math.min(buttons.length - 1, index));
       buttons.forEach((button, buttonIndex) => {
@@ -215,12 +216,8 @@
       url.searchParams.set('limit', '15');
 
       const token = tokenName();
-      if (token) {
-        url.searchParams.set(token, '1');
-      }
-      if (country?.value) {
-        url.searchParams.set('country', country.value);
-      }
+      if (token) url.searchParams.set(token, '1');
+      if (country?.value) url.searchParams.set('country', country.value);
 
       try {
         const response = await fetch(url.toString(), {
@@ -231,49 +228,28 @@
           signal: request.signal,
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const payload = await response.json();
         if (payload?.success === false) {
           throw new Error(payload.message || options.locationError || 'Location search failed.');
         }
-
-        const results = payload?.data?.items || payload?.items || [];
-        render(results);
+        render(payload?.data?.items || payload?.items || []);
       } catch (error) {
-        if (error?.name === 'AbortError') {
-          return;
-        }
-
-        openMessage(
-          options.locationError || 'Impossibile cercare le località. Riprova.',
-          'xdecaro-location-error'
-        );
+        if (error?.name === 'AbortError') return;
+        openMessage(options.locationError || 'Impossibile cercare le località. Riprova.', 'xdecaro-location-error');
       }
     };
 
     const queueSearch = () => {
       hiddenId.value = '';
-      if (region) {
-        region.value = '';
-      }
+      if (region) region.value = '';
       window.clearTimeout(timer);
       timer = window.setTimeout(search, 250);
     };
 
     input.addEventListener('input', queueSearch);
-    input.addEventListener('keyup', (event) => {
-      if (!['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(event.key)) {
-        queueSearch();
-      }
-    });
-
     input.addEventListener('keydown', (event) => {
-      if (container.hidden) {
-        return;
-      }
+      if (container.hidden) return;
 
       if (event.key === 'ArrowDown') {
         event.preventDefault();
@@ -294,37 +270,28 @@
         queueSearch();
       }
     });
-
     input.addEventListener('blur', () => window.setTimeout(close, 180));
 
     country?.addEventListener('change', () => {
       hiddenId.value = '';
-      if (region) {
-        region.value = '';
-      }
-      if (input.value.trim().length >= Number(options.locationMinChars || 2)) {
-        queueSearch();
-      }
+      if (region) region.value = '';
+      if (input.value.trim().length >= Number(options.locationMinChars || 2)) queueSearch();
     });
+
+    window.addEventListener('resize', positionMenu, { passive: true });
+    window.addEventListener('scroll', positionMenu, { passive: true, capture: true });
   };
 
   const initNationalityCompatibility = () => {
     const nationalities = byField('jform_nationality_codes', 'jform[nationality_codes]');
     const legacy = byField('jform_nationality_code', 'jform[nationality_code]');
-    if (!nationalities || !legacy) {
-      return;
-    }
+    if (!nationalities || !legacy) return;
 
     const sync = () => {
       legacy.value = selectedValues(nationalities).filter(Boolean)[0] || '';
     };
 
     nationalities.addEventListener('change', sync);
-    document.addEventListener('change', (event) => {
-      if (event.target === nationalities) {
-        sync();
-      }
-    });
     sync();
   };
 
