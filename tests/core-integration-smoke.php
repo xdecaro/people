@@ -20,6 +20,12 @@ if (str_contains($provider, '#__decaro') && !str_contains($provider, '#__xdecaro
     fwrite(STDERR, "People provider crossed a private legacy-table boundary.\n");
     exit(1);
 }
+foreach (['p.gender', 'p.has_disability', 'p.street_number'] as $sensitiveMarker) {
+    if (!str_contains($provider, $sensitiveMarker)) {
+        fwrite(STDERR, "Sensitive provider projection is missing $sensitiveMarker.\n");
+        exit(1);
+    }
+}
 
 $serviceProvider = file_get_contents(__DIR__ . '/../component/admin/services/provider.php');
 if (!str_contains($serviceProvider, '$component->setMVCFactory($container->get(MVCFactoryInterface::class));')) {
@@ -37,6 +43,39 @@ if (!str_contains($model, '$this->getUserStateFromRequest(')) {
     exit(1);
 }
 
+$personModel = file_get_contents(__DIR__ . '/../component/admin/src/Model/PersonModel.php');
+foreach (['has_disability', 'birth_date', 'gender', 'nationality_code', 'street_number'] as $marker) {
+    if (!str_contains($personModel, $marker)) {
+        fwrite(STDERR, "PersonModel is missing profile/privacy marker: $marker\n");
+        exit(1);
+    }
+}
+if (!str_contains($personModel, "$data['birth_date'] = $birthDate !== '' ? $birthDate : null;")) {
+    fwrite(STDERR, "PersonModel must normalize an empty optional birth date to SQL NULL.\n");
+    exit(1);
+}
+
+$formXml = file_get_contents(__DIR__ . '/../component/admin/forms/person.xml');
+foreach ([
+    'type="Country" code="alpha3"',
+    'type="Country" code="alpha2"',
+    'layout="joomla.form.field.list-fancy-select"',
+    'name="gender"',
+    'name="has_disability"',
+    'name="whatsapp"',
+    'name="street_number"',
+    'name="social"',
+] as $marker) {
+    if (!str_contains($formXml, $marker)) {
+        fwrite(STDERR, "Person form is missing 1.1.0 marker: $marker\n");
+        exit(1);
+    }
+}
+if (str_contains($formXml, 'name="display_name"')) {
+    fwrite(STDERR, "Display name must remain internal and not be user-editable.\n");
+    exit(1);
+}
+
 $editTemplate = file_get_contents(__DIR__ . '/../component/admin/tmpl/person/edit.php');
 foreach ([
     "HTMLHelper::_('behavior.formvalidator')",
@@ -44,15 +83,32 @@ foreach ([
     'id="adminForm"',
     'class="form-validate"',
     'option=com_xdecaropeople&view=person&layout=edit',
+    "renderFieldset('residence')",
+    "renderFieldset('social')",
 ] as $marker) {
     if (!str_contains($editTemplate, $marker)) {
-        fwrite(STDERR, "People person form is missing Joomla 6 toolbar requirement: $marker\n");
+        fwrite(STDERR, "People person form is missing Joomla 6/profile requirement: $marker\n");
         exit(1);
     }
 }
 if (str_contains($editTemplate, 'id="person-form"')) {
     fwrite(STDERR, "People person form must use Joomla's standard adminForm id.\n");
     exit(1);
+}
+
+$assets = json_decode(file_get_contents(__DIR__ . '/../component/media/joomla.asset.json'), true, 512, JSON_THROW_ON_ERROR);
+$assetNames = array_column($assets['assets'] ?? [], 'name');
+if (!in_array('com_xdecaropeople.person', $assetNames, true)) {
+    fwrite(STDERR, "People person JavaScript asset is not registered.\n");
+    exit(1);
+}
+
+$tinScript = file_get_contents(__DIR__ . '/../component/media/js/person.js');
+foreach (['ITA', 'Codice fiscale', 'FRA', 'Numéro fiscal', "label.textContent"] as $marker) {
+    if (!str_contains($tinScript, $marker)) {
+        fwrite(STDERR, "TIN nationality helper is missing marker: $marker\n");
+        exit(1);
+    }
 }
 
 $manifest = simplexml_load_file(__DIR__ . '/../component/xdecaropeople.xml');
