@@ -1,7 +1,6 @@
 <?php
 
 namespace xdecaro\Component\People\Administrator\View\Person;
-
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
@@ -54,7 +53,17 @@ final class HtmlView extends BaseHtmlView
 
         $assets = $this->document->getWebAssetManager();
         $assets->useStyle('com_xdecaropeople.admin');
-        $assets->useScript('com_xdecaropeople.person-form');
+
+        // Register explicitly as well as through joomla.asset.json. This forces a
+        // fresh cache key after an in-place component update and avoids an old
+        // person-form.js remaining active in the browser/Joomla asset registry.
+        $assets->registerAndUseScript(
+            'com_xdecaropeople.person-form',
+            'com_xdecaropeople/js/person-form.js',
+            ['version' => '1.2.1'],
+            ['defer' => true],
+            ['core']
+        );
 
         ToolbarHelper::title($isNew ? Text::_('COM_XDECAROPEOPLE_PERSON_NEW') : Text::_('COM_XDECAROPEOPLE_PERSON_EDIT'), 'user');
         ToolbarHelper::apply('person.apply');
