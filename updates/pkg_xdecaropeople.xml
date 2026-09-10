@@ -6,14 +6,14 @@
     <element>pkg_xdecaropeople</element>
     <type>package</type>
     <client>site</client>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <downloads>
-      <downloadurl type="full" format="zip">https://github.com/xdecaro/people/releases/download/v1.0.2/pkg_xdecaropeople_1.0.2.zip</downloadurl>
+      <downloadurl type="full" format="zip">https://github.com/xdecaro/people/releases/download/v1.0.3/pkg_xdecaropeople_1.0.3.zip</downloadurl>
     </downloads>
     <tags>
       <tag>stable</tag>
     </tags>
-    <sha256>0301f7a5e276d689d9202b8138ac1a7d30f18e53f0d79f94974ada8ea5d0e7fe</sha256>
+    <sha256>cb4402b2d8174397d0df3df17fecf186173caa36a6b69a67c7ec7a8b6d655c43</sha256>
     <maintainer>Luca De Caro</maintainer>
     <maintainerurl>https://github.com/xdecaro/people</maintainerurl>
     <targetplatform name="joomla" version="6\.[0-9]+" />
