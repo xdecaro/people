@@ -19,21 +19,25 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="$(tr -d '\r\n' < VERSION)"
-          test "$VERSION" = '1.0.4'
+          test "$VERSION" = '1.1.0'
           php tests/core-integration-smoke.php
           python3 - <<'PY'
-          import pathlib,xml.etree.ElementTree as ET
+          import json,pathlib,xml.etree.ElementTree as ET
           for p in pathlib.Path('.').rglob('*.xml'):
               ET.parse(p)
+          json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
           PY
           grep -Fq "<version>${VERSION}</version>" component/xdecaropeople.xml
           grep -Fq "<version>${VERSION}</version>" package/pkg_xdecaropeople.xml
+          grep -Fq '"version": "1.1.0"' component/media/joomla.asset.json
           grep -Fq '<targetplatform name="joomla" version="6.*"' component/xdecaropeople.xml
           grep -Fq '<targetplatform name="joomla" version="6.*"' package/pkg_xdecaropeople.xml
           grep -Fq 'version="6\.[0-9]+"' updates/pkg_xdecaropeople.xml
           ! grep -RniE '<targetplatform[^>]+version="(4|5)' component package updates
           grep -Fq '<languages folder="admin/language">' component/xdecaropeople.xml
+          grep -Fq '<folder>js</folder>' component/xdecaropeople.xml
           grep -Fq 'COM_XDECAROPEOPLE="People"' component/admin/language/it-IT/com_xdecaropeople.sys.ini
+          grep -Fq 'COM_XDECAROPEOPLE="People"' component/admin/language/it-IT/com_xdecaropeople.ini
           grep -Fq 'COM_XDECAROPEOPLE_XML_DESCRIPTION=' component/admin/language/it-IT/com_xdecaropeople.sys.ini
           ! grep -Fq -- '->getApplication()' component/admin/src/Model/PeopleModel.php
           grep -Fq '$this->getUserStateFromRequest(' component/admin/src/Model/PeopleModel.php
@@ -41,7 +45,7 @@ jobs:
           grep -Fq "protected \$view_item = 'person';" component/admin/src/Controller/PersonController.php
           grep -Fq "getExtensionRecord('com_xdecaropeople', 'component', 1)" component/admin/src/Model/InformationModel.php
           ! grep -Fq "'component_version' => '1.0." component/admin/src/Model/InformationModel.php
-          ! grep -RniF 'People by xdecaro' package updates README.md AGENTS.md .github/workflows/release.yml
+          ! grep -RniF 'People by xdecaro' component package updates README.md AGENTS.md .github/workflows/release.yml
           grep -Fq '<name>People</name>' package/pkg_xdecaropeople.xml
           grep -Fq '<author>Luca De Caro</author>' component/xdecaropeople.xml
           grep -Fq '<author>Luca De Caro</author>' package/pkg_xdecaropeople.xml
@@ -54,6 +58,14 @@ jobs:
           ! grep -RniE '#__(decarocourses|decarodocuments|decaromembership|xdecarocompetitions|xdecaroorganizations)_' component
           ! grep -Fq 'MODIFY COLUMN `first_name`' component/admin/sql/updates/mysql/1.0.0.sql
           ! grep -Fq 'MODIFY COLUMN `last_name`' component/admin/sql/updates/mysql/1.0.0.sql
+          grep -Fq "\$data['birth_date'] = \$birthDate !== '' ? \$birthDate : null;" component/admin/src/Model/PersonModel.php
+          grep -Fq "'disability_status'" component/admin/src/Model/PersonModel.php
+          grep -Fq 'name="nationality_code" type="Country" code="alpha3"' component/admin/forms/person.xml
+          grep -Fq 'name="country_code" type="Country" code="alpha2"' component/admin/forms/person.xml
+          grep -Fq 'layout="joomla.form.field.list-fancy-select"' component/admin/forms/person.xml
+          ! grep -Fq 'name="display_name"' component/admin/forms/person.xml
+          grep -Fq 'com_xdecaropeople.person-form' component/media/joomla.asset.json
+          test -f component/media/js/person-form.js
       - name: Deterministic build
         run: |
           chmod +x build/build.sh
@@ -134,7 +146,7 @@ jobs:
           MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla)
           test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_xdecaropeople';")" = 1
           test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people';")" = 1
-          for column in user_id birth_date tax_identifier address_line language notes; do
+          for column in user_id birth_date sex disability_status tax_identifier whatsapp address_line address_number language social_instagram social_facebook social_linkedin social_tiktok social_telegram social_x social_youtube website_url notes; do
             test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people' AND column_name='${column}';")" = 1
           done
           schema="$("${MYSQL[@]}" -e "SELECT s.version_id FROM ppl_schemas s JOIN ppl_extensions e ON e.extension_id=s.extension_id WHERE e.element='com_xdecaropeople' LIMIT 1;")"
@@ -144,6 +156,7 @@ jobs:
           grep -Fq 'COM_XDECAROPEOPLE_XML_DESCRIPTION=' joomla/administrator/language/en-GB/com_xdecaropeople.sys.ini
           unzip -Z1 "dist/com_xdecaropeople_${VERSION}.zip" | grep -Fxq 'admin/language/en-GB/com_xdecaropeople.sys.ini'
           unzip -Z1 "dist/com_xdecaropeople_${VERSION}.zip" | grep -Fxq 'admin/language/it-IT/com_xdecaropeople.sys.ini'
+          unzip -Z1 "dist/com_xdecaropeople_${VERSION}.zip" | grep -Fxq 'media/js/person-form.js'
           grep -Fq 'COM_XDECAROPEOPLE="People"' component/admin/language/it-IT/com_xdecaropeople.sys.ini
           grep -Fq 'COM_XDECAROPEOPLE_XML_DESCRIPTION=' component/admin/language/it-IT/com_xdecaropeople.sys.ini
           if [ '${{ matrix.mode }}' = 'upgrade-0.2.0' ]; then
@@ -160,6 +173,8 @@ jobs:
           define('JPATH_BASE', __DIR__);
           require JPATH_BASE . '/includes/defines.php';
           require JPATH_BASE . '/includes/framework.php';
+          define('JPATH_COMPONENT', JPATH_ADMINISTRATOR . '/components/com_xdecaropeople');
+          define('JPATH_COMPONENT_ADMINISTRATOR', JPATH_COMPONENT);
 
           $container = \Joomla\CMS\Factory::getContainer();
           $container->alias('session', 'session.cli')
@@ -182,6 +197,63 @@ jobs:
           $items = $model->getItems();
           if ($items === false || !is_array($items)) {
               fwrite(STDERR, "PeopleModel list query failed.\n");
+              exit(1);
+          }
+
+          $person = $factory->createModel('Person', 'Administrator');
+          if (!$person instanceof \xdecaro\Component\People\Administrator\Model\PersonModel) {
+              fwrite(STDERR, "PersonModel was not created through Joomla MVCFactory.\n");
+              exit(1);
+          }
+
+          $form = $person->getForm([], false);
+          $nationality = $form ? $form->getField('nationality_code') : null;
+          if (!$nationality || $nationality->type !== 'Country') {
+              fwrite(STDERR, "Searchable nationality field was not loaded.\n");
+              exit(1);
+          }
+          $optionsMethod = new \ReflectionMethod($nationality, 'getOptions');
+          $optionsMethod->setAccessible(true);
+          $countryOptions = (array) $optionsMethod->invoke($nationality);
+          $countryValues = array_map(static fn($option): string => (string) ($option->value ?? ''), $countryOptions);
+          if (!in_array('ITA', $countryValues, true) || !in_array('FRA', $countryValues, true)) {
+              fwrite(STDERR, "Country field is missing expected ISO options.\n");
+              exit(1);
+          }
+
+          if (!$person->save([
+              'first_name' => 'Runtime',
+              'last_name' => 'Probe',
+              'birth_date' => '',
+              'sex' => '',
+              'disability_status' => '',
+              'nationality_code' => 'ITA',
+              'tax_identifier' => '',
+              'state' => 1,
+              'access' => 1,
+          ])) {
+              fwrite(STDERR, "Minimal person save failed: " . $person->getError() . "\n");
+              exit(1);
+          }
+
+          $db = $container->get(\Joomla\Database\DatabaseInterface::class);
+          $query = $db->getQuery(true)
+              ->select(['id','uuid','display_name','birth_date','sex','disability_status','nationality_code'])
+              ->from($db->quoteName('#__xdecaropeople_people'))
+              ->where($db->quoteName('first_name') . ' = ' . $db->quote('Runtime'))
+              ->where($db->quoteName('last_name') . ' = ' . $db->quote('Probe'))
+              ->order($db->quoteName('id') . ' DESC');
+          $saved = $db->setQuery($query, 0, 1)->loadAssoc();
+          if (!$saved) {
+              fwrite(STDERR, "Saved runtime person was not found.\n");
+              exit(1);
+          }
+          if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', (string) $saved['uuid'])) {
+              fwrite(STDERR, "Generated UUID is invalid.\n");
+              exit(1);
+          }
+          if ($saved['display_name'] !== 'Runtime Probe' || $saved['birth_date'] !== null || $saved['sex'] !== null || $saved['disability_status'] !== null || $saved['nationality_code'] !== 'ITA') {
+              fwrite(STDERR, "Minimal person normalization is incorrect: " . json_encode($saved) . "\n");
               exit(1);
           }
 

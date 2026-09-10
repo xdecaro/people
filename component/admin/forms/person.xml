@@ -1,6 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<form>
-<fieldset name="identity" label="COM_XDECAROPEOPLE_FIELDSET_IDENTITY"><field name="id" type="hidden"/><field name="uuid" type="text" label="COM_XDECAROPEOPLE_FIELD_UUID" readonly="true" filter="cmd"/><field name="first_name" type="text" label="COM_XDECAROPEOPLE_FIELD_FIRST_NAME" required="true" filter="string" maxlength="150"/><field name="last_name" type="text" label="COM_XDECAROPEOPLE_FIELD_LAST_NAME" required="true" filter="string" maxlength="150"/><field name="display_name" type="text" label="COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME" filter="string" maxlength="255"/><field name="user_id" type="user" label="COM_XDECAROPEOPLE_FIELD_USER"/><field name="birth_date" type="calendar" label="COM_XDECAROPEOPLE_FIELD_BIRTH_DATE" format="%Y-%m-%d" filter="user_utc"/><field name="birth_place" type="text" label="COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE" filter="string" maxlength="190"/><field name="nationality_code" type="text" label="COM_XDECAROPEOPLE_FIELD_NATIONALITY" filter="cmd" maxlength="3"/><field name="tax_identifier" type="text" label="COM_XDECAROPEOPLE_FIELD_TAX_IDENTIFIER" filter="string" maxlength="64"/></fieldset>
-<fieldset name="contacts" label="COM_XDECAROPEOPLE_FIELDSET_CONTACTS"><field name="email" type="email" label="JGLOBAL_EMAIL" filter="string" maxlength="254"/><field name="phone" type="tel" label="COM_XDECAROPEOPLE_FIELD_PHONE" filter="string" maxlength="50"/><field name="address_line" type="text" label="COM_XDECAROPEOPLE_FIELD_ADDRESS" filter="string" maxlength="255"/><field name="postal_code" type="text" label="COM_XDECAROPEOPLE_FIELD_POSTAL_CODE" filter="string" maxlength="32"/><field name="city" type="text" label="COM_XDECAROPEOPLE_FIELD_CITY" filter="string" maxlength="190"/><field name="region" type="text" label="COM_XDECAROPEOPLE_FIELD_REGION" filter="string" maxlength="190"/><field name="country_code" type="text" label="COM_XDECAROPEOPLE_FIELD_COUNTRY" filter="cmd" maxlength="2"/><field name="language" type="contentlanguage" label="COM_XDECAROPEOPLE_FIELD_LANGUAGE"/></fieldset>
-<fieldset name="publishing" label="JGLOBAL_FIELDSET_PUBLISHING"><field name="state" type="list" label="JSTATUS" default="1"><option value="1">JPUBLISHED</option><option value="0">JUNPUBLISHED</option><option value="-2">JTRASHED</option></field><field name="access" type="accesslevel" label="JFIELD_ACCESS_LABEL"/><field name="notes" type="textarea" label="COM_XDECAROPEOPLE_FIELD_NOTES" rows="5" filter="safehtml"/></fieldset>
+<form addfieldprefix="xdecaro\Component\People\Administrator\Field">
+  <fieldset name="identity" label="COM_XDECAROPEOPLE_FIELDSET_IDENTITY">
+    <field name="id" type="hidden"/>
+    <field name="uuid" type="text" label="COM_XDECAROPEOPLE_FIELD_UUID" readonly="true" filter="cmd"/>
+    <field name="first_name" type="text" label="COM_XDECAROPEOPLE_FIELD_FIRST_NAME" required="true" filter="string" maxlength="150"/>
+    <field name="last_name" type="text" label="COM_XDECAROPEOPLE_FIELD_LAST_NAME" required="true" filter="string" maxlength="150"/>
+    <field name="user_id" type="user" label="COM_XDECAROPEOPLE_FIELD_USER"/>
+    <field name="birth_date" type="calendar" label="COM_XDECAROPEOPLE_FIELD_BIRTH_DATE" format="%Y-%m-%d" filter="user_utc"/>
+    <field name="sex" type="list" label="COM_XDECAROPEOPLE_FIELD_SEX" filter="cmd">
+      <option value="">COM_XDECAROPEOPLE_SELECT_OPTION</option>
+      <option value="M">COM_XDECAROPEOPLE_SEX_MALE</option>
+      <option value="F">COM_XDECAROPEOPLE_SEX_FEMALE</option>
+    </field>
+    <field name="disability_status" type="list" label="COM_XDECAROPEOPLE_FIELD_DISABILITY" filter="string">
+      <option value="">COM_XDECAROPEOPLE_SELECT_OPTION</option>
+      <option value="1">JYES</option>
+      <option value="0">JNO</option>
+    </field>
+    <field name="birth_place" type="text" label="COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE" filter="string" maxlength="190"/>
+    <field name="nationality_code" type="Country" code="alpha3" label="COM_XDECAROPEOPLE_FIELD_NATIONALITY" filter="cmd" validate="options" layout="joomla.form.field.list-fancy-select">
+      <option value="">COM_XDECAROPEOPLE_SELECT_NATIONALITY</option>
+    </field>
+    <field name="tax_identifier" type="text" label="COM_XDECAROPEOPLE_FIELD_TIN" filter="string" maxlength="64"/>
+  </fieldset>
+
+  <fieldset name="contacts" label="COM_XDECAROPEOPLE_FIELDSET_CONTACTS">
+    <field name="email" type="email" label="JGLOBAL_EMAIL" filter="string" maxlength="254"/>
+    <field name="phone" type="tel" label="COM_XDECAROPEOPLE_FIELD_PHONE" filter="string" maxlength="50"/>
+    <field name="whatsapp" type="tel" label="COM_XDECAROPEOPLE_FIELD_WHATSAPP" filter="string" maxlength="50"/>
+    <field name="language" type="contentlanguage" label="COM_XDECAROPEOPLE_FIELD_COMMUNICATION_LANGUAGE"/>
+  </fieldset>
+
+  <fieldset name="residence" label="COM_XDECAROPEOPLE_FIELDSET_RESIDENCE">
+    <field name="address_line" type="text" label="COM_XDECAROPEOPLE_FIELD_ADDRESS" filter="string" maxlength="255"/>
+    <field name="address_number" type="text" label="COM_XDECAROPEOPLE_FIELD_ADDRESS_NUMBER" filter="string" maxlength="32"/>
+    <field name="postal_code" type="text" label="COM_XDECAROPEOPLE_FIELD_POSTAL_CODE" filter="string" maxlength="32"/>
+    <field name="city" type="text" label="COM_XDECAROPEOPLE_FIELD_CITY" filter="string" maxlength="190"/>
+    <field name="region" type="text" label="COM_XDECAROPEOPLE_FIELD_REGION" filter="string" maxlength="190"/>
+    <field name="country_code" type="Country" code="alpha2" label="COM_XDECAROPEOPLE_FIELD_COUNTRY" filter="cmd" validate="options" layout="joomla.form.field.list-fancy-select">
+      <option value="">COM_XDECAROPEOPLE_SELECT_COUNTRY</option>
+    </field>
+  </fieldset>
+
+  <fieldset name="social" label="COM_XDECAROPEOPLE_FIELDSET_SOCIAL">
+    <field name="social_instagram" type="text" label="COM_XDECAROPEOPLE_FIELD_INSTAGRAM" filter="string" maxlength="255"/>
+    <field name="social_facebook" type="text" label="COM_XDECAROPEOPLE_FIELD_FACEBOOK" filter="string" maxlength="255"/>
+    <field name="social_linkedin" type="text" label="COM_XDECAROPEOPLE_FIELD_LINKEDIN" filter="string" maxlength="255"/>
+    <field name="social_tiktok" type="text" label="COM_XDECAROPEOPLE_FIELD_TIKTOK" filter="string" maxlength="255"/>
+    <field name="social_telegram" type="text" label="COM_XDECAROPEOPLE_FIELD_TELEGRAM" filter="string" maxlength="255"/>
+    <field name="social_x" type="text" label="COM_XDECAROPEOPLE_FIELD_X" filter="string" maxlength="255"/>
+    <field name="social_youtube" type="text" label="COM_XDECAROPEOPLE_FIELD_YOUTUBE" filter="string" maxlength="255"/>
+    <field name="website_url" type="url" label="COM_XDECAROPEOPLE_FIELD_WEBSITE" filter="url" maxlength="255"/>
+  </fieldset>
+
+  <fieldset name="publishing" label="JGLOBAL_FIELDSET_PUBLISHING">
+    <field name="state" type="list" label="JSTATUS" default="1">
+      <option value="1">JPUBLISHED</option>
+      <option value="0">JUNPUBLISHED</option>
+      <option value="-2">JTRASHED</option>
+    </field>
+    <field name="access" type="accesslevel" label="JFIELD_ACCESS_LABEL"/>
+    <field name="notes" type="textarea" label="COM_XDECAROPEOPLE_FIELD_NOTES" rows="5" filter="safehtml"/>
+  </fieldset>
 </form>
