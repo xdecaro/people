@@ -1,0 +1,2 @@
+-- People 1.1.0 profile expansion.
+-- New nullable columns are added non-destructively by component/script.php so legacy 0.2.x tables are repaired safely before use.
