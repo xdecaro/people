@@ -12,7 +12,7 @@
       <option value="M">COM_XDECAROPEOPLE_SEX_MALE</option>
       <option value="F">COM_XDECAROPEOPLE_SEX_FEMALE</option>
     </field>
-    <field name="disability_status" type="list" label="COM_XDECAROPEOPLE_FIELD_DISABILITY" filter="integer">
+    <field name="disability_status" type="list" label="COM_XDECAROPEOPLE_FIELD_DISABILITY" filter="string">
       <option value="">COM_XDECAROPEOPLE_SELECT_OPTION</option>
       <option value="1">JYES</option>
       <option value="0">JNO</option>
