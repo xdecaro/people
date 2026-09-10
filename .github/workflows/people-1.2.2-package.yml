@@ -1,4 +1,4 @@
-name: People 1.2.2 package
+name: People 1.2.3 package
 
 on:
   pull_request:
@@ -16,34 +16,38 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Validate People 1.2.2 source
+      - name: Validate People 1.2.3 source
         shell: bash
         run: |
           set -euo pipefail
           VERSION="$(tr -d '\r\n' < VERSION)"
-          test "$VERSION" = '1.2.2'
+          test "$VERSION" = '1.2.3'
           find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
           python3 - <<'PY'
           import json, pathlib, xml.etree.ElementTree as ET
           for path in pathlib.Path('.').rglob('*.xml'):
               ET.parse(path)
-          json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
+          assets = json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
+          by_name = {item['name']: item for item in assets['assets']}
+          assert by_name['com_xdecaropeople.admin']['uri'] == 'com_xdecaropeople/admin.css'
+          assert by_name['com_xdecaropeople.person-form']['uri'] == 'com_xdecaropeople/person-form.js'
           PY
-          grep -Fq '<version>1.2.2</version>' component/xdecaropeople.xml
-          grep -Fq '<version>1.2.2</version>' package/pkg_xdecaropeople.xml
-          grep -Fq '"version": "1.2.2"' component/media/joomla.asset.json
+          grep -Fq '<version>1.2.3</version>' component/xdecaropeople.xml
+          grep -Fq '<version>1.2.3</version>' package/pkg_xdecaropeople.xml
+          grep -Fq '"version": "1.2.3"' component/media/joomla.asset.json
           grep -Fq "MINIMUM_CORE = '2.0.1'" component/admin/src/Service/CoreIntegrationService.php
           grep -Fq "MINIMUM_CORE='2.0.1'" package/script.php
-          grep -Fq 'name="birth_date" type="calendar"' component/admin/forms/person.xml
           grep -Fq 'format="%d/%m/%Y" filter="raw" filterformat="d/m/Y"' component/admin/forms/person.xml
+          grep -Fq '<fieldset name="disability" label="COM_XDECAROPEOPLE_FIELDSET_DISABILITY">' component/admin/forms/person.xml
           grep -Fq 'showon="disability_status:1"' component/admin/forms/person.xml
           grep -Fq 'showon="disability_status:1[AND]disability_types:other"' component/admin/forms/person.xml
-          grep -Fq 'showon="accessibility_needs:other"' component/admin/forms/person.xml
-          grep -Fq "dataset.xdecaroPeopleForm = '1.2.2'" component/media/js/person-form.js
-          grep -Fq 'locationLoading' component/media/js/person-form.js
-          grep -Fq "'com_xdecaropeople.person-form-1.2.2'" component/admin/src/View/Person/HtmlView.php
+          grep -Fq "useScript('com_xdecaropeople.person-form')" component/admin/src/View/Person/HtmlView.php
+          ! grep -Fq 'com_xdecaropeople/js/person-form.js' component/media/joomla.asset.json component/admin/src/View/Person/HtmlView.php
+          ! grep -Fq 'com_xdecaropeople/css/admin.css' component/media/joomla.asset.json component/admin/src/View/Person/HtmlView.php
+          grep -Fq "'disability', Text::_('COM_XDECAROPEOPLE_FIELDSET_DISABILITY')" component/admin/tmpl/person/edit.php
+          grep -Fq 'COM_XDECAROPEOPLE_FIELDSET_DISABILITY="Disabilità"' component/admin/language/it-IT/com_xdecaropeople.ini
           grep -Fq 'WorldLocationService::fromJoomlaConfiguration()' component/admin/src/Controller/LocationController.php
-          test -f component/admin/sql/updates/mysql/1.2.2.sql
+          test -f component/admin/sql/updates/mysql/1.2.3.sql
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
       - name: JavaScript syntax
         shell: bash
@@ -58,18 +62,18 @@ jobs:
           build/build.sh
           diff -u /tmp/people-sums dist/SHA256SUMS.txt
           for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.2.zip | grep -Fxq 'pkg_xdecaropeople.xml'
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.2.zip | grep -Fxq 'com_xdecaropeople.zip'
-          unzip -p dist/pkg_xdecaropeople_1.2.2.zip com_xdecaropeople.zip > /tmp/component.zip
-          unzip -p /tmp/component.zip admin/forms/person.xml | grep -Fq 'filterformat="d/m/Y"'
-          unzip -p /tmp/component.zip media/js/person-form.js | grep -Fq "dataset.xdecaroPeopleForm = '1.2.2'"
-      - name: Upload People 1.2.2 install package
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.3.zip | grep -Fxq 'pkg_xdecaropeople.xml'
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.3.zip | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -p dist/pkg_xdecaropeople_1.2.3.zip com_xdecaropeople.zip > /tmp/component.zip
+          unzip -p /tmp/component.zip media/joomla.asset.json | grep -Fq 'com_xdecaropeople/person-form.js'
+          unzip -p /tmp/component.zip admin/forms/person.xml | grep -Fq '<fieldset name="disability"'
+      - name: Upload People 1.2.3 install package
         uses: actions/upload-artifact@v4
         with:
-          name: people-1.2.2-package
+          name: people-1.2.3-package
           path: |
-            dist/pkg_xdecaropeople_1.2.2.zip
-            dist/com_xdecaropeople_1.2.2.zip
+            dist/pkg_xdecaropeople_1.2.3.zip
+            dist/com_xdecaropeople_1.2.3.zip
             dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 7
