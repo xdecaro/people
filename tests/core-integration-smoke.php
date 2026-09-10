@@ -50,7 +50,7 @@ foreach (['has_disability', 'birth_date', 'gender', 'nationality_code', 'street_
         exit(1);
     }
 }
-if (!str_contains($personModel, "$data['birth_date'] = $birthDate !== '' ? $birthDate : null;")) {
+if (!str_contains($personModel, "\$data['birth_date'] = \$birthDate !== '' ? \$birthDate : null;")) {
     fwrite(STDERR, "PersonModel must normalize an empty optional birth date to SQL NULL.\n");
     exit(1);
 }
