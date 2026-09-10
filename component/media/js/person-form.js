@@ -1,7 +1,16 @@
 (() => {
   'use strict';
 
-  const options = Joomla.getOptions('com_xdecaropeople.person', {});
+  const JoomlaApi = window.Joomla || {};
+  const options = typeof JoomlaApi.getOptions === 'function'
+    ? JoomlaApi.getOptions('com_xdecaropeople.person', {})
+    : {};
+
+  document.documentElement.dataset.xdecaroPeopleForm = '1.2.2';
+
+  const byField = (id, name) => document.getElementById(id)
+    || document.querySelector(`[name="${name}"]`)
+    || document.querySelector(`[name="${name}[]"]`);
 
   const fieldGroup = (element) => element?.closest('.control-group') || element?.parentElement || null;
 
@@ -15,39 +24,61 @@
     group.classList.toggle('xdecaro-conditional-small', Boolean(visible && compact));
   };
 
-  const selectedValues = (select) => Array.from(select?.selectedOptions || []).map((option) => option.value);
+  const selectedValues = (select) => {
+    if (!select) {
+      return [];
+    }
+
+    if (select.selectedOptions) {
+      return Array.from(select.selectedOptions).map((option) => option.value);
+    }
+
+    if (select.value !== undefined) {
+      return [String(select.value)];
+    }
+
+    return [];
+  };
 
   const initConditionalFields = () => {
-    const disabilityStatus = document.getElementById('jform_disability_status');
-    const disabilityTypes = document.getElementById('jform_disability_types');
-    const disabilityOther = document.getElementById('jform_disability_other');
-    const accessibilityNeeds = document.getElementById('jform_accessibility_needs');
-    const accessibilityOther = document.getElementById('jform_accessibility_other');
+    const disabilityStatus = byField('jform_disability_status', 'jform[disability_status]');
+    const disabilityTypes = byField('jform_disability_types', 'jform[disability_types]');
+    const disabilityOther = byField('jform_disability_other', 'jform[disability_other]');
+    const accessibilityNeeds = byField('jform_accessibility_needs', 'jform[accessibility_needs]');
+    const accessibilityOther = byField('jform_accessibility_other', 'jform[accessibility_other]');
 
-    const updateDisability = () => {
-      if (!disabilityStatus || !disabilityTypes || !disabilityOther) {
-        return;
+    const update = () => {
+      if (disabilityStatus && disabilityTypes) {
+        const enabled = String(disabilityStatus.value) === '1';
+        setVisible(disabilityTypes, enabled);
+        if (disabilityOther) {
+          setVisible(disabilityOther, enabled && selectedValues(disabilityTypes).includes('other'), true);
+        }
       }
 
-      const enabled = disabilityStatus.value === '1';
-      setVisible(disabilityTypes, enabled);
-      setVisible(disabilityOther, enabled && selectedValues(disabilityTypes).includes('other'), true);
-    };
-
-    const updateAccessibility = () => {
-      if (!accessibilityNeeds || !accessibilityOther) {
-        return;
+      if (accessibilityNeeds && accessibilityOther) {
+        setVisible(accessibilityOther, selectedValues(accessibilityNeeds).includes('other'), true);
       }
-
-      setVisible(accessibilityOther, selectedValues(accessibilityNeeds).includes('other'), true);
     };
 
-    disabilityStatus?.addEventListener('change', updateDisability);
-    disabilityTypes?.addEventListener('change', updateDisability);
-    accessibilityNeeds?.addEventListener('change', updateAccessibility);
+    document.addEventListener('change', (event) => {
+      if ([disabilityStatus, disabilityTypes, accessibilityNeeds].includes(event.target)) {
+        window.setTimeout(update, 0);
+      }
+    });
 
-    updateDisability();
-    updateAccessibility();
+    update();
+    window.setTimeout(update, 100);
+    window.setTimeout(update, 500);
+  };
+
+  const tokenName = () => {
+    if (options.token) {
+      return options.token;
+    }
+
+    const token = document.querySelector('#adminForm input[type="hidden"][name][value="1"]');
+    return token?.name || '';
   };
 
   const setSelectValue = (select, value) => {
@@ -59,15 +90,20 @@
     select.dispatchEvent(new Event('change', { bubbles: true }));
   };
 
-  const initWorldCity = ({ inputId, countryId, placeId, regionId }) => {
-    const input = document.getElementById(inputId);
-    const country = document.getElementById(countryId);
-    const hiddenId = document.getElementById(placeId);
-    const region = document.getElementById(regionId);
+  const initWorldCity = ({ inputId, inputName, countryId, countryName, placeId, placeName, regionId, regionName }) => {
+    const input = byField(inputId, inputName);
+    const country = byField(countryId, countryName);
+    const hiddenId = byField(placeId, placeName);
+    const region = byField(regionId, regionName);
 
-    if (!input || !hiddenId || !options.locationUrl || !options.token) {
+    if (!input || !hiddenId || input.dataset.xdecaroLocationReady === '1') {
       return;
     }
+
+    input.dataset.xdecaroLocationReady = '1';
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-expanded', 'false');
 
     const container = document.createElement('div');
     container.className = 'xdecaro-location-results';
@@ -75,11 +111,8 @@
     container.setAttribute('role', 'listbox');
     container.setAttribute('aria-label', input.getAttribute('aria-label') || input.name || 'Location');
     input.insertAdjacentElement('afterend', container);
-    input.setAttribute('autocomplete', 'off');
-    input.setAttribute('aria-autocomplete', 'list');
-    input.setAttribute('aria-expanded', 'false');
 
-    let timer = null;
+    let timer = 0;
     let request = null;
     let activeIndex = -1;
     let items = [];
@@ -93,31 +126,12 @@
       items = [];
     };
 
-    const render = (results) => {
+    const openMessage = (message, className = 'xdecaro-location-empty') => {
       container.replaceChildren();
-      items = Array.isArray(results) ? results : [];
-      activeIndex = -1;
-
-      if (!items.length) {
-        const empty = document.createElement('div');
-        empty.className = 'xdecaro-location-empty';
-        empty.textContent = options.locationEmpty || 'No locations found.';
-        container.appendChild(empty);
-      } else {
-        items.forEach((item, index) => {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'xdecaro-location-option';
-          button.id = `${inputId}-location-${index}`;
-          button.setAttribute('role', 'option');
-          button.dataset.index = String(index);
-          button.textContent = item.label || item.name || '';
-          button.addEventListener('mousedown', (event) => event.preventDefault());
-          button.addEventListener('click', () => selectItem(index));
-          container.appendChild(button);
-        });
-      }
-
+      const row = document.createElement('div');
+      row.className = className;
+      row.textContent = message;
+      container.appendChild(row);
       container.hidden = false;
       input.setAttribute('aria-expanded', 'true');
     };
@@ -138,6 +152,33 @@
       }
       close();
       input.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    const render = (results) => {
+      container.replaceChildren();
+      items = Array.isArray(results) ? results : [];
+      activeIndex = -1;
+
+      if (!items.length) {
+        openMessage(options.locationEmpty || 'Nessuna località trovata.');
+        return;
+      }
+
+      items.forEach((item, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'xdecaro-location-option';
+        button.id = `${inputId}-location-${index}`;
+        button.setAttribute('role', 'option');
+        button.dataset.index = String(index);
+        button.textContent = item.label || item.name || '';
+        button.addEventListener('mousedown', (event) => event.preventDefault());
+        button.addEventListener('click', () => selectItem(index));
+        container.appendChild(button);
+      });
+
+      container.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
     };
 
     const setActive = (index) => {
@@ -166,11 +207,17 @@
 
       request?.abort();
       request = new AbortController();
+      openMessage(options.locationLoading || 'Ricerca località…', 'xdecaro-location-loading');
 
-      const url = new URL(options.locationUrl, window.location.href);
+      const endpoint = options.locationUrl || 'index.php?option=com_xdecaropeople&task=location.search&format=json';
+      const url = new URL(endpoint, window.location.href);
       url.searchParams.set('q', query);
       url.searchParams.set('limit', '15');
-      url.searchParams.set(options.token, '1');
+
+      const token = tokenName();
+      if (token) {
+        url.searchParams.set(token, '1');
+      }
       if (country?.value) {
         url.searchParams.set('country', country.value);
       }
@@ -179,9 +226,11 @@
         const response = await fetch(url.toString(), {
           method: 'GET',
           credentials: 'same-origin',
+          cache: 'no-store',
           headers: { Accept: 'application/json' },
           signal: request.signal,
         });
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -191,22 +240,34 @@
           throw new Error(payload.message || options.locationError || 'Location search failed.');
         }
 
-        render(payload?.data?.items || []);
+        const results = payload?.data?.items || payload?.items || [];
+        render(results);
       } catch (error) {
         if (error?.name === 'AbortError') {
           return;
         }
-        close();
+
+        openMessage(
+          options.locationError || 'Impossibile cercare le località. Riprova.',
+          'xdecaro-location-error'
+        );
       }
     };
 
-    input.addEventListener('input', () => {
+    const queueSearch = () => {
       hiddenId.value = '';
       if (region) {
         region.value = '';
       }
       window.clearTimeout(timer);
-      timer = window.setTimeout(search, 300);
+      timer = window.setTimeout(search, 250);
+    };
+
+    input.addEventListener('input', queueSearch);
+    input.addEventListener('keyup', (event) => {
+      if (!['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(event.key)) {
+        queueSearch();
+      }
     });
 
     input.addEventListener('keydown', (event) => {
@@ -228,19 +289,28 @@
       }
     });
 
-    input.addEventListener('blur', () => window.setTimeout(close, 150));
+    input.addEventListener('focus', () => {
+      if (input.value.trim().length >= Number(options.locationMinChars || 2) && hiddenId.value === '') {
+        queueSearch();
+      }
+    });
+
+    input.addEventListener('blur', () => window.setTimeout(close, 180));
 
     country?.addEventListener('change', () => {
       hiddenId.value = '';
       if (region) {
         region.value = '';
       }
+      if (input.value.trim().length >= Number(options.locationMinChars || 2)) {
+        queueSearch();
+      }
     });
   };
 
   const initNationalityCompatibility = () => {
-    const nationalities = document.getElementById('jform_nationality_codes');
-    const legacy = document.getElementById('jform_nationality_code');
+    const nationalities = byField('jform_nationality_codes', 'jform[nationality_codes]');
+    const legacy = byField('jform_nationality_code', 'jform[nationality_code]');
     if (!nationalities || !legacy) {
       return;
     }
@@ -250,6 +320,11 @@
     };
 
     nationalities.addEventListener('change', sync);
+    document.addEventListener('change', (event) => {
+      if (event.target === nationalities) {
+        sync();
+      }
+    });
     sync();
   };
 
@@ -259,16 +334,24 @@
 
     initWorldCity({
       inputId: 'jform_birth_place',
+      inputName: 'jform[birth_place]',
       countryId: 'jform_birth_country_code',
+      countryName: 'jform[birth_country_code]',
       placeId: 'jform_birth_place_id',
+      placeName: 'jform[birth_place_id]',
       regionId: 'jform_birth_region',
+      regionName: 'jform[birth_region]',
     });
 
     initWorldCity({
       inputId: 'jform_city',
+      inputName: 'jform[city]',
       countryId: 'jform_country_code',
+      countryName: 'jform[country_code]',
       placeId: 'jform_residence_place_id',
+      placeName: 'jform[residence_place_id]',
       regionId: 'jform_region',
+      regionName: 'jform[region]',
     });
   };
 
