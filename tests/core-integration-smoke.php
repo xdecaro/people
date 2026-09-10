@@ -46,8 +46,13 @@ if ($manifest === false || $package === false || $feed === false) {
 }
 
 $version = trim(file_get_contents(__DIR__ . '/../VERSION'));
-if ((string) $manifest->version !== $version || (string) $package->version !== $version || (string) $feed->update->version !== $version) {
-    fwrite(STDERR, "People version metadata is inconsistent.\n");
+$feedVersion = (string) $feed->update->version;
+if ((string) $manifest->version !== $version || (string) $package->version !== $version) {
+    fwrite(STDERR, "People source/package version metadata is inconsistent.\n");
+    exit(1);
+}
+if ($feedVersion === '' || version_compare($feedVersion, $version, '>')) {
+    fwrite(STDERR, "People public update feed cannot be newer than source.\n");
     exit(1);
 }
 if ((string) $manifest->targetplatform['version'] !== '6.*' || (string) $package->targetplatform['version'] !== '6.*') {
@@ -60,6 +65,10 @@ if ((string) $feed->update->targetplatform['version'] !== '6\\.[0-9]+') {
 }
 if ((string) $manifest->author !== 'Luca De Caro' || (string) $package->author !== 'Luca De Caro') {
     fwrite(STDERR, "People manifest author metadata changed unexpectedly.\n");
+    exit(1);
+}
+if ((string) $package->name !== 'People' || (string) $feed->update->name !== 'People') {
+    fwrite(STDERR, "People visible package/update branding must be People.\n");
     exit(1);
 }
 
