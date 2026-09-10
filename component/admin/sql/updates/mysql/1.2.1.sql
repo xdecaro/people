@@ -1,0 +1,2 @@
+-- People 1.2.1
+-- No schema changes. Patch release for Joomla administrator redirects and fresh person-form assets.
