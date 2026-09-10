@@ -173,6 +173,8 @@ jobs:
           define('JPATH_BASE', __DIR__);
           require JPATH_BASE . '/includes/defines.php';
           require JPATH_BASE . '/includes/framework.php';
+          define('JPATH_COMPONENT', JPATH_ADMINISTRATOR . '/components/com_xdecaropeople');
+          define('JPATH_COMPONENT_ADMINISTRATOR', JPATH_COMPONENT);
 
           $container = \Joomla\CMS\Factory::getContainer();
           $container->alias('session', 'session.cli')
