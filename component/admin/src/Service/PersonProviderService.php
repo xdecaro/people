@@ -168,6 +168,12 @@ final class PersonProviderService
             $row['nationality_codes'] = [(string) $row['nationality_code']];
         }
 
+        if (!empty($row['profile_document_uuid'])) {
+            $row['profile_document_reference'] = $this->core
+                ->createDocumentReference((string) $row['profile_document_uuid'])
+                ->toArray();
+        }
+
         return $row;
     }
 
