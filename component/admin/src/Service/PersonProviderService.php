@@ -39,10 +39,6 @@ final class PersonProviderService
         $row = $this->normalizeStructuredFields($row, $sensitive);
         $row['entity_reference'] = $this->core->createEntityReference((int) $row['id'])->toArray();
 
-        if ($sensitive) {
-            $row['profile_completeness'] = $this->profileCompleteness($row);
-        }
-
         return $row;
     }
 
@@ -81,9 +77,6 @@ final class PersonProviderService
         $rows = array_values((array) $this->db->setQuery($query, 0, $limit)->loadAssocList());
         foreach ($rows as &$row) {
             $row = $this->normalizeStructuredFields($row, $sensitive);
-            if ($sensitive) {
-                $row['profile_completeness'] = $this->profileCompleteness($row);
-            }
         }
         unset($row);
 
@@ -98,32 +91,6 @@ final class PersonProviderService
 
         $rows = $this->searchPeople(['user_id' => $userId], 1, false);
         return $rows[0] ?? null;
-    }
-
-    public function profileCompleteness(array $person): int
-    {
-        $checks = [
-            'first_name',
-            'last_name',
-            'birth_date',
-            'nationality_codes',
-            'birth_country_code',
-            'birth_place',
-            'email',
-            'country_code',
-            'city',
-            'language',
-        ];
-
-        $complete = 0;
-        foreach ($checks as $field) {
-            $value = $person[$field] ?? null;
-            if (is_array($value) ? !empty($value) : trim((string) $value) !== '') {
-                $complete++;
-            }
-        }
-
-        return (int) round(($complete / count($checks)) * 100);
     }
 
     private function columns(bool $sensitive): array
