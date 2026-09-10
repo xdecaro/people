@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form addfieldprefix="xdecaro\Component\People\Administrator\Field">
+  <field name="type" type="list" label="COM_XDECAROPEOPLE_FIELD_ADDRESS_TYPE" filter="cmd" required="true">
+    <option value="domicile">COM_XDECAROPEOPLE_ADDRESS_TYPE_DOMICILE</option>
+    <option value="correspondence">COM_XDECAROPEOPLE_ADDRESS_TYPE_CORRESPONDENCE</option>
+    <option value="billing">COM_XDECAROPEOPLE_ADDRESS_TYPE_BILLING</option>
+    <option value="other">COM_XDECAROPEOPLE_ADDRESS_TYPE_OTHER</option>
+  </field>
+  <field name="address_line" type="text" label="COM_XDECAROPEOPLE_FIELD_ADDRESS" filter="string" maxlength="255"/>
+  <field name="address_number" type="text" label="COM_XDECAROPEOPLE_FIELD_ADDRESS_NUMBER" filter="string" maxlength="32"/>
+  <field name="postal_code" type="text" label="COM_XDECAROPEOPLE_FIELD_POSTAL_CODE" filter="string" maxlength="32"/>
+  <field name="city" type="text" label="COM_XDECAROPEOPLE_FIELD_CITY" filter="string" maxlength="190"/>
+  <field name="region" type="text" label="COM_XDECAROPEOPLE_FIELD_REGION" filter="string" maxlength="190"/>
+  <field name="country_code" type="Country" code="alpha2" label="COM_XDECAROPEOPLE_FIELD_COUNTRY" filter="cmd" validate="options" layout="joomla.form.field.list-fancy-select">
+    <option value="">COM_XDECAROPEOPLE_SELECT_COUNTRY</option>
+  </field>
+</form>
