@@ -212,8 +212,11 @@ jobs:
               fwrite(STDERR, "Searchable nationality field was not loaded.\n");
               exit(1);
           }
-          $nationalityHtml = (string) $nationality->input;
-          if (!str_contains($nationalityHtml, 'ITA') || !str_contains($nationalityHtml, 'FRA')) {
+          $optionsMethod = new \ReflectionMethod($nationality, 'getOptions');
+          $optionsMethod->setAccessible(true);
+          $countryOptions = (array) $optionsMethod->invoke($nationality);
+          $countryValues = array_map(static fn($option): string => (string) ($option->value ?? ''), $countryOptions);
+          if (!in_array('ITA', $countryValues, true) || !in_array('FRA', $countryValues, true)) {
               fwrite(STDERR, "Country field is missing expected ISO options.\n");
               exit(1);
           }
