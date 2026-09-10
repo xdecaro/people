@@ -37,6 +37,24 @@ if (!str_contains($model, '$this->getUserStateFromRequest(')) {
     exit(1);
 }
 
+$editTemplate = file_get_contents(__DIR__ . '/../component/admin/tmpl/person/edit.php');
+foreach ([
+    "HTMLHelper::_('behavior.formvalidator')",
+    'name="adminForm"',
+    'id="adminForm"',
+    'class="form-validate"',
+    'option=com_xdecaropeople&view=person&layout=edit',
+] as $marker) {
+    if (!str_contains($editTemplate, $marker)) {
+        fwrite(STDERR, "People person form is missing Joomla 6 toolbar requirement: $marker\n");
+        exit(1);
+    }
+}
+if (str_contains($editTemplate, 'id="person-form"')) {
+    fwrite(STDERR, "People person form must use Joomla's standard adminForm id.\n");
+    exit(1);
+}
+
 $manifest = simplexml_load_file(__DIR__ . '/../component/xdecaropeople.xml');
 $package = simplexml_load_file(__DIR__ . '/../package/pkg_xdecaropeople.xml');
 $feed = simplexml_load_file(__DIR__ . '/../updates/pkg_xdecaropeople.xml');
