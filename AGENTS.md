@@ -6,4 +6,6 @@ Dependency direction is `People -> Core`. Cross-product integration uses `Person
 
 Sensitive identity/address fields require `people.view_sensitive`. Use server-side ACL, CSRF, filtered input, escaped output, bound queries and `#__`. Diagnostics must not expose person data.
 
-`1.0.0` is the first stable `com_xdecaropeople` / `pkg_xdecaropeople` release. Updates preserve data/configuration and ZIPs install directly in Joomla 5/6.
+People is Joomla 6 only. New technical identifiers use the `xdecaro` prefix and canonical lowercase `xdecaro\...` namespaces. Manifest author metadata remains `Luca De Caro`.
+
+`1.0.0` is the first stable `com_xdecaropeople` / `pkg_xdecaropeople` release. Updates preserve data/configuration and ZIPs install directly in Joomla 6.
