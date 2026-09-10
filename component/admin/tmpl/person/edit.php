@@ -15,7 +15,19 @@ HTMLHelper::_('behavior.formvalidator');
     id="adminForm"
     class="form-validate"
 >
-    <div class="xdecaro-scope">
+    <div class="xdecaro-scope xdecaro-people-person-edit">
+        <?php if ($this->profileCompleteness !== null) : ?>
+            <div class="xdecaro-profile-completeness" role="status" aria-label="<?php echo Text::_('COM_XDECAROPEOPLE_PROFILE_COMPLETENESS'); ?>">
+                <div class="xdecaro-profile-completeness__header">
+                    <strong><?php echo Text::_('COM_XDECAROPEOPLE_PROFILE_COMPLETENESS'); ?></strong>
+                    <span><?php echo (int) $this->profileCompleteness; ?>%</span>
+                </div>
+                <div class="xdecaro-profile-completeness__track" aria-hidden="true">
+                    <span style="width: <?php echo (int) $this->profileCompleteness; ?>%"></span>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <?php
         echo HTMLHelper::_('uitab.startTabSet', 'personTabs', ['active' => 'identity']);
 
@@ -27,9 +39,21 @@ HTMLHelper::_('behavior.formvalidator');
         echo $this->form->renderFieldset('contacts');
         echo HTMLHelper::_('uitab.endTab');
 
+        if ($this->form->getFieldset('accessibility')) {
+            echo HTMLHelper::_('uitab.addTab', 'personTabs', 'accessibility', Text::_('COM_XDECAROPEOPLE_FIELDSET_ACCESSIBILITY'));
+            echo $this->form->renderFieldset('accessibility');
+            echo HTMLHelper::_('uitab.endTab');
+        }
+
         echo HTMLHelper::_('uitab.addTab', 'personTabs', 'residence', Text::_('COM_XDECAROPEOPLE_FIELDSET_RESIDENCE'));
         echo $this->form->renderFieldset('residence');
         echo HTMLHelper::_('uitab.endTab');
+
+        if ($this->form->getFieldset('relations')) {
+            echo HTMLHelper::_('uitab.addTab', 'personTabs', 'relations', Text::_('COM_XDECAROPEOPLE_FIELDSET_RELATIONS'));
+            echo $this->form->renderFieldset('relations');
+            echo HTMLHelper::_('uitab.endTab');
+        }
 
         echo HTMLHelper::_('uitab.addTab', 'personTabs', 'social', Text::_('COM_XDECAROPEOPLE_FIELDSET_SOCIAL'));
         echo $this->form->renderFieldset('social');
@@ -37,6 +61,10 @@ HTMLHelper::_('behavior.formvalidator');
 
         echo HTMLHelper::_('uitab.addTab', 'personTabs', 'publishing', Text::_('JGLOBAL_FIELDSET_PUBLISHING'));
         echo $this->form->renderFieldset('publishing');
+        echo HTMLHelper::_('uitab.endTab');
+
+        echo HTMLHelper::_('uitab.addTab', 'personTabs', 'system', Text::_('COM_XDECAROPEOPLE_FIELDSET_SYSTEM'));
+        echo $this->form->renderFieldset('system');
         echo HTMLHelper::_('uitab.endTab');
 
         echo HTMLHelper::_('uitab.endTabSet');
