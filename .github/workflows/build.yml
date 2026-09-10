@@ -19,7 +19,7 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="$(tr -d '\r\n' < VERSION)"
-          test "$VERSION" = '1.0.3'
+          test "$VERSION" = '1.0.4'
           php tests/core-integration-smoke.php
           python3 - <<'PY'
           import pathlib,xml.etree.ElementTree as ET
