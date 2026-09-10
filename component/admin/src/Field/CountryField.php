@@ -17,7 +17,8 @@ final class CountryField extends ListField
     {
         $options = parent::getOptions();
         $codeType = strtolower((string) ($this->element['code'] ?? 'alpha2'));
-        $languageTag = Factory::getApplication()->getLanguage()->getTag();
+        $language = Factory::getApplication()->getLanguage();
+        $languageTag = $language ? $language->getTag() : 'en-GB';
 
         foreach (CountryMetadata::countries($languageTag) as $country) {
             $code = $codeType === 'alpha3' ? $country['alpha3'] : $country['alpha2'];
