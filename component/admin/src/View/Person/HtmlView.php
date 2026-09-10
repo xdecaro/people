@@ -47,6 +47,7 @@ final class HtmlView extends BaseHtmlView
             'locationUrl' => 'index.php?option=com_xdecaropeople&task=location.search&format=json',
             'token' => Session::getFormToken(),
             'locationMinChars' => 2,
+            'locationLoading' => Text::_('COM_XDECAROPEOPLE_LOCATION_LOADING'),
             'locationEmpty' => Text::_('COM_XDECAROPEOPLE_LOCATION_EMPTY'),
             'locationError' => Text::_('COM_XDECAROPEOPLE_ERROR_WORLD_LOCATION_UNAVAILABLE'),
         ]);
@@ -54,13 +55,12 @@ final class HtmlView extends BaseHtmlView
         $assets = $this->document->getWebAssetManager();
         $assets->useStyle('com_xdecaropeople.admin');
 
-        // Register explicitly as well as through joomla.asset.json. This forces a
-        // fresh cache key after an in-place component update and avoids an old
-        // person-form.js remaining active in the browser/Joomla asset registry.
+        // Use a patch-specific asset name so an already registered 1.2.0/1.2.1
+        // definition cannot shadow the hotfix script after an in-place update.
         $assets->registerAndUseScript(
-            'com_xdecaropeople.person-form',
+            'com_xdecaropeople.person-form-1.2.2',
             'com_xdecaropeople/js/person-form.js',
-            ['version' => '1.2.1'],
+            ['version' => '1.2.2'],
             ['defer' => true],
             ['core']
         );
