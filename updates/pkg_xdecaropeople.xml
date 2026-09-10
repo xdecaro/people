@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <updates>
   <update>
-    <name>People by xdecaro</name>
+    <name>People</name>
     <description>Reusable person master data for Joomla.</description>
     <element>pkg_xdecaropeople</element>
     <type>package</type>
