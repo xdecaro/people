@@ -8,14 +8,12 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Throwable;
 use xdecaro\Component\People\Administrator\Extension\PeopleComponent;
 
 final class HtmlView extends BaseHtmlView
 {
     public $form;
     public $item;
-    public ?int $profileCompleteness = null;
 
     public function display($tpl = null): void
     {
@@ -32,15 +30,6 @@ final class HtmlView extends BaseHtmlView
         $component = $app->bootComponent('com_xdecaropeople');
         if ($component instanceof PeopleComponent) {
             $component->getCoreIntegrationService()->enableUi($this->document->getWebAssetManager());
-
-            if (!$isNew && ($user->authorise('people.view_sensitive', 'com_xdecaropeople') || $user->authorise('core.admin', 'com_xdecaropeople'))) {
-                try {
-                    $person = $component->getPersonProviderService()->getPerson((int) $this->item->id, true);
-                    $this->profileCompleteness = isset($person['profile_completeness']) ? (int) $person['profile_completeness'] : null;
-                } catch (Throwable) {
-                    $this->profileCompleteness = null;
-                }
-            }
         }
 
         $this->document->addScriptOptions('com_xdecaropeople.person', [
@@ -52,8 +41,6 @@ final class HtmlView extends BaseHtmlView
             'locationError' => Text::_('COM_XDECAROPEOPLE_ERROR_WORLD_LOCATION_UNAVAILABLE'),
         ]);
 
-        // Joomla automatically loads this component's joomla.asset.json.
-        // Use the registered assets by name; their URI must omit /css and /js.
         $assets = $this->document->getWebAssetManager();
         $assets->useStyle('com_xdecaropeople.admin');
         $assets->useScript('com_xdecaropeople.person-form');
