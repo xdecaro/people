@@ -16,18 +16,6 @@ HTMLHelper::_('behavior.formvalidator');
     class="form-validate"
 >
     <div class="xdecaro-scope xdecaro-people-person-edit">
-        <?php if ($this->profileCompleteness !== null) : ?>
-            <div class="xdecaro-profile-completeness" role="status" aria-label="<?php echo Text::_('COM_XDECAROPEOPLE_PROFILE_COMPLETENESS'); ?>">
-                <div class="xdecaro-profile-completeness__header">
-                    <strong><?php echo Text::_('COM_XDECAROPEOPLE_PROFILE_COMPLETENESS'); ?></strong>
-                    <span><?php echo (int) $this->profileCompleteness; ?>%</span>
-                </div>
-                <div class="xdecaro-profile-completeness__track" aria-hidden="true">
-                    <span style="width: <?php echo (int) $this->profileCompleteness; ?>%"></span>
-                </div>
-            </div>
-        <?php endif; ?>
-
         <?php
         echo HTMLHelper::_('uitab.startTabSet', 'personTabs', ['active' => 'identity']);
 
