@@ -1,0 +1,1 @@
+-- People 1.0.2 schema-version marker. No database changes are required.

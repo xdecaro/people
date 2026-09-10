@@ -1,9 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" method="upgrade">
-  <name>COM_XDECAROPEOPLE</name><author>Luca De Caro</author><creationDate>2026-09</creationDate><license>GNU General Public License version 2 or later</license><authorUrl>https://github.com/xdecaro/people</authorUrl>
-  <version>1.0.1</version><description>COM_XDECAROPEOPLE_XML_DESCRIPTION</description><namespace path="src">xdecaro\Component\People</namespace><targetplatform name="joomla" version="(5|6).*"/>
+  <name>COM_XDECAROPEOPLE</name>
+  <author>Luca De Caro</author>
+  <creationDate>2026-09</creationDate>
+  <license>GNU General Public License version 2 or later</license>
+  <authorUrl>https://github.com/xdecaro/people</authorUrl>
+  <version>1.0.2</version>
+  <description>COM_XDECAROPEOPLE_XML_DESCRIPTION</description>
+  <namespace path="src">xdecaro\Component\People</namespace>
+  <targetplatform name="joomla" version="6.*"/>
   <scriptfile>script.php</scriptfile>
-  <administration><menu view="dashboard">COM_XDECAROPEOPLE</menu><submenu><menu view="dashboard">COM_XDECAROPEOPLE_DASHBOARD</menu><menu view="people">COM_XDECAROPEOPLE_PEOPLE</menu><menu view="duplicates">COM_XDECAROPEOPLE_DUPLICATES</menu><menu view="information">COM_XDECAROPEOPLE_INFORMATION</menu></submenu><files folder="admin"><filename>access.xml</filename><filename>config.xml</filename><folder>forms</folder><folder>language</folder><folder>services</folder><folder>sql</folder><folder>src</folder><folder>tmpl</folder></files></administration>
-  <media destination="com_xdecaropeople" folder="media"><filename>joomla.asset.json</filename><folder>css</folder></media>
-  <install><sql><file driver="mysql" charset="utf8">sql/install.mysql.utf8mb4.sql</file></sql></install><update><schemas><schemapath type="mysql">sql/updates/mysql</schemapath></schemas></update>
+  <administration>
+    <menu view="dashboard">COM_XDECAROPEOPLE</menu>
+    <submenu>
+      <menu view="dashboard">COM_XDECAROPEOPLE_DASHBOARD</menu>
+      <menu view="people">COM_XDECAROPEOPLE_PEOPLE</menu>
+      <menu view="duplicates">COM_XDECAROPEOPLE_DUPLICATES</menu>
+      <menu view="information">COM_XDECAROPEOPLE_INFORMATION</menu>
+    </submenu>
+    <files folder="admin">
+      <filename>access.xml</filename>
+      <filename>config.xml</filename>
+      <folder>forms</folder>
+      <folder>services</folder>
+      <folder>sql</folder>
+      <folder>src</folder>
+      <folder>tmpl</folder>
+    </files>
+    <languages folder="admin/language">
+      <language tag="en-GB">en-GB/com_xdecaropeople.ini</language>
+      <language tag="en-GB">en-GB/com_xdecaropeople.sys.ini</language>
+      <language tag="it-IT">it-IT/com_xdecaropeople.ini</language>
+      <language tag="it-IT">it-IT/com_xdecaropeople.sys.ini</language>
+    </languages>
+  </administration>
+  <media destination="com_xdecaropeople" folder="media">
+    <filename>joomla.asset.json</filename>
+    <folder>css</folder>
+  </media>
+  <install>
+    <sql>
+      <file driver="mysql" charset="utf8">sql/install.mysql.utf8mb4.sql</file>
+    </sql>
+  </install>
+  <update>
+    <schemas>
+      <schemapath type="mysql">sql/updates/mysql</schemapath>
+    </schemas>
+  </update>
 </extension>

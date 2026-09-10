@@ -34,7 +34,7 @@ jobs:
         env: {GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
         run: |
           V="$(tr -d '\r\n' < VERSION)"
-          gh release create "v${V}" dist/com_xdecaropeople_${V}.zip dist/pkg_xdecaropeople_${V}.zip dist/SHA256SUMS.txt --title "People by xdecaro ${V}" --notes "People ${V}: preserves 0.2.x legacy person data during upgrade, repairs missing schema idempotently and retains the stable People provider/ACL/Core 1.4 contracts."
+          gh release create "v${V}" dist/com_xdecaropeople_${V}.zip dist/pkg_xdecaropeople_${V}.zip dist/SHA256SUMS.txt --title "People by xdecaro ${V}" --notes "People ${V}: fixes the Joomla 6 People list runtime, installs administrator system-language metadata correctly, simplifies the Joomla menu label to People, and preserves existing person data and public Core/provider contracts."
       - name: Publish checksum
         shell: bash
         run: |
