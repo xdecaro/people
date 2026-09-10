@@ -5,20 +5,12 @@
     <field name="uuid" type="text" label="COM_XDECAROPEOPLE_FIELD_UUID" readonly="true" filter="cmd"/>
     <field name="first_name" type="text" label="COM_XDECAROPEOPLE_FIELD_FIRST_NAME" required="true" filter="string" maxlength="150"/>
     <field name="last_name" type="text" label="COM_XDECAROPEOPLE_FIELD_LAST_NAME" required="true" filter="string" maxlength="150"/>
-    <field name="preferred_name" type="text" label="COM_XDECAROPEOPLE_FIELD_PREFERRED_NAME" filter="string" maxlength="150"/>
-    <field name="user_id" type="user" label="COM_XDECAROPEOPLE_FIELD_USER"/>
     <field name="birth_date" type="calendar" label="COM_XDECAROPEOPLE_FIELD_BIRTH_DATE" format="%d/%m/%Y" filter="raw" filterformat="d/m/Y" todaybutton="true" filltable="true"/>
     <field name="sex" type="list" label="COM_XDECAROPEOPLE_FIELD_SEX" filter="cmd">
       <option value="">COM_XDECAROPEOPLE_SELECT_OPTION</option>
       <option value="M">COM_XDECAROPEOPLE_SEX_MALE</option>
       <option value="F">COM_XDECAROPEOPLE_SEX_FEMALE</option>
     </field>
-
-    <field name="nationality_codes" type="Country" code="alpha3" label="COM_XDECAROPEOPLE_FIELD_NATIONALITIES" multiple="true" filter="array" layout="joomla.form.field.list-fancy-select">
-      <option value="">COM_XDECAROPEOPLE_SELECT_NATIONALITY</option>
-    </field>
-    <field name="nationality_code" type="hidden" filter="cmd"/>
-
     <field name="birth_country_code" type="Country" code="alpha2" label="COM_XDECAROPEOPLE_FIELD_BIRTH_COUNTRY" filter="cmd" validate="options" layout="joomla.form.field.list-fancy-select">
       <option value="">COM_XDECAROPEOPLE_SELECT_BIRTH_COUNTRY</option>
     </field>
@@ -26,6 +18,10 @@
     <field name="birth_place_id" type="hidden" filter="string"/>
     <field name="birth_region" type="hidden" filter="string"/>
     <field name="tax_identifier" type="text" label="COM_XDECAROPEOPLE_FIELD_TIN" filter="string" maxlength="64"/>
+    <field name="nationality_codes" type="Country" code="alpha3" label="COM_XDECAROPEOPLE_FIELD_NATIONALITIES" multiple="true" filter="array" layout="joomla.form.field.list-fancy-select">
+      <option value="">COM_XDECAROPEOPLE_SELECT_NATIONALITY</option>
+    </field>
+    <field name="nationality_code" type="hidden" filter="cmd"/>
   </fieldset>
 
   <fieldset name="contacts" label="COM_XDECAROPEOPLE_FIELDSET_CONTACTS">
@@ -116,6 +112,7 @@
   </fieldset>
 
   <fieldset name="system" label="COM_XDECAROPEOPLE_FIELDSET_SYSTEM">
+    <field name="user_id" type="user" label="COM_XDECAROPEOPLE_FIELD_USER"/>
     <field name="profile_document_uuid" type="text" label="COM_XDECAROPEOPLE_FIELD_PROFILE_DOCUMENT" description="COM_XDECAROPEOPLE_FIELD_PROFILE_DOCUMENT_DESC" filter="cmd" maxlength="36"/>
     <field name="source_component" type="text" label="COM_XDECAROPEOPLE_FIELD_SOURCE_COMPONENT" readonly="true" filter="cmd"/>
     <field name="created" type="calendar" label="JGLOBAL_FIELD_CREATED_LABEL" readonly="true" format="%d/%m/%Y %H:%M" filter="user_utc" showtime="true"/>
