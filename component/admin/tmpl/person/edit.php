@@ -39,6 +39,12 @@ HTMLHelper::_('behavior.formvalidator');
         echo $this->form->renderFieldset('contacts');
         echo HTMLHelper::_('uitab.endTab');
 
+        if ($this->form->getFieldset('disability')) {
+            echo HTMLHelper::_('uitab.addTab', 'personTabs', 'disability', Text::_('COM_XDECAROPEOPLE_FIELDSET_DISABILITY'));
+            echo $this->form->renderFieldset('disability');
+            echo HTMLHelper::_('uitab.endTab');
+        }
+
         if ($this->form->getFieldset('accessibility')) {
             echo HTMLHelper::_('uitab.addTab', 'personTabs', 'accessibility', Text::_('COM_XDECAROPEOPLE_FIELDSET_ACCESSIBILITY'));
             echo $this->form->renderFieldset('accessibility');
