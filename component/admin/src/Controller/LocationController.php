@@ -45,7 +45,7 @@ final class LocationController extends BaseController
                 return;
             }
 
-            $service = new WorldLocationService();
+            $service = WorldLocationService::fromJoomlaConfiguration();
             $items = $service->searchCities($query, $country !== '' ? $country : null, $language, $limit);
 
             echo new JsonResponse(['items' => $items]);
