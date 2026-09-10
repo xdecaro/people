@@ -185,7 +185,13 @@ jobs:
               exit(1);
           }
 
-          $controller = $factory->createController('Person', 'Administrator', [], $app, $app->getInput());
+          $controller = $factory->createController(
+              'Person',
+              'Administrator',
+              ['base_path' => JPATH_ADMINISTRATOR . '/components/com_xdecaropeople'],
+              $app,
+              $app->getInput()
+          );
           if (!$controller instanceof \xdecaro\Component\People\Administrator\Controller\PersonController) {
               fwrite(STDERR, "PersonController was not created through Joomla MVCFactory.\n");
               exit(1);
