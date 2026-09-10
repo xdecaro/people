@@ -21,6 +21,12 @@ if (str_contains($provider, '#__decaro') && !str_contains($provider, '#__xdecaro
     exit(1);
 }
 
+$serviceProvider = file_get_contents(__DIR__ . '/../component/admin/services/provider.php');
+if (!str_contains($serviceProvider, '$component->setMVCFactory($container->get(MVCFactoryInterface::class));')) {
+    fwrite(STDERR, "People Joomla 6 component must initialize its MVCFactory explicitly.\n");
+    exit(1);
+}
+
 $model = file_get_contents(__DIR__ . '/../component/admin/src/Model/PeopleModel.php');
 if (str_contains($model, '->getApplication()')) {
     fwrite(STDERR, "PeopleModel must not call the removed model getApplication() method.\n");
