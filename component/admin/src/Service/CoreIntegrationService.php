@@ -64,7 +64,6 @@ final class CoreIntegrationService
             new Capability(self::COMPONENT, 'people.relations', '1.0.0'),
             new Capability(self::COMPONENT, 'people.accessibility', '1.0.0'),
             new Capability(self::COMPONENT, 'people.world_locations', '1.0.0'),
-            new Capability(self::COMPONENT, 'people.profile_completeness', '1.0.0'),
             new Capability(self::COMPONENT, 'people.document_reference', '1.0.0'),
         ]);
     }
