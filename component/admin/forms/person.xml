@@ -7,7 +7,7 @@
     <field name="last_name" type="text" label="COM_XDECAROPEOPLE_FIELD_LAST_NAME" required="true" filter="string" maxlength="150"/>
     <field name="preferred_name" type="text" label="COM_XDECAROPEOPLE_FIELD_PREFERRED_NAME" filter="string" maxlength="150"/>
     <field name="user_id" type="user" label="COM_XDECAROPEOPLE_FIELD_USER"/>
-    <field name="birth_date" type="calendar" label="COM_XDECAROPEOPLE_FIELD_BIRTH_DATE" format="%d/%m/%Y" filter="user_utc" todaybutton="true" filltable="true"/>
+    <field name="birth_date" type="calendar" label="COM_XDECAROPEOPLE_FIELD_BIRTH_DATE" format="%d/%m/%Y" filter="raw" filterformat="d/m/Y" todaybutton="true" filltable="true"/>
     <field name="sex" type="list" label="COM_XDECAROPEOPLE_FIELD_SEX" filter="cmd">
       <option value="">COM_XDECAROPEOPLE_SELECT_OPTION</option>
       <option value="M">COM_XDECAROPEOPLE_SEX_MALE</option>
@@ -18,7 +18,7 @@
       <option value="1">JYES</option>
       <option value="0">JNO</option>
     </field>
-    <field name="disability_types" type="list" label="COM_XDECAROPEOPLE_FIELD_DISABILITY_TYPES" multiple="true" filter="array" layout="joomla.form.field.list-fancy-select">
+    <field name="disability_types" type="list" label="COM_XDECAROPEOPLE_FIELD_DISABILITY_TYPES" multiple="true" filter="array" layout="joomla.form.field.list-fancy-select" showon="disability_status:1">
       <option value="hearing">COM_XDECAROPEOPLE_DISABILITY_HEARING</option>
       <option value="visual">COM_XDECAROPEOPLE_DISABILITY_VISUAL</option>
       <option value="motor">COM_XDECAROPEOPLE_DISABILITY_MOTOR</option>
@@ -27,7 +27,7 @@
       <option value="multiple">COM_XDECAROPEOPLE_DISABILITY_MULTIPLE</option>
       <option value="other">COM_XDECAROPEOPLE_DISABILITY_OTHER</option>
     </field>
-    <field name="disability_other" type="text" label="COM_XDECAROPEOPLE_FIELD_DISABILITY_OTHER" filter="string" maxlength="190" size="30"/>
+    <field name="disability_other" type="text" label="COM_XDECAROPEOPLE_FIELD_DISABILITY_OTHER" filter="string" maxlength="190" size="30" showon="disability_status:1[AND]disability_types:other"/>
 
     <field name="nationality_codes" type="Country" code="alpha3" label="COM_XDECAROPEOPLE_FIELD_NATIONALITIES" multiple="true" filter="array" layout="joomla.form.field.list-fancy-select">
       <option value="">COM_XDECAROPEOPLE_SELECT_NATIONALITY</option>
@@ -66,7 +66,7 @@
       <option value="written_communication">COM_XDECAROPEOPLE_ACCESSIBILITY_WRITTEN</option>
       <option value="other">COM_XDECAROPEOPLE_ACCESSIBILITY_OTHER</option>
     </field>
-    <field name="accessibility_other" type="text" label="COM_XDECAROPEOPLE_FIELD_ACCESSIBILITY_OTHER" filter="string" maxlength="190" size="30"/>
+    <field name="accessibility_other" type="text" label="COM_XDECAROPEOPLE_FIELD_ACCESSIBILITY_OTHER" filter="string" maxlength="190" size="30" showon="accessibility_needs:other"/>
   </fieldset>
 
   <fieldset name="residence" label="COM_XDECAROPEOPLE_FIELDSET_RESIDENCE">
