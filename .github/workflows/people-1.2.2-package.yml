@@ -1,0 +1,75 @@
+name: People 1.2.2 package
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Validate People 1.2.2 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '\r\n' < VERSION)"
+          test "$VERSION" = '1.2.2'
+          find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          python3 - <<'PY'
+          import json, pathlib, xml.etree.ElementTree as ET
+          for path in pathlib.Path('.').rglob('*.xml'):
+              ET.parse(path)
+          json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
+          PY
+          grep -Fq '<version>1.2.2</version>' component/xdecaropeople.xml
+          grep -Fq '<version>1.2.2</version>' package/pkg_xdecaropeople.xml
+          grep -Fq '"version": "1.2.2"' component/media/joomla.asset.json
+          grep -Fq "MINIMUM_CORE = '2.0.1'" component/admin/src/Service/CoreIntegrationService.php
+          grep -Fq "MINIMUM_CORE='2.0.1'" package/script.php
+          grep -Fq 'name="birth_date" type="calendar"' component/admin/forms/person.xml
+          grep -Fq 'format="%d/%m/%Y" filter="raw" filterformat="d/m/Y"' component/admin/forms/person.xml
+          grep -Fq 'showon="disability_status:1"' component/admin/forms/person.xml
+          grep -Fq 'showon="disability_status:1[AND]disability_types:other"' component/admin/forms/person.xml
+          grep -Fq 'showon="accessibility_needs:other"' component/admin/forms/person.xml
+          grep -Fq "dataset.xdecaroPeopleForm = '1.2.2'" component/media/js/person-form.js
+          grep -Fq 'locationLoading' component/media/js/person-form.js
+          grep -Fq "'com_xdecaropeople.person-form-1.2.2'" component/admin/src/View/Person/HtmlView.php
+          grep -Fq 'WorldLocationService::fromJoomlaConfiguration()' component/admin/src/Controller/LocationController.php
+          test -f component/admin/sql/updates/mysql/1.2.2.sql
+          ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
+      - name: JavaScript syntax
+        shell: bash
+        run: node --check component/media/js/person-form.js
+      - name: Build deterministic install packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x build/build.sh
+          build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/people-sums
+          build/build.sh
+          diff -u /tmp/people-sums dist/SHA256SUMS.txt
+          for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.2.zip | grep -Fxq 'pkg_xdecaropeople.xml'
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.2.zip | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -p dist/pkg_xdecaropeople_1.2.2.zip com_xdecaropeople.zip > /tmp/component.zip
+          unzip -p /tmp/component.zip admin/forms/person.xml | grep -Fq 'filterformat="d/m/Y"'
+          unzip -p /tmp/component.zip media/js/person-form.js | grep -Fq "dataset.xdecaroPeopleForm = '1.2.2'"
+      - name: Upload People 1.2.2 install package
+        uses: actions/upload-artifact@v4
+        with:
+          name: people-1.2.2-package
+          path: |
+            dist/pkg_xdecaropeople_1.2.2.zip
+            dist/com_xdecaropeople_1.2.2.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
