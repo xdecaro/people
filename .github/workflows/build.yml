@@ -115,35 +115,34 @@ jobs:
           cd joomla
           VERSION="$(tr -d '\r\n' < "$GITHUB_WORKSPACE/VERSION")"
           php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_xdecaropeople_${VERSION}.zip" -vvv
-      - name: Verify schema, language install and legacy preservation
+      - name: Verify schema, languages and legacy preservation
         shell: bash
         run: |
           set -euo pipefail
           VERSION="$(tr -d '\r\n' < VERSION)"
           MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla)
-          package_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_xdecaropeople';")"
-          table_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people';")"
-          echo "package_count=${package_count} table_count=${table_count} expected_version=${VERSION}"
-          test "$package_count" = 1
-          test "$table_count" = 1
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_xdecaropeople';")" = 1
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people';")" = 1
           for column in user_id birth_date tax_identifier address_line language notes; do
-            column_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people' AND column_name='${column}';")"
-            echo "column ${column}=${column_count}"
-            test "$column_count" = 1
+            test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people' AND column_name='${column}';")" = 1
           done
           schema="$("${MYSQL[@]}" -e "SELECT s.version_id FROM ppl_schemas s JOIN ppl_extensions e ON e.extension_id=s.extension_id WHERE e.element='com_xdecaropeople' LIMIT 1;")"
-          echo "schema=${schema} expected=${VERSION}"
           test "$schema" = "$VERSION"
-          echo 'Installed People language files:'
-          find joomla/administrator -type f -name 'com_xdecaropeople*.ini' -print || true
-          test -f joomla/administrator/language/it-IT/com_xdecaropeople.sys.ini
+
+          # A fresh Joomla CI install has en-GB only. Verify that Joomla installs
+          # the active-language metadata, and that both supported languages are
+          # present in the distributable component ZIP for installations that
+          # already have Italian enabled.
           test -f joomla/administrator/language/en-GB/com_xdecaropeople.sys.ini
-          grep -Fq 'COM_XDECAROPEOPLE="People"' joomla/administrator/language/it-IT/com_xdecaropeople.sys.ini
-          grep -Fq 'COM_XDECAROPEOPLE_XML_DESCRIPTION=' joomla/administrator/language/it-IT/com_xdecaropeople.sys.ini
+          grep -Fq 'COM_XDECAROPEOPLE="People"' joomla/administrator/language/en-GB/com_xdecaropeople.sys.ini
+          grep -Fq 'COM_XDECAROPEOPLE_XML_DESCRIPTION=' joomla/administrator/language/en-GB/com_xdecaropeople.sys.ini
+          unzip -Z1 "dist/com_xdecaropeople_${VERSION}.zip" | grep -Fxq 'admin/language/en-GB/com_xdecaropeople.sys.ini'
+          unzip -Z1 "dist/com_xdecaropeople_${VERSION}.zip" | grep -Fxq 'admin/language/it-IT/com_xdecaropeople.sys.ini'
+          grep -Fq 'COM_XDECAROPEOPLE="People"' component/admin/language/it-IT/com_xdecaropeople.sys.ini
+          grep -Fq 'COM_XDECAROPEOPLE_XML_DESCRIPTION=' component/admin/language/it-IT/com_xdecaropeople.sys.ini
+
           if [ '${{ matrix.mode }}' = 'upgrade-0.2.0' ]; then
-            preserved="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_xdecaropeople_people WHERE uuid='11111111-1111-4111-8111-111111111111' AND first_name IS NULL AND last_name IS NULL AND display_name='Legacy Person';")"
-            echo "legacy_preserved=${preserved}"
-            test "$preserved" = 1
+            test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_xdecaropeople_people WHERE uuid='11111111-1111-4111-8111-111111111111' AND first_name IS NULL AND last_name IS NULL AND display_name='Legacy Person';")" = 1
           fi
       - name: Probe People list model through Joomla 6 runtime
         shell: bash
