@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="package" method="upgrade">
-  <name>People by xdecaro</name>
+  <name>People</name>
   <packagename>xdecaropeople</packagename>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
   <creationDate>2026-09</creationDate>
   <author>Luca De Caro</author>
   <authorUrl>https://github.com/xdecaro/people</authorUrl>
   <license>GNU General Public License version 2 or later</license>
-  <description>People by xdecaro Joomla package.</description>
+  <description>People Joomla package for the xdecaro ecosystem.</description>
   <targetplatform name="joomla" version="6.*"/>
   <scriptfile>script.php</scriptfile>
   <files>
     <file type="component" id="com_xdecaropeople">com_xdecaropeople.zip</file>
   </files>
   <updateservers>
-    <server type="extension" priority="1" name="People by xdecaro Updates">https://raw.githubusercontent.com/xdecaro/people/main/updates/pkg_xdecaropeople.xml</server>
+    <server type="extension" priority="1" name="People Updates">https://raw.githubusercontent.com/xdecaro/people/main/updates/pkg_xdecaropeople.xml</server>
   </updateservers>
 </extension>

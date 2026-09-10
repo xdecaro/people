@@ -34,18 +34,29 @@ jobs:
         env: {GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
         run: |
           V="$(tr -d '\r\n' < VERSION)"
-          gh release create "v${V}" dist/com_xdecaropeople_${V}.zip dist/pkg_xdecaropeople_${V}.zip dist/SHA256SUMS.txt --title "People by xdecaro ${V}" --notes "People ${V}: fixes the Joomla 6 People list runtime, installs administrator system-language metadata correctly, simplifies the Joomla menu label to People, and preserves existing person data and public Core/provider contracts."
-      - name: Publish checksum
+          gh release create "v${V}" dist/com_xdecaropeople_${V}.zip dist/pkg_xdecaropeople_${V}.zip dist/SHA256SUMS.txt --title "People ${V}" --notes "People ${V}: Joomla 6-only stable release for the xdecaro ecosystem. See the repository README and pull request for the exact patch scope."
+      - name: Publish update feed
         shell: bash
         run: |
           set -euo pipefail
-          V="$(tr -d '\r\n' < VERSION)"; SHA="$(sha256sum "dist/pkg_xdecaropeople_${V}.zip"|awk '{print $1}')"
-          python3 - "$SHA" <<'PY'
-          import sys,xml.etree.ElementTree as ET
-          p='updates/pkg_xdecaropeople.xml'; t=ET.parse(p); t.getroot().find('./update/sha256').text=sys.argv[1]; ET.indent(t,space='  '); t.write(p,encoding='utf-8',xml_declaration=True)
+          V="$(tr -d '\r\n' < VERSION)"
+          SHA="$(sha256sum "dist/pkg_xdecaropeople_${V}.zip" | awk '{print $1}')"
+          python3 - "$V" "$SHA" <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          version, sha = sys.argv[1:3]
+          p = 'updates/pkg_xdecaropeople.xml'
+          t = ET.parse(p)
+          update = t.getroot().find('./update')
+          update.find('name').text = 'People'
+          update.find('version').text = version
+          update.find('./downloads/downloadurl').text = f'https://github.com/xdecaro/people/releases/download/v{version}/pkg_xdecaropeople_{version}.zip'
+          update.find('sha256').text = sha
+          ET.indent(t, space='  ')
+          t.write(p, encoding='utf-8', xml_declaration=True)
           PY
-          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add updates/pkg_xdecaropeople.xml
-          git diff --cached --quiet || git commit -m "Publish SHA-256 for People ${V}"
+          git diff --cached --quiet || git commit -m "Publish update feed for People ${V}"
           git pull --rebase origin main
           git push origin HEAD:main
