@@ -1,0 +1,2 @@
+-- People 1.2.3
+-- No schema changes. Fix Joomla Web Asset URIs and move disability fields to their own tab.
