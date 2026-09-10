@@ -1,17 +1,19 @@
 {
   "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
   "name": "com_xdecaropeople",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "assets": [
     {
       "name": "com_xdecaropeople.admin",
       "type": "style",
-      "uri": "com_xdecaropeople/css/admin.css"
+      "uri": "com_xdecaropeople/css/admin.css",
+      "version": "1.2.1"
     },
     {
       "name": "com_xdecaropeople.person-form",
       "type": "script",
       "uri": "com_xdecaropeople/js/person-form.js",
+      "version": "1.2.1",
       "dependencies": ["core"],
       "attributes": {"defer": true}
     }
