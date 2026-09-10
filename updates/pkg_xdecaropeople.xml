@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <updates>
   <update>
     <name>People by xdecaro</name>
@@ -13,7 +13,7 @@
     <tags>
       <tag>stable</tag>
     </tags>
-    <sha256>bad18a49d63edcd708d3d64e05ef8d807083b722765fd5ff0c3488ac6a09dd64</sha256>
+    <sha256>0301f7a5e276d689d9202b8138ac1a7d30f18e53f0d79f94974ada8ea5d0e7fe</sha256>
     <maintainer>Luca De Caro</maintainer>
     <maintainerurl>https://github.com/xdecaro/people</maintainerurl>
     <targetplatform name="joomla" version="6\.[0-9]+" />
