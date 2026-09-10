@@ -50,7 +50,7 @@ final class CoreIntegrationService
             throw new \RuntimeException('Core reference API unavailable.');
         }
 
-        return new EntityReference('com_xdecarodocuments', 'document', $uuid);
+        return new EntityReference('com_decarodocuments', 'document', $uuid);
     }
 
     public function registerCapabilities(CapabilityRegistry $registry): void
