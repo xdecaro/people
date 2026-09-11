@@ -45,6 +45,7 @@ final class HtmlView extends BaseHtmlView
         $assets = $this->document->getWebAssetManager();
         $assets->useStyle('com_xdecaropeople.admin');
         $assets->useScript('com_xdecaropeople.person-form');
+        $assets->useScript('com_xdecaropeople.person-cancel-fix');
 
         ToolbarHelper::title($isNew ? Text::_('COM_XDECAROPEOPLE_PERSON_NEW') : Text::_('COM_XDECAROPEOPLE_PERSON_EDIT'), 'user');
         ToolbarHelper::apply('person.apply');
