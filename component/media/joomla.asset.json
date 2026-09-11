@@ -1,20 +1,28 @@
 {
   "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
   "name": "com_xdecaropeople",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "assets": [
     {
       "name": "com_xdecaropeople.admin",
       "type": "style",
       "uri": "com_xdecaropeople/admin.css",
-      "version": "1.2.6"
+      "version": "1.2.7"
     },
     {
       "name": "com_xdecaropeople.person-form",
       "type": "script",
       "uri": "com_xdecaropeople/person-form.js",
-      "version": "1.2.6",
+      "version": "1.2.7",
       "dependencies": ["core"],
+      "attributes": {"defer": true}
+    },
+    {
+      "name": "com_xdecaropeople.person-cancel-fix",
+      "type": "script",
+      "uri": "com_xdecaropeople/person-cancel-fix.js",
+      "version": "1.2.7",
+      "dependencies": ["com_xdecaropeople.person-form"],
       "attributes": {"defer": true}
     }
   ]
