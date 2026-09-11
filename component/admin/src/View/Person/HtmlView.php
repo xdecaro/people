@@ -39,6 +39,7 @@ final class HtmlView extends BaseHtmlView
             'locationLoading' => Text::_('COM_XDECAROPEOPLE_LOCATION_LOADING'),
             'locationEmpty' => Text::_('COM_XDECAROPEOPLE_LOCATION_EMPTY'),
             'locationError' => Text::_('COM_XDECAROPEOPLE_ERROR_WORLD_LOCATION_UNAVAILABLE'),
+            'locationSelectionRequired' => Text::_('COM_XDECAROPEOPLE_ERROR_LOCATION_SELECTION_REQUIRED'),
         ]);
 
         $assets = $this->document->getWebAssetManager();
