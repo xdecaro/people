@@ -6,7 +6,7 @@
     ? JoomlaApi.getOptions('com_xdecaropeople.person', {})
     : {};
 
-  document.documentElement.dataset.xdecaroPeopleForm = '1.2.4';
+  document.documentElement.dataset.xdecaroPeopleForm = '1.2.5';
 
   const byField = (id, name) => document.getElementById(id)
     || document.querySelector(`[name="${name}"]`)
@@ -95,6 +95,18 @@
     let request = null;
     let activeIndex = -1;
     let items = [];
+    let internalCountryChange = false;
+
+    const selectionMessage = options.locationSelectionRequired || 'Seleziona una località dall’elenco.';
+
+    const validateSelection = (report = false) => {
+      const invalid = input.value.trim() !== '' && hiddenId.value.trim() === '';
+      input.setCustomValidity(invalid ? selectionMessage : '');
+      if (invalid && report) {
+        input.reportValidity();
+      }
+      return !invalid;
+    };
 
     const positionMenu = () => {
       if (container.hidden) return;
@@ -105,9 +117,9 @@
       const below = Math.max(0, window.innerHeight - rect.bottom - gap - viewportPadding);
       const above = Math.max(0, rect.top - gap - viewportPadding);
       const openAbove = below < 180 && above > below;
-      const available = Math.max(120, Math.min(240, (openAbove ? above : below)));
-      const left = Math.max(viewportPadding, Math.min(rect.left, window.innerWidth - viewportPadding - rect.width));
+      const available = Math.max(120, Math.min(240, openAbove ? above : below));
       const width = Math.max(240, Math.min(rect.width, window.innerWidth - (viewportPadding * 2)));
+      const left = Math.max(viewportPadding, Math.min(rect.left, window.innerWidth - viewportPadding - width));
 
       container.classList.toggle('is-above', openAbove);
       container.style.left = `${left}px`;
@@ -123,7 +135,11 @@
       }
     };
 
-    const close = () => {
+    const close = (abortRequest = true) => {
+      if (abortRequest && request) {
+        request.abort();
+        request = null;
+      }
       container.hidden = true;
       container.replaceChildren();
       input.setAttribute('aria-expanded', 'false');
@@ -154,8 +170,18 @@
       input.value = item.name || '';
       hiddenId.value = item.id || '';
       if (region) region.value = item.admin1 || '';
-      if (country && item.country_code) setSelectValue(country, item.country_code);
-      close();
+
+      if (country && item.country_code && country.value !== item.country_code) {
+        internalCountryChange = true;
+        try {
+          setSelectValue(country, item.country_code);
+        } finally {
+          internalCountryChange = false;
+        }
+      }
+
+      input.setCustomValidity('');
+      close(false);
       input.dispatchEvent(new Event('change', { bubbles: true }));
     };
 
@@ -208,6 +234,7 @@
 
       request?.abort();
       request = new AbortController();
+      const currentRequest = request;
       openMessage(options.locationLoading || 'Ricerca località…', 'xdecaro-location-loading');
 
       const endpoint = options.locationUrl || 'index.php?option=com_xdecaropeople&task=location.search&format=json';
@@ -225,7 +252,7 @@
           credentials: 'same-origin',
           cache: 'no-store',
           headers: { Accept: 'application/json' },
-          signal: request.signal,
+          signal: currentRequest.signal,
         });
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -233,8 +260,12 @@
         if (payload?.success === false) {
           throw new Error(payload.message || options.locationError || 'Location search failed.');
         }
+
+        if (request !== currentRequest) return;
+        request = null;
         render(payload?.data?.items || payload?.items || []);
       } catch (error) {
+        if (request === currentRequest) request = null;
         if (error?.name === 'AbortError') return;
         openMessage(options.locationError || 'Impossibile cercare le località. Riprova.', 'xdecaro-location-error');
       }
@@ -243,11 +274,13 @@
     const queueSearch = () => {
       hiddenId.value = '';
       if (region) region.value = '';
+      input.setCustomValidity('');
       window.clearTimeout(timer);
       timer = window.setTimeout(search, 250);
     };
 
     input.addEventListener('input', queueSearch);
+
     input.addEventListener('keydown', (event) => {
       if (container.hidden) return;
 
@@ -270,13 +303,43 @@
         queueSearch();
       }
     });
-    input.addEventListener('blur', () => window.setTimeout(close, 180));
+
+    input.addEventListener('blur', () => {
+      window.setTimeout(() => {
+        close();
+        validateSelection(false);
+      }, 180);
+    });
 
     country?.addEventListener('change', () => {
+      if (internalCountryChange) return;
+
       hiddenId.value = '';
       if (region) region.value = '';
-      if (input.value.trim().length >= Number(options.locationMinChars || 2)) queueSearch();
+      input.setCustomValidity('');
+      close();
+
+      if (input.value.trim().length >= Number(options.locationMinChars || 2)) {
+        queueSearch();
+      }
     });
+
+    document.addEventListener('pointerdown', (event) => {
+      if (container.hidden) return;
+      if (event.target === input || input.contains(event.target) || container.contains(event.target)) return;
+      close();
+    }, true);
+
+    document.addEventListener('show.bs.tab', close);
+    document.addEventListener('hide.bs.tab', close);
+
+    const form = input.closest('form');
+    form?.addEventListener('submit', (event) => {
+      if (!validateSelection(true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }, true);
 
     window.addEventListener('resize', positionMenu, { passive: true });
     window.addEventListener('scroll', positionMenu, { passive: true, capture: true });
