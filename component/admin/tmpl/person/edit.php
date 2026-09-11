@@ -49,6 +49,10 @@ HTMLHelper::_('behavior.formvalidator');
             echo HTMLHelper::_('uitab.endTab');
         }
 
+        echo HTMLHelper::_('uitab.addTab', 'personTabs', 'documents_tax', Text::_('COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX'));
+        echo $this->form->renderFieldset('documents_tax');
+        echo HTMLHelper::_('uitab.endTab');
+
         echo HTMLHelper::_('uitab.addTab', 'personTabs', 'social', Text::_('COM_XDECAROPEOPLE_FIELDSET_SOCIAL'));
         echo $this->form->renderFieldset('social');
         echo HTMLHelper::_('uitab.endTab');
