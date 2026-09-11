@@ -5,7 +5,7 @@
   <creationDate>2026-09</creationDate>
   <license>GNU General Public License version 2 or later</license>
   <authorUrl>https://github.com/xdecaro/people</authorUrl>
-  <version>1.2.7</version>
+  <version>1.2.8</version>
   <description>COM_XDECAROPEOPLE_XML_DESCRIPTION</description>
   <namespace path="src">xdecaro\Component\People</namespace>
   <targetplatform name="joomla" version="6.*"/>
