@@ -6,7 +6,9 @@
     ? JoomlaApi.getOptions('com_xdecaropeople.person', {})
     : {};
 
-  document.documentElement.dataset.xdecaroPeopleForm = '1.2.5';
+  document.documentElement.dataset.xdecaroPeopleForm = '1.2.6';
+
+  const locationValidators = [];
 
   const byField = (id, name) => document.getElementById(id)
     || document.querySelector(`[name="${name}"]`)
@@ -71,6 +73,33 @@
     select.dispatchEvent(new Event('change', { bubbles: true }));
   };
 
+  const revealAndReport = (entry) => {
+    const input = entry.input;
+    const pane = input.closest('.tab-pane');
+
+    if (pane && pane.id && !pane.classList.contains('active')) {
+      const escapedId = window.CSS?.escape ? CSS.escape(pane.id) : pane.id.replace(/([:.])/g, '\\$1');
+      const trigger = document.querySelector(`[data-bs-target="#${escapedId}"], [href="#${escapedId}"]`);
+      trigger?.click();
+    }
+
+    window.setTimeout(() => {
+      input.focus();
+      entry.validate(true);
+    }, 0);
+  };
+
+  const validateAllLocations = (report = false) => {
+    for (const entry of locationValidators) {
+      if (!entry.validate(false)) {
+        entry.close();
+        if (report) revealAndReport(entry);
+        return false;
+      }
+    }
+    return true;
+  };
+
   const initWorldCity = ({ inputId, inputName, countryId, countryName, placeId, placeName, regionId, regionName }) => {
     const input = byField(inputId, inputName);
     const country = byField(countryId, countryName);
@@ -96,15 +125,22 @@
     let activeIndex = -1;
     let items = [];
     let internalCountryChange = false;
+    let confirmedValue = hiddenId.value.trim() !== '' ? input.value.trim() : '';
 
     const selectionMessage = options.locationSelectionRequired || 'Seleziona una località dall’elenco.';
 
     const validateSelection = (report = false) => {
-      const invalid = input.value.trim() !== '' && hiddenId.value.trim() === '';
+      const currentValue = input.value.trim();
+      const invalid = currentValue !== ''
+        && (hiddenId.value.trim() === '' || confirmedValue === '' || confirmedValue !== currentValue);
+
       input.setCustomValidity(invalid ? selectionMessage : '');
+      input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+
       if (invalid && report) {
         input.reportValidity();
       }
+
       return !invalid;
     };
 
@@ -169,6 +205,8 @@
 
       input.value = item.name || '';
       hiddenId.value = item.id || '';
+      confirmedValue = input.value.trim();
+
       if (region) region.value = item.admin1 || '';
 
       if (country && item.country_code && country.value !== item.country_code) {
@@ -181,6 +219,7 @@
       }
 
       input.setCustomValidity('');
+      input.setAttribute('aria-invalid', 'false');
       close(false);
       input.dispatchEvent(new Event('change', { bubbles: true }));
     };
@@ -273,8 +312,10 @@
 
     const queueSearch = () => {
       hiddenId.value = '';
+      confirmedValue = '';
       if (region) region.value = '';
       input.setCustomValidity('');
+      input.setAttribute('aria-invalid', 'false');
       window.clearTimeout(timer);
       timer = window.setTimeout(search, 250);
     };
@@ -315,8 +356,10 @@
       if (internalCountryChange) return;
 
       hiddenId.value = '';
+      confirmedValue = '';
       if (region) region.value = '';
       input.setCustomValidity('');
+      input.setAttribute('aria-invalid', 'false');
       close();
 
       if (input.value.trim().length >= Number(options.locationMinChars || 2)) {
@@ -335,14 +378,31 @@
 
     const form = input.closest('form');
     form?.addEventListener('submit', (event) => {
-      if (!validateSelection(true)) {
+      if (!validateAllLocations(true)) {
         event.preventDefault();
         event.stopImmediatePropagation();
       }
     }, true);
 
+    locationValidators.push({ input, validate: validateSelection, close });
+
     window.addEventListener('resize', positionMenu, { passive: true });
     window.addEventListener('scroll', positionMenu, { passive: true, capture: true });
+  };
+
+  const initToolbarValidation = () => {
+    if (typeof JoomlaApi.submitbutton !== 'function' || JoomlaApi.__xdecaroPeopleSubmitWrapped) return;
+
+    const originalSubmitbutton = JoomlaApi.submitbutton.bind(JoomlaApi);
+    JoomlaApi.__xdecaroPeopleSubmitWrapped = true;
+
+    JoomlaApi.submitbutton = (task) => {
+      if (/^person\.(apply|save|save2new)$/.test(String(task || '')) && !validateAllLocations(true)) {
+        return false;
+      }
+
+      return originalSubmitbutton(task);
+    };
   };
 
   const initNationalityCompatibility = () => {
@@ -383,6 +443,8 @@
       regionId: 'jform_region',
       regionName: 'jform[region]',
     });
+
+    initToolbarValidation();
   };
 
   if (document.readyState === 'loading') {
