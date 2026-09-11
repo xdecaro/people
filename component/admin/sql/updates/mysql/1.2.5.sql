@@ -1,0 +1,1 @@
+-- People 1.2.5: state actions and UI validation hotfix only; no schema changes required.

@@ -1,0 +1,139 @@
+name: People 1.2.8 package
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Validate People 1.2.8 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '\r\n' < VERSION)"
+          test "$VERSION" = '1.2.8'
+          find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          python3 - <<'PY'
+          import json, pathlib, xml.etree.ElementTree as ET
+          for path in pathlib.Path('.').rglob('*.xml'):
+              ET.parse(path)
+
+          assets = json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
+          by_name = {item['name']: item for item in assets['assets']}
+          assert assets['version'] == '1.2.8'
+          assert by_name['com_xdecaropeople.admin']['uri'] == 'com_xdecaropeople/admin.css'
+          assert by_name['com_xdecaropeople.person-form']['uri'] == 'com_xdecaropeople/person-form.js'
+          assert by_name['com_xdecaropeople.person-cancel-fix']['uri'] == 'com_xdecaropeople/person-cancel-fix.js'
+          assert 'com_xdecaropeople.person-form' in by_name['com_xdecaropeople.person-cancel-fix']['dependencies']
+
+          root = ET.parse('component/admin/forms/person.xml').getroot()
+          identity = root.find("./fieldset[@name='identity']")
+          documents_tax = root.find("./fieldset[@name='documents_tax']")
+          system = root.find("./fieldset[@name='system']")
+          assert identity is not None and documents_tax is not None and system is not None
+
+          identity_fields = identity.findall('field')
+          identity_names = [field.attrib.get('name') for field in identity_fields]
+          documents_tax_names = [field.attrib.get('name') for field in documents_tax.findall('field')]
+          system_names = [field.attrib.get('name') for field in system.findall('field')]
+
+          assert 'uuid' not in identity_names
+          assert 'tax_identifier' not in identity_names
+          assert 'nationality_codes' in identity_names
+          assert 'nationality_code' in identity_names
+          assert documents_tax_names == ['tax_identifier']
+          assert 'uuid' in system_names
+          uuid = system.find("./field[@name='uuid']")
+          assert uuid is not None and uuid.attrib.get('readonly') == 'true'
+          assert 'user_id' in system_names
+
+          visible_identity = [
+              field.attrib.get('name') for field in identity_fields
+              if field.attrib.get('type') != 'hidden'
+          ]
+          assert visible_identity == [
+              'first_name', 'last_name', 'birth_date', 'sex',
+              'birth_country_code', 'birth_place', 'nationality_codes'
+          ]
+
+          template = pathlib.Path('component/admin/tmpl/person/edit.php').read_text(encoding='utf-8')
+          tab_order = [
+              "addTab', 'personTabs', 'identity'",
+              "addTab', 'personTabs', 'contacts'",
+              "addTab', 'personTabs', 'disability'",
+              "addTab', 'personTabs', 'accessibility'",
+              "addTab', 'personTabs', 'residence'",
+              "addTab', 'personTabs', 'relations'",
+              "addTab', 'personTabs', 'documents_tax'",
+              "addTab', 'personTabs', 'social'",
+              "addTab', 'personTabs', 'publishing'",
+              "addTab', 'personTabs', 'system'",
+          ]
+          positions = [template.index(token) for token in tab_order]
+          assert positions == sorted(positions)
+
+          sql = pathlib.Path('component/admin/sql/install.mysql.utf8mb4.sql').read_text(encoding='utf-8')
+          model = pathlib.Path('component/admin/src/Model/PersonModel.php').read_text(encoding='utf-8')
+          assert '`tax_identifier` VARCHAR(64)' in sql
+          assert 'tax_country' not in sql.lower()
+          assert 'tax_country' not in model.lower()
+          PY
+          grep -Fq '<version>1.2.8</version>' component/xdecaropeople.xml
+          grep -Fq '<version>1.2.8</version>' package/pkg_xdecaropeople.xml
+          grep -Fq '"version": "1.2.8"' component/media/joomla.asset.json
+          grep -Fq 'COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX="Documenti e fiscalità"' component/admin/language/it-IT/com_xdecaropeople.ini
+          grep -Fq 'COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX="Documents and taxation"' component/admin/language/en-GB/com_xdecaropeople.ini
+          grep -Fq "MINIMUM_CORE = '2.0.1'" component/admin/src/Service/CoreIntegrationService.php
+          grep -Fq "MINIMUM_CORE='2.0.1'" package/script.php
+          grep -Fq 'format="%d/%m/%Y" filter="raw" filterformat="d/m/Y"' component/admin/forms/person.xml
+          grep -Fq '<fieldset name="documents_tax" label="COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX">' component/admin/forms/person.xml
+          grep -Fq '<field name="tax_identifier" type="text" label="COM_XDECAROPEOPLE_FIELD_TIN"' component/admin/forms/person.xml
+          grep -Fq '<field name="uuid" type="text" label="COM_XDECAROPEOPLE_FIELD_UUID" readonly="true"' component/admin/forms/person.xml
+          grep -Fq "useScript('com_xdecaropeople.person-cancel-fix')" component/admin/src/View/Person/HtmlView.php
+          grep -Fq 'confirmedValue' component/media/js/person-form.js
+          grep -Fq "setColumnAlias('published', 'state')" component/admin/src/Table/PersonTable.php
+          grep -Fq 'value="-2"' component/admin/tmpl/people/default.php
+          ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
+          test ! -f component/admin/sql/updates/mysql/1.2.8.sql
+      - name: JavaScript syntax
+        shell: bash
+        run: |
+          node --check component/media/js/person-form.js
+          node --check component/media/js/person-cancel-fix.js
+      - name: Build deterministic install packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x build/build.sh
+          build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/people-sums
+          build/build.sh
+          diff -u /tmp/people-sums dist/SHA256SUMS.txt
+          for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.8.zip | grep -Fxq 'pkg_xdecaropeople.xml'
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.8.zip | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -p dist/pkg_xdecaropeople_1.2.8.zip com_xdecaropeople.zip > /tmp/component.zip
+          unzip -p /tmp/component.zip admin/forms/person.xml | grep -Fq '<fieldset name="documents_tax"'
+          unzip -p /tmp/component.zip admin/forms/person.xml | grep -Fq '<field name="uuid" type="text" label="COM_XDECAROPEOPLE_FIELD_UUID" readonly="true"'
+          unzip -p /tmp/component.zip admin/tmpl/person/edit.php | grep -Fq "'documents_tax', Text::_('COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX')"
+          unzip -p /tmp/component.zip admin/language/it-IT/com_xdecaropeople.ini | grep -Fq 'COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX="Documenti e fiscalità"'
+      - name: Upload People 1.2.8 install package
+        uses: actions/upload-artifact@v4
+        with:
+          name: people-1.2.8-package
+          path: |
+            dist/pkg_xdecaropeople_1.2.8.zip
+            dist/com_xdecaropeople_1.2.8.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7

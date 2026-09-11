@@ -2,7 +2,7 @@
 <extension type="package" method="upgrade">
   <name>People</name>
   <packagename>xdecaropeople</packagename>
-  <version>1.1.0</version>
+  <version>1.2.8</version>
   <creationDate>2026-09</creationDate>
   <author>Luca De Caro</author>
   <authorUrl>https://github.com/xdecaro/people</authorUrl>

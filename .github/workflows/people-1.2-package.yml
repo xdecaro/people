@@ -1,0 +1,76 @@
+name: People 1.2.1 package
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Validate People 1.2.1 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '\r\n' < VERSION)"
+          test "$VERSION" = '1.2.1'
+          find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          python3 - <<'PY'
+          import json, pathlib, xml.etree.ElementTree as ET
+          for path in pathlib.Path('.').rglob('*.xml'):
+              ET.parse(path)
+          json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
+          PY
+          grep -Fq '<version>1.2.1</version>' component/xdecaropeople.xml
+          grep -Fq '<version>1.2.1</version>' package/pkg_xdecaropeople.xml
+          grep -Fq '"version": "1.2.1"' component/media/joomla.asset.json
+          grep -Fq "MINIMUM_CORE = '2.0.1'" component/admin/src/Service/CoreIntegrationService.php
+          grep -Fq "MINIMUM_CORE='2.0.1'" package/script.php
+          grep -Fq "protected \$option = 'com_xdecaropeople';" component/admin/src/Controller/PeopleController.php
+          grep -Fq "protected \$view_list = 'people';" component/admin/src/Controller/PeopleController.php
+          grep -Fq "registerAndUseScript(" component/admin/src/View/Person/HtmlView.php
+          grep -Fq "['version' => '1.2.1']" component/admin/src/View/Person/HtmlView.php
+          grep -Fq 'name="disability_types"' component/admin/forms/person.xml
+          grep -Fq 'name="disability_other"' component/admin/forms/person.xml
+          grep -Fq 'name="nationality_codes" type="Country" code="alpha3"' component/admin/forms/person.xml
+          grep -Fq 'name="birth_country_code" type="Country" code="alpha2"' component/admin/forms/person.xml
+          grep -Fq 'name="birth_place_id"' component/admin/forms/person.xml
+          grep -Fq 'name="accessibility_needs"' component/admin/forms/person.xml
+          grep -Fq 'name="additional_addresses" type="subform"' component/admin/forms/person.xml
+          grep -Fq 'name="relations_data" type="subform"' component/admin/forms/person.xml
+          grep -Fq 'WorldLocationService::fromJoomlaConfiguration()' component/admin/src/Controller/LocationController.php
+          grep -Fq 'people.world_locations' component/admin/src/Service/CoreIntegrationService.php
+          grep -Fq 'people.relations' component/admin/src/Service/CoreIntegrationService.php
+          grep -Fq 'people.accessibility' component/admin/src/Service/CoreIntegrationService.php
+          test -f component/admin/sql/updates/mysql/1.2.1.sql
+          ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
+      - name: Build deterministic install packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x build/build.sh
+          build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/people-sums
+          build/build.sh
+          diff -u /tmp/people-sums dist/SHA256SUMS.txt
+          for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.1.zip | grep -Fxq 'pkg_xdecaropeople.xml'
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.1.zip | grep -Fxq 'com_xdecaropeople.zip'
+      - name: Upload People 1.2.1 install package
+        uses: actions/upload-artifact@v4
+        with:
+          name: people-1.2.1-package
+          path: |
+            dist/pkg_xdecaropeople_1.2.1.zip
+            dist/com_xdecaropeople_1.2.1.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7

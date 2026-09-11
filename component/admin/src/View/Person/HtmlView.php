@@ -1,15 +1,14 @@
 <?php
 
 namespace xdecaro\Component\People\Administrator\View\Person;
-
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use xdecaro\Component\People\Administrator\Extension\PeopleComponent;
-use xdecaro\Component\People\Administrator\Service\CountryMetadata;
 
 final class HtmlView extends BaseHtmlView
 {
@@ -21,25 +20,32 @@ final class HtmlView extends BaseHtmlView
         $this->form = $this->get('Form');
         $this->item = $this->get('Item');
 
-        $user = Factory::getApplication()->getIdentity();
+        $app = Factory::getApplication();
+        $user = $app->getIdentity();
         $isNew = empty($this->item->id);
         if (!$user->authorise($isNew ? 'core.create' : 'core.edit', 'com_xdecaropeople')) {
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 
-        $component = Factory::getApplication()->bootComponent('com_xdecaropeople');
+        $component = $app->bootComponent('com_xdecaropeople');
         if ($component instanceof PeopleComponent) {
             $component->getCoreIntegrationService()->enableUi($this->document->getWebAssetManager());
         }
 
         $this->document->addScriptOptions('com_xdecaropeople.person', [
-            'tinBase' => Text::_('COM_XDECAROPEOPLE_FIELD_TIN'),
-            'tinLabels' => CountryMetadata::tinLabels(),
+            'locationUrl' => 'index.php?option=com_xdecaropeople&task=location.search&format=json',
+            'token' => Session::getFormToken(),
+            'locationMinChars' => 2,
+            'locationLoading' => Text::_('COM_XDECAROPEOPLE_LOCATION_LOADING'),
+            'locationEmpty' => Text::_('COM_XDECAROPEOPLE_LOCATION_EMPTY'),
+            'locationError' => Text::_('COM_XDECAROPEOPLE_ERROR_WORLD_LOCATION_UNAVAILABLE'),
+            'locationSelectionRequired' => Text::_('COM_XDECAROPEOPLE_ERROR_LOCATION_SELECTION_REQUIRED'),
         ]);
 
         $assets = $this->document->getWebAssetManager();
         $assets->useStyle('com_xdecaropeople.admin');
         $assets->useScript('com_xdecaropeople.person-form');
+        $assets->useScript('com_xdecaropeople.person-cancel-fix');
 
         ToolbarHelper::title($isNew ? Text::_('COM_XDECAROPEOPLE_PERSON_NEW') : Text::_('COM_XDECAROPEOPLE_PERSON_EDIT'), 'user');
         ToolbarHelper::apply('person.apply');

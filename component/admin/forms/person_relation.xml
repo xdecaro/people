@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form addfieldprefix="xdecaro\Component\People\Administrator\Field">
+  <field name="type" type="list" label="COM_XDECAROPEOPLE_FIELD_RELATION_TYPE" filter="cmd" required="true">
+    <option value="parent">COM_XDECAROPEOPLE_RELATION_PARENT</option>
+    <option value="child">COM_XDECAROPEOPLE_RELATION_CHILD</option>
+    <option value="guardian">COM_XDECAROPEOPLE_RELATION_GUARDIAN</option>
+    <option value="responsible">COM_XDECAROPEOPLE_RELATION_RESPONSIBLE</option>
+    <option value="spouse">COM_XDECAROPEOPLE_RELATION_SPOUSE</option>
+    <option value="other">COM_XDECAROPEOPLE_RELATION_OTHER</option>
+  </field>
+  <field name="person_uuid" type="Person" label="COM_XDECAROPEOPLE_FIELD_RELATED_PERSON" filter="cmd" required="true" layout="joomla.form.field.list-fancy-select">
+    <option value="">COM_XDECAROPEOPLE_SELECT_PERSON</option>
+  </field>
+  <field name="note" type="text" label="COM_XDECAROPEOPLE_FIELD_RELATION_NOTE" filter="string" maxlength="190"/>
+</form>
