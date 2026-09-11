@@ -4,6 +4,7 @@ namespace xdecaro\Component\People\Administrator\Table;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Table\Table;
 use Joomla\Database\DatabaseDriver;
 use xdecaro\Component\People\Administrator\Service\CountryMetadata;
@@ -16,6 +17,10 @@ final class PersonTable extends Table
     public function __construct(DatabaseDriver $db)
     {
         parent::__construct('#__xdecaropeople_people', 'id', $db);
+
+        // Joomla's generic AdminModel state actions operate on the canonical
+        // "published" alias. People stores that state in the "state" column.
+        $this->setColumnAlias('published', 'state');
     }
 
     public function check(): bool
@@ -92,6 +97,40 @@ final class PersonTable extends Table
             if (property_exists($this, $field) && $this->{$field} !== null) {
                 $value = trim((string) $this->{$field});
                 $this->{$field} = $value !== '' ? $value : null;
+            }
+        }
+
+        // A typed location is not accepted as authoritative until it has been
+        // selected from Core's worldwide-location results and therefore has a
+        // provider identifier. This prevents values such as "Rom" being saved.
+        if (property_exists($this, 'birth_place')) {
+            $birthPlace = trim((string) ($this->birth_place ?? ''));
+            $birthPlaceId = trim((string) ($this->birth_place_id ?? ''));
+
+            if ($birthPlace !== '' && $birthPlaceId === '') {
+                $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_BIRTH_PLACE_SELECTION_REQUIRED'));
+                return false;
+            }
+
+            if ($birthPlace === '') {
+                $this->birth_place_id = null;
+                if (property_exists($this, 'birth_region')) {
+                    $this->birth_region = null;
+                }
+            }
+        }
+
+        if (property_exists($this, 'city')) {
+            $city = trim((string) ($this->city ?? ''));
+            $placeId = trim((string) ($this->residence_place_id ?? ''));
+
+            if ($city !== '' && $placeId === '') {
+                $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_CITY_SELECTION_REQUIRED'));
+                return false;
+            }
+
+            if ($city === '') {
+                $this->residence_place_id = null;
             }
         }
 
