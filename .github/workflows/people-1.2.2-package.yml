@@ -1,4 +1,4 @@
-name: People 1.2.6 package
+name: People 1.2.7 package
 
 on:
   pull_request:
@@ -16,12 +16,12 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Validate People 1.2.6 source
+      - name: Validate People 1.2.7 source
         shell: bash
         run: |
           set -euo pipefail
           VERSION="$(tr -d '\r\n' < VERSION)"
-          test "$VERSION" = '1.2.6'
+          test "$VERSION" = '1.2.7'
           find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
           python3 - <<'PY'
           import json, pathlib, xml.etree.ElementTree as ET
@@ -31,6 +31,8 @@ jobs:
           by_name = {item['name']: item for item in assets['assets']}
           assert by_name['com_xdecaropeople.admin']['uri'] == 'com_xdecaropeople/admin.css'
           assert by_name['com_xdecaropeople.person-form']['uri'] == 'com_xdecaropeople/person-form.js'
+          assert by_name['com_xdecaropeople.person-cancel-fix']['uri'] == 'com_xdecaropeople/person-cancel-fix.js'
+          assert 'com_xdecaropeople.person-form' in by_name['com_xdecaropeople.person-cancel-fix']['dependencies']
 
           root = ET.parse('component/admin/forms/person.xml').getroot()
           identity = root.find("./fieldset[@name='identity']")
@@ -43,14 +45,16 @@ jobs:
           assert 'user_id' in system_names
           assert identity_names.index('nationality_codes') > identity_names.index('tax_identifier')
           PY
-          grep -Fq '<version>1.2.6</version>' component/xdecaropeople.xml
-          grep -Fq '<version>1.2.6</version>' package/pkg_xdecaropeople.xml
-          grep -Fq '"version": "1.2.6"' component/media/joomla.asset.json
+          grep -Fq '<version>1.2.7</version>' component/xdecaropeople.xml
+          grep -Fq '<version>1.2.7</version>' package/pkg_xdecaropeople.xml
+          grep -Fq '"version": "1.2.7"' component/media/joomla.asset.json
           grep -Fq "MINIMUM_CORE = '2.0.1'" component/admin/src/Service/CoreIntegrationService.php
           grep -Fq "MINIMUM_CORE='2.0.1'" package/script.php
           grep -Fq 'format="%d/%m/%Y" filter="raw" filterformat="d/m/Y"' component/admin/forms/person.xml
           grep -Fq '<fieldset name="disability" label="COM_XDECAROPEOPLE_FIELDSET_DISABILITY">' component/admin/forms/person.xml
-          grep -Fq "dataset.xdecaroPeopleForm = '1.2.6'" component/media/js/person-form.js
+          grep -Fq "dataset.xdecaroPeopleForm = '1.2.7'" component/media/js/person-cancel-fix.js
+          grep -Fq "String(task || '') === 'person.cancel'" component/media/js/person-cancel-fix.js
+          grep -Fq "useScript('com_xdecaropeople.person-cancel-fix')" component/admin/src/View/Person/HtmlView.php
           grep -Fq 'confirmedValue' component/media/js/person-form.js
           grep -Fq 'initToolbarValidation' component/media/js/person-form.js
           grep -Fq 'validateAllLocations(true)' component/media/js/person-form.js
@@ -66,15 +70,16 @@ jobs:
           grep -Fq 'COM_XDECAROPEOPLE_N_ITEMS_DELETED_1="Persona eliminata."' component/admin/language/it-IT/com_xdecaropeople.ini
           ! grep -Fq '.xdecaro-scope input:focus-visible' component/media/css/admin.css
           ! grep -Fq '.xdecaro-scope select:focus-visible' component/media/css/admin.css
-          grep -Fq "useScript('com_xdecaropeople.person-form')" component/admin/src/View/Person/HtmlView.php
           ! grep -Rni 'profileCompleteness\|profile_completeness\|PROFILE_COMPLETENESS' component/admin/src component/admin/tmpl component/media/css/admin.css
           ! grep -Fq "people.profile_completeness" component/admin/src/Service/CoreIntegrationService.php
           grep -Fq 'WorldLocationService::fromJoomlaConfiguration()' component/admin/src/Controller/LocationController.php
-          test -f component/admin/sql/updates/mysql/1.2.6.sql
+          test -f component/admin/sql/updates/mysql/1.2.7.sql
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
       - name: JavaScript syntax
         shell: bash
-        run: node --check component/media/js/person-form.js
+        run: |
+          node --check component/media/js/person-form.js
+          node --check component/media/js/person-cancel-fix.js
       - name: Build deterministic install packages
         shell: bash
         run: |
@@ -85,20 +90,20 @@ jobs:
           build/build.sh
           diff -u /tmp/people-sums dist/SHA256SUMS.txt
           for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.6.zip | grep -Fxq 'pkg_xdecaropeople.xml'
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.6.zip | grep -Fxq 'com_xdecaropeople.zip'
-          unzip -p dist/pkg_xdecaropeople_1.2.6.zip com_xdecaropeople.zip > /tmp/component.zip
-          unzip -p /tmp/component.zip media/joomla.asset.json | grep -Fq 'com_xdecaropeople/person-form.js'
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.7.zip | grep -Fxq 'pkg_xdecaropeople.xml'
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.7.zip | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -p dist/pkg_xdecaropeople_1.2.7.zip com_xdecaropeople.zip > /tmp/component.zip
+          unzip -p /tmp/component.zip media/joomla.asset.json | grep -Fq 'com_xdecaropeople/person-cancel-fix.js'
+          unzip -p /tmp/component.zip media/js/person-cancel-fix.js | grep -Fq "dataset.xdecaroPeopleForm = '1.2.7'"
           unzip -p /tmp/component.zip admin/src/Table/PersonTable.php | grep -Fq "setColumnAlias('published', 'state')"
-          unzip -p /tmp/component.zip media/js/person-form.js | grep -Fq "dataset.xdecaroPeopleForm = '1.2.6'"
           unzip -p /tmp/component.zip admin/tmpl/people/default.php | grep -Fq 'value="-2"'
-      - name: Upload People 1.2.6 install package
+      - name: Upload People 1.2.7 install package
         uses: actions/upload-artifact@v4
         with:
-          name: people-1.2.6-package
+          name: people-1.2.7-package
           path: |
-            dist/pkg_xdecaropeople_1.2.6.zip
-            dist/com_xdecaropeople_1.2.6.zip
+            dist/pkg_xdecaropeople_1.2.7.zip
+            dist/com_xdecaropeople_1.2.7.zip
             dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 7
