@@ -1,0 +1,1 @@
+-- People 1.2.6: validation and trash/restore UI hotfix only; no schema changes required.
