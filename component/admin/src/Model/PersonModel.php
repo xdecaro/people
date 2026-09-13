@@ -102,7 +102,7 @@ final class PersonModel extends AdminModel
             }
 
             if (empty($data['nationality_codes']) && !empty($data['nationality_code'])) {
-                $data['nationality_codes'] = [(string) $data['nationality_code'];
+                $data['nationality_codes'] = [(string) $data['nationality_code']];
             }
         }
 
