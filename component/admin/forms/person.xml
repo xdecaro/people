@@ -4,7 +4,7 @@
     <field name="id" type="hidden"/>
     <field name="first_name" type="text" label="COM_XDECAROPEOPLE_FIELD_FIRST_NAME" required="true" filter="string" maxlength="150"/>
     <field name="last_name" type="text" label="COM_XDECAROPEOPLE_FIELD_LAST_NAME" required="true" filter="string" maxlength="150"/>
-    <field name="birth_date" type="calendar" label="COM_XDECAROPEOPLE_FIELD_BIRTH_DATE" format="%d/%m/%Y" filter="raw" filterformat="d/m/Y" todaybutton="true" filltable="true"/>
+    <field name="birth_date" type="calendar" label="COM_XDECAROPEOPLE_FIELD_BIRTH_DATE" format="%d/%m/%Y" filter="raw" filterformat="d/m/Y" inputmode="numeric" todaybutton="true" filltable="true"/>
     <field name="sex" type="list" label="COM_XDECAROPEOPLE_FIELD_SEX" filter="cmd">
       <option value="">COM_XDECAROPEOPLE_SELECT_OPTION</option>
       <option value="M">COM_XDECAROPEOPLE_SEX_MALE</option>
