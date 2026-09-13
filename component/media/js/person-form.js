@@ -6,7 +6,7 @@
     ? JoomlaApi.getOptions('com_xdecaropeople.person', {})
     : {};
 
-  document.documentElement.dataset.xdecaroPeopleForm = '1.2.6';
+  document.documentElement.dataset.xdecaroPeopleForm = '1.2.9';
 
   const locationValidators = [];
 
@@ -98,6 +98,94 @@
       }
     }
     return true;
+  };
+
+  const fieldLabelFor = (field) => {
+    const label = field?.labels?.[0] || null;
+    const text = label?.textContent?.replace(/\s*\*\s*$/, '').trim();
+    if (text) return text;
+
+    return field?.getAttribute('aria-label')
+      || field?.getAttribute('placeholder')
+      || field?.name
+      || field?.id
+      || 'Campo';
+  };
+
+  const tabLabelFor = (field) => {
+    const pane = field?.closest('.tab-pane');
+    if (!pane?.id) return '';
+
+    const escapedId = window.CSS?.escape ? CSS.escape(pane.id) : pane.id.replace(/([:.])/g, '\\$1');
+    const trigger = document.querySelector(`[data-bs-target="#${escapedId}"], [href="#${escapedId}"]`);
+    return trigger?.textContent?.trim() || '';
+  };
+
+  const collectInvalidFields = (form) => {
+    validateAllLocations(false);
+
+    const seen = new Set();
+    return Array.from(form.querySelectorAll(':invalid'))
+      .filter((field) => field instanceof HTMLElement && !field.disabled)
+      .map((field) => {
+        const key = field.id || field.name || String(seen.size);
+        if (seen.has(key)) return null;
+        seen.add(key);
+
+        return {
+          field,
+          label: fieldLabelFor(field),
+          tab: tabLabelFor(field),
+        };
+      })
+      .filter(Boolean);
+  };
+
+  const revealInvalidField = (field) => {
+    if (!field) return;
+
+    const pane = field.closest('.tab-pane');
+    if (pane && pane.id && !pane.classList.contains('active')) {
+      const escapedId = window.CSS?.escape ? CSS.escape(pane.id) : pane.id.replace(/([:.])/g, '\\$1');
+      const trigger = document.querySelector(`[data-bs-target="#${escapedId}"], [href="#${escapedId}"]`);
+      trigger?.click();
+    }
+
+    window.setTimeout(() => {
+      field.focus({ preventScroll: true });
+      field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 0);
+  };
+
+  const showValidationSummary = (invalidFields) => {
+    if (!invalidFields.length) return;
+
+    const details = invalidFields.map(({ label, tab }) => tab ? `${tab} → ${label}` : label);
+    const title = options.validationSummaryTitle || 'Impossibile salvare: controlla i campi indicati.';
+    const intro = options.validationSummaryIntro || 'Controlla:';
+    const message = `${title} ${intro} ${details.join('; ')}.`;
+
+    if (typeof JoomlaApi.removeMessages === 'function') {
+      JoomlaApi.removeMessages();
+    }
+
+    if (typeof JoomlaApi.renderMessages === 'function') {
+      JoomlaApi.renderMessages({ error: [message] });
+    } else {
+      window.alert(message);
+    }
+
+    revealInvalidField(invalidFields[0].field);
+  };
+
+  const validateFormForSave = (form, report = true) => {
+    if (!form) return true;
+
+    const invalidFields = collectInvalidFields(form);
+    if (!invalidFields.length) return true;
+
+    if (report) showValidationSummary(invalidFields);
+    return false;
   };
 
   const initWorldCity = ({ inputId, inputName, countryId, countryName, placeId, placeName, regionId, regionName }) => {
@@ -376,14 +464,6 @@
     document.addEventListener('show.bs.tab', close);
     document.addEventListener('hide.bs.tab', close);
 
-    const form = input.closest('form');
-    form?.addEventListener('submit', (event) => {
-      if (!validateAllLocations(true)) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      }
-    }, true);
-
     locationValidators.push({ input, validate: validateSelection, close });
 
     window.addEventListener('resize', positionMenu, { passive: true });
@@ -391,13 +471,28 @@
   };
 
   const initToolbarValidation = () => {
+    const form = document.getElementById('adminForm');
+
+    if (form && form.dataset.xdecaroValidationBound !== '1') {
+      form.dataset.xdecaroValidationBound = '1';
+      form.addEventListener('submit', (event) => {
+        const task = String(form.querySelector('[name="task"]')?.value || '');
+        if (task === 'person.cancel') return;
+
+        if (!validateFormForSave(form, true)) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }, true);
+    }
+
     if (typeof JoomlaApi.submitbutton !== 'function' || JoomlaApi.__xdecaroPeopleSubmitWrapped) return;
 
     const originalSubmitbutton = JoomlaApi.submitbutton.bind(JoomlaApi);
     JoomlaApi.__xdecaroPeopleSubmitWrapped = true;
 
     JoomlaApi.submitbutton = (task) => {
-      if (/^person\.(apply|save|save2new)$/.test(String(task || '')) && !validateAllLocations(true)) {
+      if (/^person\.(apply|save|save2new)$/.test(String(task || '')) && !validateFormForSave(form, true)) {
         return false;
       }
 
