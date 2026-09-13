@@ -102,7 +102,7 @@ final class PersonModel extends AdminModel
             }
 
             if (empty($data['nationality_codes']) && !empty($data['nationality_code'])) {
-                $data['nationality_codes'] = [(string) $data['nationality_code']];
+                $data['nationality_codes'] = [(string) $data['nationality_code'];
             }
         }
 
@@ -143,6 +143,12 @@ final class PersonModel extends AdminModel
         $data['preferred_name'] = $this->nullableString($data['preferred_name'] ?? null);
         $data['display_name'] = trim($data['first_name'] . ' ' . $data['last_name']);
         $data['user_id'] = !empty($data['user_id']) ? (int) $data['user_id'] : null;
+
+        foreach (['phone', 'whatsapp'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = $this->normalizePhoneNumber($data[$field]);
+            }
+        }
 
         if (array_key_exists('birth_date', $data)) {
             $birthDate = trim((string) ($data['birth_date'] ?? ''));
@@ -486,6 +492,17 @@ final class PersonModel extends AdminModel
         }
 
         return filter_var($value, FILTER_VALIDATE_URL) ? $value : null;
+    }
+
+    private function normalizePhoneNumber(mixed $value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        $value = preg_replace('/\s+/u', '', $value) ?? $value;
+        return $value !== '' ? $value : null;
     }
 
     private function nullableString(mixed $value): ?string
