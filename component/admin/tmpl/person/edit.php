@@ -7,6 +7,16 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 
 HTMLHelper::_('behavior.formvalidator');
+
+$personHeading = trim(
+    (string) ($this->item->first_name ?? '')
+    . ' '
+    . (string) ($this->item->last_name ?? '')
+);
+
+if ($personHeading === '') {
+    $personHeading = Text::_('COM_XDECAROPEOPLE_PERSON_NEW');
+}
 ?>
 <form
     action="<?php echo Route::_('index.php?option=com_xdecaropeople&view=person&layout=edit&id=' . (int) ($this->item->id ?? 0)); ?>"
@@ -16,6 +26,10 @@ HTMLHelper::_('behavior.formvalidator');
     class="form-validate"
 >
     <div class="xdecaro-scope xdecaro-people-person-edit">
+        <div class="xdecaro-person-heading">
+            <h2><?php echo htmlspecialchars($personHeading, ENT_QUOTES, 'UTF-8'); ?></h2>
+        </div>
+
         <?php
         echo HTMLHelper::_('uitab.startTabSet', 'personTabs', ['active' => 'identity']);
 
