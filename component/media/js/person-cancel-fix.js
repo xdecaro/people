@@ -3,7 +3,7 @@
 
   const JoomlaApi = window.Joomla || {};
 
-  document.documentElement.dataset.xdecaroPeopleForm = '1.2.9';
+  document.documentElement.dataset.xdecaroPeopleForm = '1.2.11';
 
   if (typeof JoomlaApi.submitbutton !== 'function' || JoomlaApi.__xdecaroPeopleCancelWrapped) {
     return;
