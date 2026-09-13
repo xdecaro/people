@@ -1,4 +1,4 @@
-name: People 1.2.8 package
+name: People 1.2.9 package
 
 on:
   pull_request:
@@ -16,12 +16,12 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Validate People 1.2.8 source
+      - name: Validate People 1.2.9 source
         shell: bash
         run: |
           set -euo pipefail
           VERSION="$(tr -d '\r\n' < VERSION)"
-          test "$VERSION" = '1.2.8'
+          test "$VERSION" = '1.2.9'
           find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
           php tests/person-validation-summary-contract.php
           python3 - <<'PY'
@@ -31,7 +31,7 @@ jobs:
 
           assets = json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
           by_name = {item['name']: item for item in assets['assets']}
-          assert assets['version'] == '1.2.8'
+          assert assets['version'] == '1.2.9'
           assert by_name['com_xdecaropeople.admin']['uri'] == 'com_xdecaropeople/admin.css'
           assert by_name['com_xdecaropeople.person-form']['uri'] == 'com_xdecaropeople/person-form.js'
           assert by_name['com_xdecaropeople.person-cancel-fix']['uri'] == 'com_xdecaropeople/person-cancel-fix.js'
@@ -89,9 +89,17 @@ jobs:
           assert 'tax_country' not in sql.lower()
           assert 'tax_country' not in model.lower()
           PY
-          grep -Fq '<version>1.2.8</version>' component/xdecaropeople.xml
-          grep -Fq '<version>1.2.8</version>' package/pkg_xdecaropeople.xml
-          grep -Fq '"version": "1.2.8"' component/media/joomla.asset.json
+          grep -Fq '<version>1.2.9</version>' component/xdecaropeople.xml
+          grep -Fq '<version>1.2.9</version>' package/pkg_xdecaropeople.xml
+          grep -Fq '"version": "1.2.9"' component/media/joomla.asset.json
+          grep -Fq "dataset.xdecaroPeopleForm = '1.2.9'" component/media/js/person-form.js
+          grep -Fq "dataset.xdecaroPeopleForm = '1.2.9'" component/media/js/person-cancel-fix.js
+          grep -Fq 'const collectInvalidFields =' component/media/js/person-form.js
+          grep -Fq 'const showValidationSummary =' component/media/js/person-form.js
+          grep -Fq "querySelectorAll(':invalid')" component/media/js/person-form.js
+          grep -Fq 'validationSummaryTitle' component/admin/src/View/Person/HtmlView.php
+          grep -Fq 'validationSummaryIntro' component/admin/src/View/Person/HtmlView.php
+          grep -Fq 'COM_XDECAROPEOPLE_VALIDATION_SUMMARY_TITLE="Impossibile salvare: controlla i campi indicati."' component/admin/language/it-IT/com_xdecaropeople.ini
           grep -Fq 'COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX="Documenti e fiscalità"' component/admin/language/it-IT/com_xdecaropeople.ini
           grep -Fq 'COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX="Documents and taxation"' component/admin/language/en-GB/com_xdecaropeople.ini
           grep -Fq "MINIMUM_CORE = '2.0.1'" component/admin/src/Service/CoreIntegrationService.php
@@ -105,7 +113,7 @@ jobs:
           grep -Fq "setColumnAlias('published', 'state')" component/admin/src/Table/PersonTable.php
           grep -Fq 'value="-2"' component/admin/tmpl/people/default.php
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
-          test ! -f component/admin/sql/updates/mysql/1.2.8.sql
+          test ! -f component/admin/sql/updates/mysql/1.2.9.sql
       - name: JavaScript syntax
         shell: bash
         run: |
@@ -121,20 +129,21 @@ jobs:
           build/build.sh
           diff -u /tmp/people-sums dist/SHA256SUMS.txt
           for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.8.zip | grep -Fxq 'pkg_xdecaropeople.xml'
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.8.zip | grep -Fxq 'com_xdecaropeople.zip'
-          unzip -p dist/pkg_xdecaropeople_1.2.8.zip com_xdecaropeople.zip > /tmp/component.zip
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.9.zip | grep -Fxq 'pkg_xdecaropeople.xml'
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.9.zip | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -p dist/pkg_xdecaropeople_1.2.9.zip com_xdecaropeople.zip > /tmp/component.zip
           unzip -p /tmp/component.zip admin/forms/person.xml | grep -Fq '<fieldset name="documents_tax"'
           unzip -p /tmp/component.zip admin/forms/person.xml | grep -Fq '<field name="uuid" type="text" label="COM_XDECAROPEOPLE_FIELD_UUID" readonly="true"'
           unzip -p /tmp/component.zip admin/tmpl/person/edit.php | grep -Fq "'documents_tax', Text::_('COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX')"
-          unzip -p /tmp/component.zip admin/language/it-IT/com_xdecaropeople.ini | grep -Fq 'COM_XDECAROPEOPLE_FIELDSET_DOCUMENTS_TAX="Documenti e fiscalità"'
-      - name: Upload People 1.2.8 install package
+          unzip -p /tmp/component.zip media/js/person-form.js | grep -Fq 'const showValidationSummary ='
+          unzip -p /tmp/component.zip admin/language/it-IT/com_xdecaropeople.ini | grep -Fq 'COM_XDECAROPEOPLE_VALIDATION_SUMMARY_TITLE="Impossibile salvare: controlla i campi indicati."'
+      - name: Upload People 1.2.9 install package
         uses: actions/upload-artifact@v4
         with:
-          name: people-1.2.8-package
+          name: people-1.2.9-package
           path: |
-            dist/pkg_xdecaropeople_1.2.8.zip
-            dist/com_xdecaropeople_1.2.8.zip
+            dist/pkg_xdecaropeople_1.2.9.zip
+            dist/com_xdecaropeople_1.2.9.zip
             dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 7
