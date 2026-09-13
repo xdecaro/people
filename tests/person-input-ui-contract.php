@@ -8,6 +8,7 @@ $css = file_get_contents($root . '/component/media/css/admin.css') ?: '';
 $model = file_get_contents($root . '/component/admin/src/Model/PersonModel.php') ?: '';
 $field = file_get_contents($root . '/component/admin/src/Field/PersonField.php') ?: '';
 $form = file_get_contents($root . '/component/admin/forms/person.xml') ?: '';
+$template = file_get_contents($root . '/component/admin/tmpl/person/edit.php') ?: '';
 
 $failures = [];
 
@@ -34,6 +35,11 @@ $expectContains($css, '.choices.is-open', 'Relations subform overflow fix must a
 $expectContains($field, "getInt('id')", 'Person selector does not detect the person currently being edited.');
 $expectContains($field, "ParameterType::INTEGER", 'Person selector does not bind the current person id safely.');
 $expectContains($field, "<> :currentId", 'Person selector does not exclude the current person.');
+
+$expectContains($template, 'xdecaro-person-heading', 'Person edit heading above tabs is missing.');
+$expectContains($template, '$this->item->first_name', 'Person edit heading must use the current first name.');
+$expectContains($template, '$this->item->last_name', 'Person edit heading must use the current last name.');
+$expectContains($template, "Text::_('COM_XDECAROPEOPLE_PERSON_NEW')", 'Person edit heading must fall back to the new-person label.');
 
 if ($failures !== []) {
     fwrite(STDERR, implode(PHP_EOL, $failures) . PHP_EOL);
