@@ -118,7 +118,7 @@
     <field name="user_id" type="user" label="COM_XDECAROPEOPLE_FIELD_USER"/>
     <field name="profile_document_uuid" type="text" label="COM_XDECAROPEOPLE_FIELD_PROFILE_DOCUMENT" description="COM_XDECAROPEOPLE_FIELD_PROFILE_DOCUMENT_DESC" filter="cmd" maxlength="36"/>
     <field name="source_component" type="text" label="COM_XDECAROPEOPLE_FIELD_SOURCE_COMPONENT" readonly="true" filter="cmd"/>
-    <field name="created" type="calendar" label="JGLOBAL_FIELD_CREATED_LABEL" readonly="true" format="%d/%m/%Y %H:%M" filter="user_utc" showtime="true"/>
-    <field name="modified" type="calendar" label="JGLOBAL_FIELD_MODIFIED_LABEL" readonly="true" format="%d/%m/%Y %H:%M" filter="user_utc" showtime="true"/>
+    <field name="created" type="calendar" label="JGLOBAL_FIELD_CREATED_LABEL" readonly="true" format="%d/%m/%Y %H:%M" filter="user_utc" filterformat="d/m/Y H:i" showtime="true"/>
+    <field name="modified" type="calendar" label="JGLOBAL_FIELD_MODIFIED_LABEL" readonly="true" format="%d/%m/%Y %H:%M" filter="user_utc" filterformat="d/m/Y H:i" showtime="true"/>
   </fieldset>
 </form>
