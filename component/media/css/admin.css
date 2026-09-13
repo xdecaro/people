@@ -15,6 +15,22 @@
   outline-offset: 2px;
 }
 
+.xdecaro-people-person-edit .xdecaro-person-heading {
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  padding: .65rem 1rem;
+  border-bottom: 1px solid var(--border-color, rgba(127, 127, 127, .25));
+}
+
+.xdecaro-people-person-edit .xdecaro-person-heading h2 {
+  margin: 0;
+  color: inherit;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
 .xdecaro-people-person-edit .control-group {
   position: relative;
 }
@@ -103,6 +119,14 @@
 @media (max-width: 767.98px) {
   .xdecaro-scope .table {
     font-size: .9rem;
+  }
+
+  .xdecaro-people-person-edit .xdecaro-person-heading {
+    padding-inline: .75rem;
+  }
+
+  .xdecaro-people-person-edit .xdecaro-person-heading h2 {
+    font-size: 1.15rem;
   }
 
   .xdecaro-location-option {
