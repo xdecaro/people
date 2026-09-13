@@ -6,7 +6,7 @@
     ? JoomlaApi.getOptions('com_xdecaropeople.person', {})
     : {};
 
-  document.documentElement.dataset.xdecaroPeopleForm = '1.2.9';
+  document.documentElement.dataset.xdecaroPeopleForm = '1.2.11';
 
   const locationValidators = [];
 
@@ -29,6 +29,62 @@
       return Array.from(select.selectedOptions).map((option) => option.value);
     }
     return select.value !== undefined ? [String(select.value)] : [];
+  };
+
+  const formatBirthDateInput = (value) => {
+    const source = String(value ?? '').trim();
+    if (source === '') return '';
+    if (!/^[0-9\s./-]+$/.test(source)) return source;
+
+    const digits = source.replace(/\D/g, '').slice(0, 8);
+    if (digits === '') return '';
+
+    const parts = [digits.slice(0, 2)];
+    if (digits.length > 2) parts.push(digits.slice(2, 4));
+    if (digits.length > 4) parts.push(digits.slice(4, 8));
+
+    return parts.filter(Boolean).join('/');
+  };
+
+  const initBirthDateInput = () => {
+    const input = byField('jform_birth_date', 'jform[birth_date]');
+    if (!input || input.dataset.xdecaroBirthDateReady === '1') return;
+
+    input.dataset.xdecaroBirthDateReady = '1';
+    input.setAttribute('inputmode', 'numeric');
+
+    const format = () => {
+      const formatted = formatBirthDateInput(input.value);
+      if (formatted !== input.value) input.value = formatted;
+    };
+
+    input.addEventListener('input', format);
+    input.addEventListener('paste', () => window.setTimeout(format, 0));
+  };
+
+  const normalizePhoneValue = (value) => String(value ?? '').trim().replace(/\s+/g, '');
+
+  const phoneFields = () => [
+    byField('jform_phone', 'jform[phone]'),
+    byField('jform_whatsapp', 'jform[whatsapp]'),
+  ].filter(Boolean);
+
+  const normalizePhoneFields = () => {
+    phoneFields().forEach((field) => {
+      const normalized = normalizePhoneValue(field.value);
+      if (field.value !== normalized) field.value = normalized;
+    });
+  };
+
+  const initPhoneNormalization = () => {
+    phoneFields().forEach((field) => {
+      if (field.dataset.xdecaroPhoneReady === '1') return;
+      field.dataset.xdecaroPhoneReady = '1';
+      field.addEventListener('blur', () => {
+        const normalized = normalizePhoneValue(field.value);
+        if (field.value !== normalized) field.value = normalized;
+      });
+    });
   };
 
   const initConditionalFields = () => {
@@ -180,6 +236,8 @@
 
   const validateFormForSave = (form, report = true) => {
     if (!form) return true;
+
+    normalizePhoneFields();
 
     const invalidFields = collectInvalidFields(form);
     if (!invalidFields.length) return true;
@@ -516,6 +574,8 @@
   const init = () => {
     initConditionalFields();
     initNationalityCompatibility();
+    initBirthDateInput();
+    initPhoneNormalization();
 
     initWorldCity({
       inputId: 'jform_birth_place',
