@@ -23,6 +23,7 @@ jobs:
           VERSION="$(tr -d '\r\n' < VERSION)"
           test "$VERSION" = '1.2.8'
           find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          php tests/person-validation-summary-contract.php
           python3 - <<'PY'
           import json, pathlib, xml.etree.ElementTree as ET
           for path in pathlib.Path('.').rglob('*.xml'):
