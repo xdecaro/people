@@ -8,6 +8,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 
 final class PersonField extends ListField
 {
@@ -17,6 +18,7 @@ final class PersonField extends ListField
     {
         $options = parent::getOptions();
         $db = Factory::getContainer()->get(DatabaseInterface::class);
+        $currentId = Factory::getApplication()->getInput()->getInt('id');
         $query = $db->getQuery(true)
             ->select([
                 $db->quoteName('uuid'),
@@ -26,6 +28,11 @@ final class PersonField extends ListField
             ->from($db->quoteName('#__xdecaropeople_people'))
             ->where($db->quoteName('state') . ' >= 0')
             ->order($db->quoteName('last_name') . ' ASC, ' . $db->quoteName('first_name') . ' ASC');
+
+        if ($currentId > 0) {
+            $query->where($db->quoteName('id') . ' <> :currentId')
+                ->bind(':currentId', $currentId, ParameterType::INTEGER);
+        }
 
         foreach ((array) $db->setQuery($query)->loadAssocList() as $row) {
             $uuid = trim((string) ($row['uuid'] ?? ''));
