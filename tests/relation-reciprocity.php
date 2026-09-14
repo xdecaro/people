@@ -7,6 +7,7 @@ defined('_JEXEC') || define('_JEXEC', 1);
 $root = dirname(__DIR__);
 $servicePath = $root . '/component/admin/src/Service/RelationReciprocity.php';
 $modelPath = $root . '/component/admin/src/Model/PersonModel.php';
+$tablePath = $root . '/component/admin/src/Table/PersonTable.php';
 $installerPath = $root . '/component/script.php';
 
 $failures = [];
@@ -54,12 +55,12 @@ $edges = RelationReciprocity::managedEdges([
 ]);
 $assert(count($edges) === 2, 'Only reciprocal-managed relation types must participate in synchronization.');
 
-$model = file_get_contents($modelPath) ?: '';
-$assert(str_contains($model, 'use xdecaro\\Component\\People\\Administrator\\Service\\RelationReciprocity;'), 'PersonModel must use RelationReciprocity.');
-$assert(str_contains($model, 'synchronizeReciprocalRelations'), 'PersonModel must synchronize reciprocal relations after save.');
-$assert(str_contains($model, 'RelationReciprocity::managedEdges'), 'PersonModel must compare reciprocal-managed relation edges.');
-$assert(str_contains($model, 'RelationReciprocity::upsert'), 'PersonModel must create/repair reciprocal relations.');
-$assert(str_contains($model, 'RelationReciprocity::remove'), 'PersonModel must remove reciprocal relations when the source relation is removed.');
+$persistenceCode = (file_get_contents($modelPath) ?: '') . "\n" . (file_get_contents($tablePath) ?: '');
+$assert(str_contains($persistenceCode, 'RelationReciprocity'), 'People persistence must use RelationReciprocity.');
+$assert(str_contains($persistenceCode, 'synchronizeReciprocalRelations'), 'People persistence must synchronize reciprocal relations after save.');
+$assert(str_contains($persistenceCode, 'RelationReciprocity::managedEdges'), 'People persistence must compare reciprocal-managed relation edges.');
+$assert(str_contains($persistenceCode, 'RelationReciprocity::upsert'), 'People persistence must create/repair reciprocal relations.');
+$assert(str_contains($persistenceCode, 'RelationReciprocity::remove'), 'People persistence must remove reciprocal relations when the source relation is removed.');
 
 $installer = file_get_contents($installerPath) ?: '';
 $assert(str_contains($installer, 'repairReciprocalRelations'), 'Installer must backfill reciprocal relations for existing People records.');
