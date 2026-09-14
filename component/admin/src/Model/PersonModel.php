@@ -12,6 +12,7 @@ use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Table\Table;
 use Joomla\Database\ParameterType;
 use Throwable;
+use xdecaro\Component\People\Administrator\Extension\PeopleComponent;
 use xdecaro\Component\People\Administrator\Service\CountryMetadata;
 
 final class PersonModel extends AdminModel
@@ -170,18 +171,33 @@ final class PersonModel extends AdminModel
             if (($data['disability_status'] ?? null) !== 1) {
                 $types = [];
             }
-            $data['disability_types'] = $this->encodeJsonList($types);
-            $data['disability_other'] = in_array('other', $types, true)
+
+            $other = in_array('other', $types, true)
                 ? $this->nullableString($data['disability_other'] ?? null)
                 : null;
+
+            if (in_array('other', $types, true) && $other === null) {
+                $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_DISABILITY_OTHER_REQUIRED'));
+                return false;
+            }
+
+            $data['disability_types'] = $this->encodeJsonList($types);
+            $data['disability_other'] = $other;
         }
 
         if (array_key_exists('accessibility_needs', $data)) {
             $needs = $this->normalizeAllowedList($data['accessibility_needs'], self::ACCESSIBILITY_NEEDS);
-            $data['accessibility_needs'] = $this->encodeJsonList($needs);
-            $data['accessibility_other'] = in_array('other', $needs, true)
+            $other = in_array('other', $needs, true)
                 ? $this->nullableString($data['accessibility_other'] ?? null)
                 : null;
+
+            if (in_array('other', $needs, true) && $other === null) {
+                $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_ACCESSIBILITY_OTHER_REQUIRED'));
+                return false;
+            }
+
+            $data['accessibility_needs'] = $this->encodeJsonList($needs);
+            $data['accessibility_other'] = $other;
         }
 
         if (array_key_exists('nationality_codes', $data)) {
@@ -236,7 +252,11 @@ final class PersonModel extends AdminModel
         }
 
         if (array_key_exists('additional_addresses', $data)) {
-            $data['additional_addresses'] = $this->encodeJsonList($this->normalizeAddresses($data['additional_addresses']));
+            $addresses = $this->normalizeAddresses($data['additional_addresses']);
+            if ($addresses === null) {
+                return false;
+            }
+            $data['additional_addresses'] = $this->encodeJsonList($addresses);
         }
 
         if (array_key_exists('relations_data', $data)) {
@@ -302,46 +322,13 @@ final class PersonModel extends AdminModel
 
     private function warnPossibleDuplicate(array $data, int $excludeId): void
     {
-        $db = $this->getDatabase();
-        $conditions = [];
-        $query = $db->getQuery(true)
-            ->select('COUNT(*)')
-            ->from($db->quoteName('#__xdecaropeople_people'))
-            ->where($db->quoteName('state') . ' >= 0')
-            ->where($db->quoteName('id') . ' <> :excludeId')
-            ->bind(':excludeId', $excludeId, ParameterType::INTEGER);
-
-        $email = strtolower(trim((string) ($data['email'] ?? '')));
-        if ($email !== '') {
-            $conditions[] = 'LOWER(TRIM(' . $db->quoteName('email') . ')) = :dupEmail';
-            $query->bind(':dupEmail', $email);
-        }
-
-        $tin = strtoupper(trim((string) ($data['tax_identifier'] ?? '')));
-        if ($tin !== '') {
-            $conditions[] = 'UPPER(TRIM(' . $db->quoteName('tax_identifier') . ')) = :dupTin';
-            $query->bind(':dupTin', $tin);
-        }
-
-        $firstName = strtolower(trim((string) ($data['first_name'] ?? '')));
-        $lastName = strtolower(trim((string) ($data['last_name'] ?? '')));
-        $birthDate = trim((string) ($data['birth_date'] ?? ''));
-        if ($firstName !== '' && $lastName !== '' && $birthDate !== '') {
-            $conditions[] = '(LOWER(TRIM(' . $db->quoteName('first_name') . ')) = :dupFirst'
-                . ' AND LOWER(TRIM(' . $db->quoteName('last_name') . ')) = :dupLast'
-                . ' AND ' . $db->quoteName('birth_date') . ' = :dupBirth)';
-            $query->bind(':dupFirst', $firstName)
-                ->bind(':dupLast', $lastName)
-                ->bind(':dupBirth', $birthDate);
-        }
-
-        if (!$conditions) {
-            return;
-        }
-
-        $query->where('(' . implode(' OR ', $conditions) . ')');
-        if ((int) $db->setQuery($query)->loadResult() > 0) {
-            Factory::getApplication()->enqueueMessage(Text::_('COM_XDECAROPEOPLE_WARNING_POSSIBLE_DUPLICATE'), 'warning');
+        try {
+            $component = Factory::getApplication()->bootComponent('com_xdecaropeople');
+            if ($component instanceof PeopleComponent && $component->getDuplicateService()->hasMatch($data, $excludeId)) {
+                Factory::getApplication()->enqueueMessage(Text::_('COM_XDECAROPEOPLE_WARNING_POSSIBLE_DUPLICATE'), 'warning');
+            }
+        } catch (Throwable $exception) {
+            Log::add('People duplicate warning failed: ' . $exception->getMessage(), Log::WARNING, 'com_xdecaropeople');
         }
     }
 
@@ -403,7 +390,7 @@ final class PersonModel extends AdminModel
         return $row ?: null;
     }
 
-    private function normalizeAddresses(mixed $rows): array
+    private function normalizeAddresses(mixed $rows): ?array
     {
         $result = [];
         foreach ((array) $rows as $row) {
@@ -411,31 +398,29 @@ final class PersonModel extends AdminModel
                 continue;
             }
 
-            $type = strtolower(trim((string) ($row['type'] ?? 'other')));
-            if (!in_array($type, self::ADDRESS_TYPES, true)) {
-                $type = 'other';
-            }
-
+            $type = strtolower(trim((string) ($row['type'] ?? '')));
+            $addressLine = trim((string) ($row['address_line'] ?? ''));
+            $city = trim((string) ($row['city'] ?? ''));
             $country = strtoupper(trim((string) ($row['country_code'] ?? '')));
-            if ($country !== '' && !CountryMetadata::isAlpha2($country)) {
-                $country = '';
+
+            if (!in_array($type, self::ADDRESS_TYPES, true)
+                || $addressLine === ''
+                || $city === ''
+                || $country === ''
+                || !CountryMetadata::isAlpha2($country)) {
+                $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_ADDITIONAL_ADDRESS_REQUIRED'));
+                return null;
             }
 
-            $item = [
+            $result[] = [
                 'type' => $type,
-                'address_line' => trim((string) ($row['address_line'] ?? '')),
+                'address_line' => $addressLine,
                 'address_number' => trim((string) ($row['address_number'] ?? '')),
                 'postal_code' => trim((string) ($row['postal_code'] ?? '')),
-                'city' => trim((string) ($row['city'] ?? '')),
+                'city' => $city,
                 'region' => trim((string) ($row['region'] ?? '')),
                 'country_code' => $country,
             ];
-
-            if (implode('', array_values(array_diff_key($item, ['type' => true]))) === '') {
-                continue;
-            }
-
-            $result[] = $item;
         }
 
         return $result;
