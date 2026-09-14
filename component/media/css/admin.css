@@ -15,6 +15,33 @@
   outline-offset: 2px;
 }
 
+.xdecaro-people-filters {
+  display: flex;
+  align-items: stretch;
+  gap: .5rem;
+  width: 100%;
+}
+
+.xdecaro-people-filter-search {
+  flex: 1 1 auto;
+  min-width: 12rem;
+}
+
+.xdecaro-people-filter-state {
+  flex: 0 1 16rem;
+  min-width: 12rem;
+}
+
+.xdecaro-people-filter-submit {
+  flex: 0 0 auto;
+}
+
+.xdecaro-people-filter-search .form-control,
+.xdecaro-people-filter-state .form-select,
+.xdecaro-people-filter-submit .btn {
+  height: 100%;
+}
+
 .xdecaro-people-person-edit .xdecaro-person-heading {
   display: flex;
   align-items: center;
@@ -39,10 +66,16 @@
   max-width: 32rem;
 }
 
+.xdecaro-people-person-edit .xdecaro-field-required .control-label label::after,
+.xdecaro-people-person-edit .xdecaro-field-required > label::after {
+  content: " *";
+  font-weight: 700;
+}
+
 .xdecaro-people-person-edit > joomla-tab:not([view="accordion"]) > div[role="tablist"] {
-  flex-flow:row nowrap;
-  overflow-x:auto;
-  overflow-y:hidden;
+  flex-flow: row nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: thin;
 }
 
@@ -103,11 +136,14 @@
 }
 
 .xdecaro-people-person-edit .subform-repeatable-wrapper:has(select[name*="[person_uuid]"]):has(.choices.is-open),
-.xdecaro-people-person-edit .table-responsive:has(select[name*="[person_uuid]"]):has(.choices.is-open) {
+.xdecaro-people-person-edit .table-responsive:has(select[name*="[person_uuid]"]):has(.choices.is-open),
+.xdecaro-people-person-edit .subform-repeatable-wrapper:has(select[name$="[country_code]"]):has(.choices.is-open),
+.xdecaro-people-person-edit .table-responsive:has(select[name$="[country_code]"]):has(.choices.is-open) {
   overflow: visible !important;
 }
 
-.xdecaro-people-person-edit .control-group:has(select[name*="[person_uuid]"]):has(.choices.is-open) {
+.xdecaro-people-person-edit .control-group:has(select[name*="[person_uuid]"]):has(.choices.is-open),
+.xdecaro-people-person-edit .control-group:has(select[name$="[country_code]"]):has(.choices.is-open) {
   z-index: 30;
 }
 
@@ -116,9 +152,35 @@
   display: none !important;
 }
 
+.xdecaro-duplicate-records {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.xdecaro-duplicate-records .btn {
+  white-space: nowrap;
+}
+
 @media (max-width: 767.98px) {
   .xdecaro-scope .table {
     font-size: .9rem;
+  }
+
+  .xdecaro-people-filters {
+    flex-direction: column;
+  }
+
+  .xdecaro-people-filter-search,
+  .xdecaro-people-filter-state,
+  .xdecaro-people-filter-submit {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .xdecaro-people-filter-submit .btn {
+    width: 100%;
   }
 
   .xdecaro-people-person-edit .xdecaro-person-heading {
