@@ -12,8 +12,8 @@ $filterState = (string) $this->state->get('filter.state');
 ?>
 <form action="<?php echo Route::_('index.php?option=com_xdecaropeople&view=people'); ?>" method="post" name="adminForm" id="adminForm">
     <div class="xdecaro-scope">
-        <div class="row g-2 mb-3">
-            <div class="col-md-6">
+        <div class="xdecaro-people-filters mb-3">
+            <div class="xdecaro-people-filter-search">
                 <input
                     type="search"
                     name="filter_search"
@@ -22,7 +22,7 @@ $filterState = (string) $this->state->get('filter.state');
                     placeholder="<?php echo Text::_('JSEARCH_FILTER'); ?>"
                 >
             </div>
-            <div class="col-md-3">
+            <div class="xdecaro-people-filter-state">
                 <select name="filter_state" class="form-select" onchange="this.form.submit()">
                     <option value=""><?php echo Text::_('JOPTION_SELECT_PUBLISHED'); ?></option>
                     <option value="1" <?php echo $filterState === '1' ? 'selected' : ''; ?>><?php echo Text::_('JPUBLISHED'); ?></option>
@@ -30,7 +30,7 @@ $filterState = (string) $this->state->get('filter.state');
                     <option value="-2" <?php echo $filterState === '-2' ? 'selected' : ''; ?>><?php echo Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'); ?></option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="xdecaro-people-filter-submit">
                 <button class="btn btn-primary" type="submit"><?php echo Text::_('JSEARCH_FILTER_SUBMIT'); ?></button>
             </div>
         </div>
