@@ -1,4 +1,4 @@
-name: People 1.2.13 package
+name: People 1.2.14 package
 
 on:
   pull_request:
@@ -16,16 +16,17 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Validate People 1.2.13 source
+      - name: Validate People 1.2.14 source
         shell: bash
         run: |
           set -euo pipefail
           VERSION="$(tr -d '\r\n' < VERSION)"
-          test "$VERSION" = '1.2.13'
+          test "$VERSION" = '1.2.14'
           find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
           php tests/person-validation-summary-contract.php
           php tests/person-input-ui-contract.php
           php tests/relation-reciprocity.php
+          php tests/people-1.2.14-contract.php
           python3 - <<'PY'
           import json, pathlib, xml.etree.ElementTree as ET
           for path in pathlib.Path('.').rglob('*.xml'):
@@ -33,7 +34,7 @@ jobs:
 
           assets = json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
           by_name = {item['name']: item for item in assets['assets']}
-          assert assets['version'] == '1.2.13'
+          assert assets['version'] == '1.2.14'
           assert by_name['com_xdecaropeople.admin']['uri'] == 'com_xdecaropeople/admin.css'
           assert by_name['com_xdecaropeople.person-form']['uri'] == 'com_xdecaropeople/person-form.js'
           assert by_name['com_xdecaropeople.person-cancel-fix']['uri'] == 'com_xdecaropeople/person-cancel-fix.js'
@@ -61,6 +62,11 @@ jobs:
           assert 'user_id' in system_names
           assert system.find("./field[@name='created']").attrib.get('filterformat') == 'd/m/Y H:i'
           assert system.find("./field[@name='modified']").attrib.get('filterformat') == 'd/m/Y H:i'
+
+          address_root = ET.parse('component/admin/forms/additional_address.xml').getroot()
+          for field_name in ('type', 'address_line', 'city', 'country_code'):
+              field = address_root.find(f"./field[@name='{field_name}']")
+              assert field is not None and field.attrib.get('required') == 'true'
 
           visible_identity = [
               field.attrib.get('name') for field in identity_fields
@@ -96,15 +102,21 @@ jobs:
           assert 'tax_country' not in sql.lower()
           assert 'tax_country' not in model.lower()
           PY
-          grep -Fq '<version>1.2.13</version>' component/xdecaropeople.xml
-          grep -Fq '<version>1.2.13</version>' package/pkg_xdecaropeople.xml
-          grep -Fq '"version": "1.2.13"' component/media/joomla.asset.json
+          grep -Fq '<version>1.2.14</version>' component/xdecaropeople.xml
+          grep -Fq '<version>1.2.14</version>' package/pkg_xdecaropeople.xml
+          grep -Fq '"version": "1.2.14"' component/media/joomla.asset.json
+          grep -Fq "dataset.xdecaroPeopleForm = '1.2.14'" component/media/js/person-form.js
+          grep -Fq "dataset.xdecaroPeopleForm = '1.2.14'" component/media/js/person-cancel-fix.js
           grep -Fq 'const collectInvalidFields =' component/media/js/person-form.js
           grep -Fq 'const showValidationSummary =' component/media/js/person-form.js
           grep -Fq "querySelectorAll(':invalid')" component/media/js/person-form.js
           grep -Fq 'const formatBirthDateInput =' component/media/js/person-form.js
+          grep -Fq 'setConditionalRequired(disabilityOther' component/media/js/person-form.js
+          grep -Fq 'setConditionalRequired(accessibilityOther' component/media/js/person-form.js
           grep -Fq 'initPhoneNormalization();' component/media/js/person-form.js
           grep -Fq 'normalizePhoneNumber' component/admin/src/Model/PersonModel.php
+          grep -Fq 'COM_XDECAROPEOPLE_ERROR_ADDITIONAL_ADDRESS_REQUIRED' component/admin/src/Model/PersonModel.php
+          grep -Fq 'getDuplicateService()->hasMatch' component/admin/src/Model/PersonModel.php
           grep -Fq "getInt('id')" component/admin/src/Field/PersonField.php
           grep -Fq 'validationSummaryTitle' component/admin/src/View/Person/HtmlView.php
           grep -Fq 'validationSummaryIntro' component/admin/src/View/Person/HtmlView.php
@@ -119,6 +131,14 @@ jobs:
           grep -Fq '<field name="uuid" type="text" label="COM_XDECAROPEOPLE_FIELD_UUID" readonly="true"' component/admin/forms/person.xml
           grep -Fq 'xdecaro-person-heading' component/admin/tmpl/person/edit.php
           grep -Fq '.xdecaro-person-heading' component/media/css/admin.css
+          grep -Fq '.xdecaro-people-filters' component/media/css/admin.css
+          grep -Fq 'select[name$="[country_code]"]' component/media/css/admin.css
+          grep -Fq 'xdecaro-people-filters' component/admin/tmpl/people/default.php
+          grep -Fq 'COM_XDECAROPEOPLE_DUPLICATE_STRENGTH' component/admin/tmpl/duplicates/default.php
+          grep -Fq 'person.edit&id=' component/admin/tmpl/duplicates/default.php
+          grep -Fq "'name_birth'" component/admin/src/Service/DuplicateService.php
+          grep -Fq "'phone'" component/admin/src/Service/DuplicateService.php
+          grep -Fq "'whatsapp'" component/admin/src/Service/DuplicateService.php
           grep -Fq "useScript('com_xdecaropeople.person-cancel-fix')" component/admin/src/View/Person/HtmlView.php
           grep -Fq 'confirmedValue' component/media/js/person-form.js
           grep -Fq "setColumnAlias('published', 'state')" component/admin/src/Table/PersonTable.php
@@ -127,7 +147,7 @@ jobs:
           grep -Fq 'repairReciprocalRelations' component/script.php
           grep -Fq 'value="-2"' component/admin/tmpl/people/default.php
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
-          test ! -f component/admin/sql/updates/mysql/1.2.13.sql
+          test ! -f component/admin/sql/updates/mysql/1.2.14.sql
       - name: JavaScript syntax
         shell: bash
         run: |
@@ -143,19 +163,24 @@ jobs:
           build/build.sh
           diff -u /tmp/people-sums dist/SHA256SUMS.txt
           for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.13.zip | grep -Fxq 'pkg_xdecaropeople.xml'
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.13.zip | grep -Fxq 'com_xdecaropeople.zip'
-          unzip -p dist/pkg_xdecaropeople_1.2.13.zip com_xdecaropeople.zip > /tmp/component.zip
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.14.zip | grep -Fxq 'pkg_xdecaropeople.xml'
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.14.zip | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -p dist/pkg_xdecaropeople_1.2.14.zip com_xdecaropeople.zip > /tmp/component.zip
+          unzip -p /tmp/component.zip admin/forms/additional_address.xml | grep -Fq 'name="address_line"'
+          unzip -p /tmp/component.zip admin/src/Service/DuplicateService.php | grep -Fq "'name_birth'"
+          unzip -p /tmp/component.zip admin/tmpl/duplicates/default.php | grep -Fq 'person.edit&id='
+          unzip -p /tmp/component.zip media/css/admin.css | grep -Fq '.xdecaro-people-filters'
+          unzip -p /tmp/component.zip media/js/person-form.js | grep -Fq 'setConditionalRequired'
           unzip -p /tmp/component.zip admin/src/Service/RelationReciprocity.php | grep -Fq "'spouse' => 'spouse'"
           unzip -p /tmp/component.zip admin/src/Table/PersonTable.php | grep -Fq 'synchronizeReciprocalRelations'
           unzip -p /tmp/component.zip script.php | grep -Fq 'repairReciprocalRelations'
-      - name: Upload People 1.2.13 install package
+      - name: Upload People 1.2.14 install package
         uses: actions/upload-artifact@v4
         with:
-          name: people-1.2.13-package
+          name: people-1.2.14-package
           path: |
-            dist/pkg_xdecaropeople_1.2.13.zip
-            dist/com_xdecaropeople_1.2.13.zip
+            dist/pkg_xdecaropeople_1.2.14.zip
+            dist/com_xdecaropeople_1.2.14.zip
             dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 7
