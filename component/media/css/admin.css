@@ -73,9 +73,9 @@
 }
 
 .xdecaro-people-person-edit > joomla-tab:not([view="accordion"]) > div[role="tablist"] {
-  flex-flow: row nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
+  flex-flow:row nowrap;
+  overflow-x:auto;
+  overflow-y:hidden;
   scrollbar-width: thin;
 }
 
