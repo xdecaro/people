@@ -4,6 +4,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\Database\DatabaseInterface;
+use xdecaro\Component\People\Administrator\Service\RelationReciprocity;
 
 final class com_xdecaropeopleInstallerScript
 {
@@ -18,6 +19,7 @@ final class com_xdecaropeopleInstallerScript
             $db = Factory::getContainer()->get(DatabaseInterface::class);
             $this->repairPeopleTable($db);
             $this->repairHistoryTable($db);
+            $this->repairReciprocalRelations($db);
         } catch (Throwable $e) {
             Log::add('People schema repair warning: ' . $e->getMessage(), Log::WARNING, 'xdecaropeople');
             throw $e;
@@ -138,5 +140,91 @@ final class com_xdecaropeopleInstallerScript
             . 'KEY `idx_people_history_actor` (`actor_user_id`)'
             . ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
         )->execute();
+    }
+
+    private function repairReciprocalRelations(DatabaseInterface $db): void
+    {
+        if (!class_exists(RelationReciprocity::class)) {
+            $servicePath = __DIR__ . '/admin/src/Service/RelationReciprocity.php';
+            if (!is_file($servicePath)) {
+                return;
+            }
+            require_once $servicePath;
+        }
+
+        $table = $db->replacePrefix('#__xdecaropeople_people');
+        if (!in_array($table, $db->getTableList(), true)) {
+            return;
+        }
+
+        $query = $db->getQuery(true)
+            ->select([
+                $db->quoteName('id'),
+                $db->quoteName('uuid'),
+                $db->quoteName('relations_data'),
+            ])
+            ->from($db->quoteName('#__xdecaropeople_people'));
+
+        $rows = (array) $db->setQuery($query)->loadAssocList();
+        if (!$rows) {
+            return;
+        }
+
+        $people = [];
+        foreach ($rows as $row) {
+            $uuid = strtolower(trim((string) ($row['uuid'] ?? '')));
+            if ($uuid === '') {
+                continue;
+            }
+
+            $relations = [];
+            $raw = $row['relations_data'] ?? null;
+            if (is_string($raw) && trim($raw) !== '') {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded)) {
+                    $relations = $decoded;
+                }
+            }
+
+            $people[$uuid] = [
+                'id' => (int) ($row['id'] ?? 0),
+                'relations' => $relations,
+            ];
+        }
+
+        $changed = [];
+        foreach ($people as $sourceUuid => $source) {
+            foreach (RelationReciprocity::managedEdges($source['relations']) as $edge) {
+                $targetUuid = strtolower(trim((string) ($edge['person_uuid'] ?? '')));
+                $inverseType = RelationReciprocity::inverseType((string) ($edge['type'] ?? ''));
+                if ($targetUuid === '' || $targetUuid === $sourceUuid || $inverseType === null || !isset($people[$targetUuid])) {
+                    continue;
+                }
+
+                $before = $people[$targetUuid]['relations'];
+                $after = RelationReciprocity::upsert($before, $inverseType, $sourceUuid);
+                if ($after === $before) {
+                    continue;
+                }
+
+                $people[$targetUuid]['relations'] = $after;
+                $changed[$targetUuid] = true;
+            }
+        }
+
+        foreach (array_keys($changed) as $uuid) {
+            $person = $people[$uuid] ?? null;
+            if (!$person || (int) ($person['id'] ?? 0) < 1) {
+                continue;
+            }
+
+            $record = (object) [
+                'id' => (int) $person['id'],
+                'relations_data' => $person['relations']
+                    ? json_encode(array_values($person['relations']), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                    : null,
+            ];
+            $db->updateObject('#__xdecaropeople_people', $record, 'id', true);
+        }
     }
 }
