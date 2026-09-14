@@ -6,7 +6,7 @@
     ? JoomlaApi.getOptions('com_xdecaropeople.person', {})
     : {};
 
-  document.documentElement.dataset.xdecaroPeopleForm = '1.2.11';
+  document.documentElement.dataset.xdecaroPeopleForm = '1.2.14';
 
   const locationValidators = [];
 
@@ -21,6 +21,20 @@
     if (!group) return;
     group.hidden = !visible;
     group.classList.toggle('xdecaro-conditional-small', Boolean(visible && compact));
+  };
+
+  const setConditionalRequired = (element, required) => {
+    if (!element) return;
+
+    const group = fieldGroup(element);
+    element.required = Boolean(required);
+    element.setAttribute('aria-required', required ? 'true' : 'false');
+    group?.classList.toggle('xdecaro-field-required', Boolean(required));
+
+    if (!required) {
+      element.setCustomValidity('');
+      element.removeAttribute('aria-invalid');
+    }
   };
 
   const selectedValues = (select) => {
@@ -97,13 +111,22 @@
     const update = () => {
       if (disabilityStatus && disabilityTypes) {
         const enabled = String(disabilityStatus.value) === '1';
+        const requiresOther = enabled && selectedValues(disabilityTypes).includes('other');
         setVisible(disabilityTypes, enabled);
         if (disabilityOther) {
-          setVisible(disabilityOther, enabled && selectedValues(disabilityTypes).includes('other'), true);
+          setVisible(disabilityOther, requiresOther, true);
+          setConditionalRequired(disabilityOther, requiresOther);
         }
+      } else if (disabilityOther) {
+        setConditionalRequired(disabilityOther, false);
       }
+
       if (accessibilityNeeds && accessibilityOther) {
-        setVisible(accessibilityOther, selectedValues(accessibilityNeeds).includes('other'), true);
+        const requiresOther = selectedValues(accessibilityNeeds).includes('other');
+        setVisible(accessibilityOther, requiresOther, true);
+        setConditionalRequired(accessibilityOther, requiresOther);
+      } else if (accessibilityOther) {
+        setConditionalRequired(accessibilityOther, false);
       }
     };
 
