@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+defined('_JEXEC') || define('_JEXEC', 1);
+
 $root = dirname(__DIR__);
 $servicePath = $root . '/component/admin/src/Service/RelationReciprocity.php';
 $modelPath = $root . '/component/admin/src/Model/PersonModel.php';
