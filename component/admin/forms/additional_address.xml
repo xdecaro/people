@@ -6,12 +6,12 @@
     <option value="billing">COM_XDECAROPEOPLE_ADDRESS_TYPE_BILLING</option>
     <option value="other">COM_XDECAROPEOPLE_ADDRESS_TYPE_OTHER</option>
   </field>
-  <field name="address_line" type="text" label="COM_XDECAROPEOPLE_FIELD_ADDRESS" filter="string" maxlength="255"/>
+  <field name="address_line" type="text" label="COM_XDECAROPEOPLE_FIELD_ADDRESS" filter="string" maxlength="255" required="true"/>
   <field name="address_number" type="text" label="COM_XDECAROPEOPLE_FIELD_ADDRESS_NUMBER" filter="string" maxlength="32"/>
   <field name="postal_code" type="text" label="COM_XDECAROPEOPLE_FIELD_POSTAL_CODE" filter="string" maxlength="32"/>
-  <field name="city" type="text" label="COM_XDECAROPEOPLE_FIELD_CITY" filter="string" maxlength="190"/>
+  <field name="city" type="text" label="COM_XDECAROPEOPLE_FIELD_CITY" filter="string" maxlength="190" required="true"/>
   <field name="region" type="text" label="COM_XDECAROPEOPLE_FIELD_REGION" filter="string" maxlength="190"/>
-  <field name="country_code" type="Country" code="alpha2" label="COM_XDECAROPEOPLE_FIELD_COUNTRY" filter="cmd" validate="options" layout="joomla.form.field.list-fancy-select">
+  <field name="country_code" type="Country" code="alpha2" label="COM_XDECAROPEOPLE_FIELD_COUNTRY" filter="cmd" validate="options" layout="joomla.form.field.list-fancy-select" required="true">
     <option value="">COM_XDECAROPEOPLE_SELECT_COUNTRY</option>
   </field>
 </form>
