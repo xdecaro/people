@@ -4,10 +4,15 @@ namespace xdecaro\Component\People\Administrator\Table;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Table\Table;
 use Joomla\Database\DatabaseDriver;
+use Joomla\Database\ParameterType;
+use Throwable;
 use xdecaro\Component\People\Administrator\Service\CountryMetadata;
+use xdecaro\Component\People\Administrator\Service\RelationReciprocity;
 
 final class PersonTable extends Table
 {
@@ -21,6 +26,28 @@ final class PersonTable extends Table
         // Joomla's generic AdminModel state actions operate on the canonical
         // "published" alias. People stores that state in the "state" column.
         $this->setColumnAlias('published', 'state');
+    }
+
+    public function store($updateNulls = true)
+    {
+        $before = (int) ($this->id ?? 0) > 0
+            ? $this->loadRelationSnapshot((int) $this->id)
+            : null;
+
+        if (!parent::store($updateNulls)) {
+            return false;
+        }
+
+        $sourceUuid = strtolower(trim((string) ($this->uuid ?? '')));
+        if ($sourceUuid !== '') {
+            $this->synchronizeReciprocalRelations(
+                $sourceUuid,
+                $this->decodeRelations($before['relations_data'] ?? null),
+                $this->decodeRelations($this->relations_data ?? null)
+            );
+        }
+
+        return true;
     }
 
     public function check(): bool
@@ -196,5 +223,122 @@ final class PersonTable extends Table
         }
 
         return parent::check();
+    }
+
+    private function synchronizeReciprocalRelations(string $sourceUuid, array $beforeRelations, array $afterRelations): void
+    {
+        $beforeEdges = RelationReciprocity::managedEdges($beforeRelations);
+        $afterEdges = RelationReciprocity::managedEdges($afterRelations);
+
+        foreach (array_diff_key($beforeEdges, $afterEdges) as $edge) {
+            $this->applyReciprocalRelation($sourceUuid, $edge, false);
+        }
+
+        // Ensure every current managed edge has its reciprocal. This also
+        // repairs legacy one-way relations the next time either person is saved.
+        foreach ($afterEdges as $edge) {
+            $this->applyReciprocalRelation($sourceUuid, $edge, true);
+        }
+    }
+
+    private function applyReciprocalRelation(string $sourceUuid, array $edge, bool $add): void
+    {
+        $targetUuid = strtolower(trim((string) ($edge['person_uuid'] ?? '')));
+        $inverseType = RelationReciprocity::inverseType((string) ($edge['type'] ?? ''));
+        if ($targetUuid === '' || $targetUuid === $sourceUuid || $inverseType === null) {
+            return;
+        }
+
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select([
+                $db->quoteName('id'),
+                $db->quoteName('relations_data'),
+            ])
+            ->from($db->quoteName('#__xdecaropeople_people'))
+            ->where($db->quoteName('uuid') . ' = :uuid')
+            ->bind(':uuid', $targetUuid)
+            ->setLimit(1);
+
+        $target = $db->setQuery($query)->loadAssoc();
+        if (!$target) {
+            return;
+        }
+
+        $relations = $this->decodeRelations($target['relations_data'] ?? null);
+        $updated = $add
+            ? RelationReciprocity::upsert($relations, $inverseType, $sourceUuid)
+            : RelationReciprocity::remove($relations, $inverseType, $sourceUuid);
+
+        if ($updated === $relations) {
+            return;
+        }
+
+        $targetId = (int) ($target['id'] ?? 0);
+        if ($targetId < 1) {
+            return;
+        }
+
+        $record = (object) [
+            'id' => $targetId,
+            'relations_data' => $updated ? json_encode(array_values($updated), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null,
+            'modified' => Factory::getDate()->toSql(),
+            'modified_by' => (int) Factory::getApplication()->getIdentity()->id,
+        ];
+
+        $db->updateObject('#__xdecaropeople_people', $record, 'id', true);
+        $this->writeReciprocalHistory($targetId);
+    }
+
+    private function loadRelationSnapshot(int $id): ?array
+    {
+        if ($id < 1) {
+            return null;
+        }
+
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select([
+                $db->quoteName('uuid'),
+                $db->quoteName('relations_data'),
+            ])
+            ->from($db->quoteName('#__xdecaropeople_people'))
+            ->where($db->quoteName('id') . ' = :id')
+            ->bind(':id', $id, ParameterType::INTEGER)
+            ->setLimit(1);
+
+        $row = $db->setQuery($query)->loadAssoc();
+        return $row ?: null;
+    }
+
+    private function decodeRelations(mixed $value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (!is_string($value) || trim($value) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function writeReciprocalHistory(int $personId): void
+    {
+        try {
+            $db = $this->getDatabase();
+            $record = (object) [
+                'person_id' => $personId,
+                'action' => 'update',
+                'changed_fields' => json_encode(['relations_data'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'actor_user_id' => (int) Factory::getApplication()->getIdentity()->id,
+                'created' => Factory::getDate()->toSql(),
+            ];
+            $db->insertObject('#__xdecaropeople_history', $record);
+        } catch (Throwable $exception) {
+            Log::add('People reciprocal relation history write failed: ' . $exception->getMessage(), Log::WARNING, 'com_xdecaropeople');
+        }
     }
 }
