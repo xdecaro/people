@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__);
 $servicePath = $root . '/component/admin/src/Service/RelationReciprocity.php';
+$modelPath = $root . '/component/admin/src/Model/PersonModel.php';
+$installerPath = $root . '/component/script.php';
 
 $failures = [];
 $assert = static function (bool $condition, string $message) use (&$failures): void {
@@ -49,6 +51,16 @@ $edges = RelationReciprocity::managedEdges([
     ['type' => 'other', 'person_uuid' => 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'note' => 'z'],
 ]);
 $assert(count($edges) === 2, 'Only reciprocal-managed relation types must participate in synchronization.');
+
+$model = file_get_contents($modelPath) ?: '';
+$assert(str_contains($model, 'use xdecaro\\Component\\People\\Administrator\\Service\\RelationReciprocity;'), 'PersonModel must use RelationReciprocity.');
+$assert(str_contains($model, 'synchronizeReciprocalRelations'), 'PersonModel must synchronize reciprocal relations after save.');
+$assert(str_contains($model, 'RelationReciprocity::managedEdges'), 'PersonModel must compare reciprocal-managed relation edges.');
+$assert(str_contains($model, 'RelationReciprocity::upsert'), 'PersonModel must create/repair reciprocal relations.');
+$assert(str_contains($model, 'RelationReciprocity::remove'), 'PersonModel must remove reciprocal relations when the source relation is removed.');
+
+$installer = file_get_contents($installerPath) ?: '';
+$assert(str_contains($installer, 'repairReciprocalRelations'), 'Installer must backfill reciprocal relations for existing People records.');
 
 if ($failures !== []) {
     fwrite(STDERR, implode(PHP_EOL, $failures) . PHP_EOL);
