@@ -8,11 +8,61 @@ use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
+use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 use RuntimeException;
 use Throwable;
 
 final class NotificationIntegrationService
 {
+    private const IMPORTANT_NOTIFICATION_FIELDS = [
+        'first_name', 'last_name', 'preferred_name', 'user_id',
+        'email', 'phone', 'whatsapp', 'preferred_contact', 'language',
+        'birth_date', 'sex', 'birth_country_code', 'birth_place', 'birth_place_id', 'birth_region',
+        'nationality_code', 'nationality_codes',
+        'disability_status', 'disability_types', 'disability_other',
+        'accessibility_needs', 'accessibility_other',
+        'tax_identifier',
+        'address_line', 'address_number', 'postal_code', 'city', 'region', 'country_code',
+        'residence_place_id', 'additional_addresses', 'relations_data',
+        'profile_document_uuid', 'person_status', 'access',
+        'social_instagram', 'social_facebook', 'social_linkedin', 'social_tiktok',
+        'social_telegram', 'social_x', 'social_youtube', 'website_url',
+    ];
+
+    public function __construct(private DatabaseInterface $db)
+    {
+    }
+
+    public function snapshot(int $personId): ?array
+    {
+        if ($personId < 1) {
+            return null;
+        }
+
+        $query = $this->db->getQuery(true)
+            ->select('*')
+            ->from($this->db->quoteName('#__xdecaropeople_people'))
+            ->where($this->db->quoteName('id') . ' = :id')
+            ->bind(':id', $personId, ParameterType::INTEGER);
+
+        $row = $this->db->setQuery($query, 0, 1)->loadAssoc();
+        return $row ?: null;
+    }
+
+    public function importantChangedFields(array $before, array $after): array
+    {
+        $changed = [];
+
+        foreach (self::IMPORTANT_NOTIFICATION_FIELDS as $field) {
+            if ((string) ($before[$field] ?? '') !== (string) ($after[$field] ?? '')) {
+                $changed[] = $field;
+            }
+        }
+
+        return $changed;
+    }
+
     public function notifyPersonCreated(array $person): void
     {
         $this->emit(
