@@ -39,7 +39,9 @@ return new class implements ServiceProviderInterface
         );
         $container->share(
             NotificationIntegrationService::class,
-            static fn(): NotificationIntegrationService => new NotificationIntegrationService()
+            static fn(Container $container): NotificationIntegrationService => new NotificationIntegrationService(
+                $container->get(DatabaseInterface::class)
+            )
         );
 
         $container->set(
