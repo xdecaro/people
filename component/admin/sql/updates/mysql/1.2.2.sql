@@ -1,0 +1,2 @@
+-- People 1.2.2
+-- No schema changes. Hotfix for Italian birth-date parsing and robust person-form/autocomplete initialization.

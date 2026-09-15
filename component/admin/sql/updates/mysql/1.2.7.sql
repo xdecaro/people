@@ -1,0 +1,1 @@
+-- People 1.2.7: cancel-validation hotfix only; no schema changes required.

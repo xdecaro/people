@@ -1,0 +1,1 @@
+-- People 1.2.4: UI/layout hotfix only; no schema changes required.
