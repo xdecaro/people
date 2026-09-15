@@ -69,6 +69,7 @@ final class NotificationIntegrationService
             return;
         }
 
+        $this->loadLanguage();
         $this->emit(
             $person,
             'created',
@@ -85,6 +86,7 @@ final class NotificationIntegrationService
             return;
         }
 
+        $this->loadLanguage();
         $this->emit(
             $person,
             'updated:' . hash('sha256', implode('|', array_values($changedFields))),
@@ -101,6 +103,7 @@ final class NotificationIntegrationService
             return;
         }
 
+        $this->loadLanguage();
         $messageKey = match (true) {
             $newState === -2 => 'COM_XDECAROPEOPLE_NOTIFICATION_TRASHED_MESSAGE',
             $previousState === -2 && $newState === 1 => 'COM_XDECAROPEOPLE_NOTIFICATION_RESTORED_MESSAGE',
@@ -129,6 +132,7 @@ final class NotificationIntegrationService
             return;
         }
 
+        $this->loadLanguage();
         $this->emit(
             $person,
             'possible-duplicate',
@@ -208,6 +212,11 @@ final class NotificationIntegrationService
         $enabled = array_values(array_unique(array_map('strval', $configured)));
 
         return in_array($eventType, $enabled, true);
+    }
+
+    private function loadLanguage(): void
+    {
+        Factory::getApplication()->getLanguage()->load('com_xdecaropeople', JPATH_ADMINISTRATOR);
     }
 
     private function recipientUserId(): int
