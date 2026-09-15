@@ -38,8 +38,21 @@ final class PersonController extends FormController
         $posted = (array) $this->input->post->get('jform', [], 'array');
         $recordId = (int) ($posted['id'] ?? $this->input->getInt('id'));
         $before = $recordId > 0 ? $notifications->snapshot($recordId) : null;
-        $model = $this->getModel();
+        $duplicateBefore = false;
 
+        if ($before !== null) {
+            try {
+                $duplicateBefore = $component->getDuplicateService()->hasMatch($before, $recordId);
+            } catch (Throwable $exception) {
+                Log::add(
+                    'People pre-save duplicate notification check failed: ' . $exception->getMessage(),
+                    Log::WARNING,
+                    'com_xdecaropeople'
+                );
+            }
+        }
+
+        $model = $this->getModel();
         $saved = parent::save($key, $urlVar);
         if (!$saved) {
             return false;
@@ -71,7 +84,8 @@ final class PersonController extends FormController
         }
 
         try {
-            if ($component->getDuplicateService()->hasMatch($after, $savedId)) {
+            $duplicateAfter = $component->getDuplicateService()->hasMatch($after, $savedId);
+            if ($duplicateAfter && !$duplicateBefore) {
                 $notifications->notifyPossibleDuplicate($after);
             }
         } catch (Throwable $exception) {
