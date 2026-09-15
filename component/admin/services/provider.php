@@ -37,6 +37,12 @@ return new class implements ServiceProviderInterface
                 $container->get(DatabaseInterface::class)
             )
         );
+        $container->share(
+            NotificationIntegrationService::class,
+            static fn(Container $container): NotificationIntegrationService => new NotificationIntegrationService(
+                $container->get(DatabaseInterface::class)
+            )
+        );
 
         $container->set(
             ComponentInterface::class,
@@ -48,6 +54,7 @@ return new class implements ServiceProviderInterface
                 $component->setCoreIntegrationService($container->get(CoreIntegrationService::class));
                 $component->setPersonProviderService($container->get(PersonProviderService::class));
                 $component->setDuplicateService($container->get(DuplicateService::class));
+                $component->setNotificationIntegrationService($container->get(NotificationIntegrationService::class));
 
                 return $component;
             }

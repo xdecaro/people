@@ -1,2 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<config><fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC"><field name="rules" type="rules" label="JCONFIG_PERMISSIONS_LABEL" filter="rules" validate="rules" component="com_xdecaropeople" section="component"/></fieldset></config>
+<config>
+  <fieldset name="notifications" label="COM_XDECAROPEOPLE_CONFIG_NOTIFICATIONS">
+    <field
+      name="notification_recipient_user_id"
+      type="user"
+      label="COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_RECIPIENT"
+      description="COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_RECIPIENT_DESC"
+      default="0"
+    />
+  </fieldset>
+  <fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
+    <field name="rules" type="rules" label="JCONFIG_PERMISSIONS_LABEL" filter="rules" validate="rules" component="com_xdecaropeople" section="component"/>
+  </fieldset>
+</config>
