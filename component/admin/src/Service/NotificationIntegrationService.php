@@ -216,7 +216,17 @@ final class NotificationIntegrationService
 
     private function loadLanguage(): void
     {
-        Factory::getApplication()->getLanguage()->load('com_xdecaropeople', JPATH_ADMINISTRATOR);
+        $app = Factory::getApplication();
+        $language = $app->getLanguage();
+
+        if ($language === null && method_exists($app, 'loadLanguage')) {
+            $app->loadLanguage();
+            $language = $app->getLanguage();
+        }
+
+        if ($language !== null) {
+            $language->load('com_xdecaropeople', JPATH_ADMINISTRATOR);
+        }
     }
 
     private function recipientUserId(): int
