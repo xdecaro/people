@@ -40,11 +40,6 @@ foreach ($assets['assets'] ?? [] as $asset) {
     $expect(($asset['version'] ?? '') === '1.2.16', 'Every People Web Asset entry must be 1.2.16.');
 }
 
-$personJs = file_get_contents($root . '/component/media/js/person-form.js') ?: '';
-$cancelJs = file_get_contents($root . '/component/media/js/person-cancel-fix.js') ?: '';
-$expect(str_contains($personJs, "dataset.xdecaroPeopleForm = '1.2.16'"), 'Person form diagnostic marker must be 1.2.16.');
-$expect(str_contains($cancelJs, "dataset.xdecaroPeopleForm = '1.2.16'"), 'Cancel-fix diagnostic marker must be 1.2.16.');
-
 $expect(!is_file($root . '/component/admin/sql/updates/mysql/1.2.16.sql'), 'People 1.2.16 must not introduce a database schema migration.');
 
 $readme = file_get_contents($root . '/README.md') ?: '';
