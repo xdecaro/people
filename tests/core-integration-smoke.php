@@ -73,7 +73,9 @@ foreach ([
     "array_key_exists('birth_date', \$data)",
     "\$data['birth_date'] = \$birthDate !== '' ? \$birthDate : null;",
     "foreach (['phone', 'whatsapp'] as \$field)",
-    'validateProfileCompleteness',
+    'COM_XDECAROPEOPLE_ERROR_DISABILITY_OTHER_REQUIRED',
+    'COM_XDECAROPEOPLE_ERROR_ACCESSIBILITY_OTHER_REQUIRED',
+    '$this->normalizeAddresses',
     'DuplicateService',
 ] as $marker) {
     if (!str_contains($personModel, $marker)) {
