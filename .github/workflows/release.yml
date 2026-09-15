@@ -30,6 +30,8 @@ jobs:
           php tests/person-input-ui-contract.php
           php tests/relation-reciprocity.php
           if [ -f tests/people-1.2.14-contract.php ]; then php tests/people-1.2.14-contract.php; fi
+          if [ -f tests/person-provider-batch.php ]; then php tests/person-provider-batch.php; fi
+          if [ -f tests/people-1.2.15-contract.php ]; then php tests/people-1.2.15-contract.php; fi
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           version = sys.argv[1]
@@ -37,7 +39,9 @@ jobs:
               ET.parse(path)
           assert ET.parse('component/xdecaropeople.xml').getroot().findtext('version') == version
           assert ET.parse('package/pkg_xdecaropeople.xml').getroot().findtext('version') == version
-          assert json.load(open('component/media/joomla.asset.json', encoding='utf-8'))['version'] == version
+          assets = json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
+          assert assets['version'] == version
+          assert all(item.get('version') == version for item in assets.get('assets', []))
           PY
           node --check component/media/js/person-form.js
           node --check component/media/js/person-cancel-fix.js
@@ -54,6 +58,8 @@ jobs:
           diff -u /tmp/sums dist/SHA256SUMS.txt
           unzip -t "dist/com_xdecaropeople_${V}.zip" >/dev/null
           unzip -t "dist/pkg_xdecaropeople_${V}.zip" >/dev/null
+          unzip -p "dist/pkg_xdecaropeople_${V}.zip" com_xdecaropeople.zip > /tmp/component.zip
+          unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function getPeopleByUuids('
       - name: Refuse existing release
         env:
           GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
@@ -75,7 +81,7 @@ jobs:
             "dist/pkg_xdecaropeople_${V}.zip" \
             dist/SHA256SUMS.txt \
             --title "People ${V}" \
-            --notes "People ${V}: stable Joomla 6 release for the xdecaro ecosystem. Includes the validated person profile, reciprocal relations, responsive administration UI, conditional profile validation and duplicate-review workflow."
+            --notes "People ${V}: stable Joomla 6 release for the xdecaro ecosystem. Adds the public batch person-provider contract used by Membership while preserving the validated 1.2.14 profile, reciprocal relations, responsive administration UI and duplicate-review workflow."
       - name: Publish Joomla update feed
         shell: bash
         run: |
