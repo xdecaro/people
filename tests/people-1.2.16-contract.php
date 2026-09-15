@@ -11,7 +11,7 @@ $expect = static function (bool $condition, string $message) use (&$failures): v
 };
 
 $version = trim((string) file_get_contents($root . '/VERSION'));
-$expect($version === '1.2.16', "Expected People VERSION 1.2.16, got {$version}.");
+$expect(version_compare($version, '1.2.16', '>='), "Expected People VERSION 1.2.16 or newer, got {$version}.");
 
 $component = simplexml_load_file($root . '/component/xdecaropeople.xml');
 $package = simplexml_load_file($root . '/package/pkg_xdecaropeople.xml');
@@ -19,12 +19,12 @@ $feed = simplexml_load_file($root . '/updates/pkg_xdecaropeople.xml');
 $expect($component !== false && $package !== false && $feed !== false, 'People XML metadata must parse.');
 
 if ($component !== false) {
-    $expect((string) $component->version === '1.2.16', 'Component manifest must be 1.2.16.');
+    $expect((string) $component->version === $version, 'Component manifest must match VERSION.');
     $expect((string) $component->targetplatform['version'] === '6.1.3', 'Component manifest must target Joomla 6.1.3 exactly.');
 }
 
 if ($package !== false) {
-    $expect((string) $package->version === '1.2.16', 'Package manifest must be 1.2.16.');
+    $expect((string) $package->version === $version, 'Package manifest must match VERSION.');
     $expect((string) $package->targetplatform['version'] === '6.1.3', 'Package manifest must target Joomla 6.1.3 exactly.');
 }
 
@@ -32,15 +32,17 @@ if ($feed !== false) {
     $update = $feed->update;
     $expect((string) $update->targetplatform['version'] === '6\\.1\\.3$', 'Update feed must target Joomla 6.1.3 exactly.');
     $expect((string) $update->php_minimum === '8.3.0', 'Update feed must require PHP 8.3.0+.');
+    $feedVersion = (string) $update->version;
+    $expect(version_compare($feedVersion, $version, '<='), 'Published update feed must not be newer than source VERSION.');
 }
 
 $assets = json_decode(file_get_contents($root . '/component/media/joomla.asset.json') ?: '', true, 512, JSON_THROW_ON_ERROR);
-$expect(($assets['version'] ?? '') === '1.2.16', 'Web Asset root version must be 1.2.16.');
+$expect(($assets['version'] ?? '') === $version, 'Web Asset root version must match VERSION.');
 foreach ($assets['assets'] ?? [] as $asset) {
-    $expect(($asset['version'] ?? '') === '1.2.16', 'Every People Web Asset entry must be 1.2.16.');
+    $expect(($asset['version'] ?? '') === $version, 'Every People Web Asset entry must match VERSION.');
 }
 
-$expect(!is_file($root . '/component/admin/sql/updates/mysql/1.2.16.sql'), 'People 1.2.16 must not introduce a database schema migration.');
+$expect(!is_file($root . '/component/admin/sql/updates/mysql/' . $version . '.sql'), 'A metadata/UI-only People release must not introduce a database schema migration.');
 
 $readme = file_get_contents($root . '/README.md') ?: '';
 $agents = file_get_contents($root . '/AGENTS.md') ?: '';
@@ -52,4 +54,4 @@ if ($failures !== []) {
     exit(1);
 }
 
-echo "People 1.2.16 release contract OK\n";
+echo "People Joomla 6.1.3 release compatibility contract OK\n";

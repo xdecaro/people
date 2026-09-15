@@ -8,9 +8,12 @@ $provider = file_get_contents($root . '/component/admin/services/provider.php') 
 $component = file_get_contents($root . '/component/admin/src/Extension/PeopleComponent.php') ?: '';
 $personController = file_get_contents($root . '/component/admin/src/Controller/PersonController.php') ?: '';
 $peopleController = file_get_contents($root . '/component/admin/src/Controller/PeopleController.php') ?: '';
+$peopleView = file_get_contents($root . '/component/admin/src/View/People/HtmlView.php') ?: '';
 $config = file_get_contents($root . '/component/admin/config.xml') ?: '';
 $it = file_get_contents($root . '/component/admin/language/it-IT/com_xdecaropeople.ini') ?: '';
 $en = file_get_contents($root . '/component/admin/language/en-GB/com_xdecaropeople.ini') ?: '';
+$itSys = file_get_contents($root . '/component/admin/language/it-IT/com_xdecaropeople.sys.ini') ?: '';
+$enSys = file_get_contents($root . '/component/admin/language/en-GB/com_xdecaropeople.sys.ini') ?: '';
 
 $failures = [];
 $expect = static function (bool $condition, string $message) use (&$failures): void {
@@ -29,6 +32,14 @@ foreach ([
     'function importantChangedFields(',
     "ComponentHelper::getParams('com_xdecaropeople')",
     'notification_recipient_user_id',
+    'notification_event_types',
+    'function eventEnabled(',
+    "eventEnabled('created')",
+    "eventEnabled('updated')",
+    "eventEnabled('state')",
+    "eventEnabled('possible_duplicate')",
+    'function loadLanguage(',
+    "load('com_xdecaropeople', JPATH_ADMINISTRATOR)",
     "bootComponent('com_xdecaronotifications')",
     'getNotificationService()->create(',
     "getDeliveryService()->queueForNotification(\$notificationId, ['in_app'])",
@@ -51,11 +62,28 @@ $expect(str_contains($provider, 'setNotificationIntegrationService'), 'DI provid
 $expect(str_contains($component, 'getNotificationIntegrationService'), 'PeopleComponent must expose NotificationIntegrationService.');
 
 $expect((bool) preg_match('/name="notification_recipient_user_id"[\s\S]*?type="user"/i', $config), 'People options must expose a Joomla user recipient field.');
+$expect((bool) preg_match('/name="notification_event_types"[\s\S]*?type="checkboxes"/i', $config), 'People options must expose notification event type checkboxes.');
+$expect(str_contains($config, 'default="created,possible_duplicate"'), 'Default notification types must be new person and possible duplicate only.');
+foreach (['created', 'updated', 'state', 'possible_duplicate'] as $eventType) {
+    $expect(str_contains($config, 'value="' . $eventType . '"'), "Missing notification event option: {$eventType}");
+}
+
+$expect(str_contains($peopleView, "ToolbarHelper::preferences('com_xdecaropeople')"), 'People toolbar must expose the Options button.');
+$expect(str_contains($it, 'COM_XDECAROPEOPLE_CONFIGURATION='), 'Italian component language must define the People configuration title.');
+$expect(str_contains($en, 'COM_XDECAROPEOPLE_CONFIGURATION='), 'English component language must define the People configuration title.');
+$expect(str_contains($itSys, 'COM_XDECAROPEOPLE_CONFIGURATION='), 'Italian system language must define the People configuration title.');
+$expect(str_contains($enSys, 'COM_XDECAROPEOPLE_CONFIGURATION='), 'English system language must define the People configuration title.');
 
 foreach ([
     'COM_XDECAROPEOPLE_CONFIG_NOTIFICATIONS',
     'COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_RECIPIENT',
     'COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_RECIPIENT_DESC',
+    'COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPES',
+    'COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPES_DESC',
+    'COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPE_CREATED',
+    'COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPE_UPDATED',
+    'COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPE_STATE',
+    'COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPE_DUPLICATE',
     'COM_XDECAROPEOPLE_NOTIFICATION_CREATED_TITLE',
     'COM_XDECAROPEOPLE_NOTIFICATION_CREATED_MESSAGE',
     'COM_XDECAROPEOPLE_NOTIFICATION_UPDATED_TITLE',
