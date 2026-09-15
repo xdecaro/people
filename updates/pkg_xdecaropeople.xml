@@ -16,7 +16,7 @@
     <sha256>ff48acc440042f74435ac1814d795b4c54d473b7ac3761e1fe4e7a911adcb0f7</sha256>
     <maintainer>Luca De Caro</maintainer>
     <maintainerurl>https://github.com/xdecaro/people</maintainerurl>
-    <targetplatform name="joomla" version="6\.[0-9]+" />
+    <targetplatform name="joomla" version="6\.1\.3$" />
     <php_minimum>8.3.0</php_minimum>
   </update>
 </updates>
