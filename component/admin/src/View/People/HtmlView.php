@@ -68,6 +68,10 @@ final class HtmlView extends BaseHtmlView
             ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'people.delete');
         }
 
+        if ($user->authorise('core.admin', 'com_xdecaropeople')) {
+            ToolbarHelper::preferences('com_xdecaropeople');
+        }
+
         parent::display($tpl);
     }
 }
