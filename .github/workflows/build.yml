@@ -209,6 +209,19 @@ jobs:
           \Joomla\CMS\Factory::$application = $app;
           $app->createExtensionNamespaceMap();
 
+          $db = $container->get(\Joomla\Database\DatabaseInterface::class);
+          $query = $db->getQuery(true)
+              ->select($db->quoteName('id'))
+              ->from($db->quoteName('#__users'))
+              ->where($db->quoteName('username') . ' = ' . $db->quote('admin'));
+          $adminId = (int) $db->setQuery($query, 0, 1)->loadResult();
+          if ($adminId < 1) {
+              fwrite(STDERR, "CI super user not found.\n");
+              exit(1);
+          }
+          $userFactory = $container->get(\Joomla\CMS\User\UserFactoryInterface::class);
+          $app->loadIdentity($userFactory->loadUserById($adminId));
+
           $component = $app->bootComponent('com_xdecaropeople');
           $factory = $component->getMVCFactory();
           $people = $factory->createModel('People', 'Administrator');
