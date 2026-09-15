@@ -1,27 +1,29 @@
 # People
 
-Stable Joomla 6 component for reusable person master data in the xdecaro ecosystem.
+Stable reusable person master data for the xdecaro ecosystem.
 
 - Component: `com_xdecaropeople`
 - Package: `pkg_xdecaropeople`
 - Namespace: `xdecaro\Component\People`
 - Tables: `#__xdecaropeople_*`
-- Stable version: `1.1.0`
-- Joomla: `6.x` only
+- Stable version: `1.2.16`
+- Joomla: `6.1.3` only
 - PHP: `8.3+`
-- Requires xdecaro Core `1.4.0+`
+- Requires xdecaro Core `2.0.1+`
 - Author: `Luca De Caro`
 
 People owns person identity/contact master records and an optional Joomla User link. Membership, Courses, Competitions, Events and other products own their domain roles and temporal relationships. Cross-product consumers must use the public provider and Core capability/entity-reference contracts, never direct People table access.
 
 ## Person profile
 
-People 1.1.0 organises the person sheet into `Identity`, `Contacts`, `Residence`, `Social` and `Publishing` tabs.
+People provides Identity, Contacts, Disability, Accessibility, Residence, Relations, Documents and taxation, Social, Publishing and System areas. `display_name` remains an internal compatibility field generated automatically from first name and last name. Sensitive birth, disability, accessibility, tax and residence data remain behind the `people.view_sensitive` permission boundary.
 
-Identity includes birth data, optional sex, optional disability status, searchable nationality, and a TIN field whose visible label follows the selected European nationality where a local common name is configured (for example `TIN - Codice fiscale` for Italy and `TIN - Numéro fiscal` for France). Outside that mapping the label remains `TIN`.
+The public People provider exposes reusable person records and batch UUID resolution without requiring other components to read People tables directly.
 
-Contacts contains email, phone, WhatsApp and communication language. Residence uses a searchable country selector and stores ISO country codes automatically. Social profiles remain part of the person sheet and do not create a separate administration menu.
+## Notifications integration
 
-`display_name` remains an internal compatibility field and is generated automatically from first name and last name. Empty optional birth dates are stored as SQL `NULL`. Disability, birth, tax and residence data remain behind the `people.view_sensitive` permission boundary.
+People 1.2.16 integrates with the shared `com_xdecaronotifications` center. In **People → Options → Notifications**, an administrator selects the Joomla user who receives People events in the global administrator bell.
 
-The 1.1.0 upgrade is non-destructive: existing people and configuration are preserved and new profile columns are nullable.
+People emits privacy-safe in-app notifications when a person is created, important profile data changes, Joomla publication state changes, or a possible duplicate is detected. Notification text contains the person's display name and a generic event description only; sensitive field values are never copied into notification text. If Notifications is unavailable or no recipient is configured, People persistence continues normally.
+
+The 1.2.16 release introduces no People database schema migration.
