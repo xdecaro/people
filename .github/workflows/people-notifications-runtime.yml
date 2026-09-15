@@ -30,7 +30,7 @@ jobs:
           php-version: '8.3'
           extensions: 'mysqli, zip, simplexml'
           coverage: none
-      - name: Build People 1.2.16
+      - name: Build current People
         run: chmod +x build/build.sh && build/build.sh
       - name: Build Core 2.0.1
         shell: bash
@@ -56,6 +56,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          VERSION="$(tr -d '\r\n' < "$GITHUB_WORKSPACE/VERSION")"
           cd joomla
           php installation/joomla.php install \
             --site-name='People Notifications CI' \
@@ -73,8 +74,8 @@ jobs:
             --no-interaction
           php cli/joomla.php extension:install --path=/tmp/core.zip -vvv
           php cli/joomla.php extension:install --path=/tmp/notifications.zip -vvv
-          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_xdecaropeople_1.2.16.zip" -vvv
-      - name: Verify People publishes through Notifications public services
+          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_xdecaropeople_${VERSION}.zip" -vvv
+      - name: Verify selected People notification types through public services
         shell: bash
         run: |
           set -euo pipefail
@@ -114,6 +115,7 @@ jobs:
           $extension = $db->setQuery($query, 0, 1)->loadAssoc();
           $params = json_decode((string) ($extension['params'] ?? '{}'), true) ?: [];
           $params['notification_recipient_user_id'] = $adminId;
+          $params['notification_event_types'] = ['created'];
           $record = (object) [
               'extension_id' => (int) $extension['extension_id'],
               'params' => json_encode($params, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
@@ -141,7 +143,9 @@ jobs:
               fwrite(STDERR, "People notification snapshot failed.\n");
               exit(1);
           }
+
           $service->notifyPersonCreated($snapshot);
+          $service->notifyPersonUpdated($snapshot, ['first_name']);
 
           $query = $db->getQuery(true)
               ->select('*')
@@ -149,9 +153,15 @@ jobs:
               ->where($db->quoteName('source_component') . ' = ' . $db->quote('com_xdecaropeople'))
               ->where($db->quoteName('source_entity') . ' = ' . $db->quote('person'))
               ->where($db->quoteName('source_id') . ' = ' . $db->quote((string) $personId));
-          $notification = $db->setQuery($query, 0, 1)->loadAssoc();
-          if (!$notification) {
-              fwrite(STDERR, "People did not create a Notifications item.\n");
+          $notifications = $db->setQuery($query)->loadAssocList();
+          if (count($notifications) !== 1) {
+              fwrite(STDERR, "People notification type filtering failed.\n");
+              exit(1);
+          }
+
+          $notification = $notifications[0];
+          if (($notification['title'] ?? '') !== 'New person') {
+              fwrite(STDERR, "Unexpected People notification type was published.\n");
               exit(1);
           }
           if (($notification['recipient_type'] ?? '') !== 'user' || (int) ($notification['recipient_id'] ?? 0) !== $adminId) {
@@ -174,6 +184,6 @@ jobs:
               exit(1);
           }
 
-          echo "People → Notifications Joomla 6.1.3 runtime integration OK\n";
+          echo "People → Notifications selected-types runtime OK\n";
           PHP
           php people-notifications-probe.php
