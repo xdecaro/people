@@ -38,6 +38,8 @@ foreach ([
     "eventEnabled('updated')",
     "eventEnabled('state')",
     "eventEnabled('possible_duplicate')",
+    'function loadLanguage(',
+    "load('com_xdecaropeople', JPATH_ADMINISTRATOR)",
     "bootComponent('com_xdecaronotifications')",
     'getNotificationService()->create(',
     "getDeliveryService()->queueForNotification(\$notificationId, ['in_app'])",
@@ -67,6 +69,8 @@ foreach (['created', 'updated', 'state', 'possible_duplicate'] as $eventType) {
 }
 
 $expect(str_contains($peopleView, "ToolbarHelper::preferences('com_xdecaropeople')"), 'People toolbar must expose the Options button.');
+$expect(str_contains($it, 'COM_XDECAROPEOPLE_CONFIGURATION='), 'Italian component language must define the People configuration title.');
+$expect(str_contains($en, 'COM_XDECAROPEOPLE_CONFIGURATION='), 'English component language must define the People configuration title.');
 $expect(str_contains($itSys, 'COM_XDECAROPEOPLE_CONFIGURATION='), 'Italian system language must define the People configuration title.');
 $expect(str_contains($enSys, 'COM_XDECAROPEOPLE_CONFIGURATION='), 'English system language must define the People configuration title.');
 
