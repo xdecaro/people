@@ -18,3 +18,5 @@ jobs:
           coverage: none
       - name: Batch provider contract
         run: php tests/person-provider-batch.php
+      - name: People 1.2.15 release contract
+        run: php tests/people-1.2.15-contract.php
