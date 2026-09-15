@@ -51,9 +51,10 @@ foreach ([
     '$component->setCoreIntegrationService($container->get(CoreIntegrationService::class));',
     '$component->setPersonProviderService($container->get(PersonProviderService::class));',
     '$component->setDuplicateService($container->get(DuplicateService::class));',
+    '$component->setNotificationIntegrationService($container->get(NotificationIntegrationService::class));',
 ] as $marker) {
     if (!str_contains($serviceProvider, $marker)) {
-        fwrite(STDERR, "People Joomla 6 service provider missing marker: {$marker}\n");
+        fwrite(STDERR, "People Joomla 6.1.3 service provider missing marker: {$marker}\n");
         exit(1);
     }
 }
@@ -121,7 +122,7 @@ foreach ([
     "'system'",
 ] as $marker) {
     if (!str_contains($editTemplate, $marker)) {
-        fwrite(STDERR, "People person form missing Joomla 6/current UI marker: {$marker}\n");
+        fwrite(STDERR, "People person form missing Joomla 6.1.3/current UI marker: {$marker}\n");
         exit(1);
     }
 }
@@ -164,12 +165,12 @@ if ($feedVersion === '' || version_compare($feedVersion, $version, '>')) {
     fwrite(STDERR, "People public update feed cannot be newer than source.\n");
     exit(1);
 }
-if ((string) $manifest->targetplatform['version'] !== '6.*' || (string) $package->targetplatform['version'] !== '6.*') {
-    fwrite(STDERR, "People manifests must be Joomla 6 only.\n");
+if ((string) $manifest->targetplatform['version'] !== '6.1.3' || (string) $package->targetplatform['version'] !== '6.1.3') {
+    fwrite(STDERR, "People manifests must target Joomla 6.1.3 exactly.\n");
     exit(1);
 }
-if ((string) $feed->update->targetplatform['version'] !== '6\\.[0-9]+') {
-    fwrite(STDERR, "People update feed must target Joomla 6 only.\n");
+if ((string) $feed->update->targetplatform['version'] !== '6\\.1\\.3$') {
+    fwrite(STDERR, "People update feed must target Joomla 6.1.3 exactly.\n");
     exit(1);
 }
 if ((string) $manifest->author !== 'Luca De Caro' || (string) $package->author !== 'Luca De Caro') {
@@ -203,4 +204,4 @@ foreach (['en-GB', 'it-IT'] as $tag) {
     }
 }
 
-echo "People integration and Joomla 6 profile regression smoke OK\n";
+echo "People integration and Joomla 6.1.3 profile regression smoke OK\n";
