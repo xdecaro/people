@@ -10,15 +10,15 @@ $provider = file_get_contents($root . '/component/admin/src/Service/PersonProvid
 $required = [
     'function getPeopleByUuids(array $uuids, bool $sensitive = false): array',
     '$this->authorise($sensitive);',
-    "strtolower(trim((string) $uuid))",
-    "preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid)",
+    'strtolower(trim((string) $uuid))',
+    "preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', \$uuid)",
     "p.state') . ' >= 0'",
-    "':uuid' . $index",
-    "->bind($placeholder, $uuid)",
+    "':uuid' . \$index",
+    '->bind($placeholder, $uuid)',
     "p.uuid') . ' IN ('",
     '$this->normalizeStructuredFields($row, $sensitive)',
-    "$found[$key] = $row",
-    "$result[$uuid] = $found[$uuid]",
+    '$found[$key] = $row',
+    '$result[$uuid] = $found[$uuid]',
 ];
 
 foreach ($required as $marker) {
