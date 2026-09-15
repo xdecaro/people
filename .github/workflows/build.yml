@@ -118,8 +118,7 @@ jobs:
           git clone --quiet https://github.com/xdecaro/core.git /tmp/core-src
           git -C /tmp/core-src checkout --quiet "$CORE_SHA"
           test "$(tr -d '\r\n' < /tmp/core-src/VERSION)" = '2.0.1'
-          chmod +x /tmp/core-src/build/build.sh
-          /tmp/core-src/build/build.sh
+          python3 /tmp/core-src/build/build.py
           cp /tmp/core-src/dist/pkg_xdecarocore_2.0.1.zip /tmp/core.zip
           unzip -t /tmp/core.zip >/dev/null
       - name: Download Joomla and published upgrade baseline
