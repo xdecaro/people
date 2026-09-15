@@ -8,6 +8,19 @@
       description="COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_RECIPIENT_DESC"
       default="0"
     />
+    <field
+      name="notification_event_types"
+      type="checkboxes"
+      label="COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPES"
+      description="COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPES_DESC"
+      default="created,possible_duplicate"
+      filter="array"
+    >
+      <option value="created">COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPE_CREATED</option>
+      <option value="updated">COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPE_UPDATED</option>
+      <option value="state">COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPE_STATE</option>
+      <option value="possible_duplicate">COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPE_DUPLICATE</option>
+    </field>
   </fieldset>
   <fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
     <field name="rules" type="rules" label="JCONFIG_PERMISSIONS_LABEL" filter="rules" validate="rules" component="com_xdecaropeople" section="component"/>

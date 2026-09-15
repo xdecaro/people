@@ -65,6 +65,11 @@ final class NotificationIntegrationService
 
     public function notifyPersonCreated(array $person): void
     {
+        if (!$this->eventEnabled('created')) {
+            return;
+        }
+
+        $this->loadLanguage();
         $this->emit(
             $person,
             'created',
@@ -77,10 +82,11 @@ final class NotificationIntegrationService
 
     public function notifyPersonUpdated(array $person, array $changedFields): void
     {
-        if ($changedFields === []) {
+        if (!$this->eventEnabled('updated') || $changedFields === []) {
             return;
         }
 
+        $this->loadLanguage();
         $this->emit(
             $person,
             'updated:' . hash('sha256', implode('|', array_values($changedFields))),
@@ -93,10 +99,11 @@ final class NotificationIntegrationService
 
     public function notifyPersonStateChanged(array $person, int $previousState, int $newState): void
     {
-        if ($previousState === $newState) {
+        if (!$this->eventEnabled('state') || $previousState === $newState) {
             return;
         }
 
+        $this->loadLanguage();
         $messageKey = match (true) {
             $newState === -2 => 'COM_XDECAROPEOPLE_NOTIFICATION_TRASHED_MESSAGE',
             $previousState === -2 && $newState === 1 => 'COM_XDECAROPEOPLE_NOTIFICATION_RESTORED_MESSAGE',
@@ -121,6 +128,11 @@ final class NotificationIntegrationService
 
     public function notifyPossibleDuplicate(array $person): void
     {
+        if (!$this->eventEnabled('possible_duplicate')) {
+            return;
+        }
+
+        $this->loadLanguage();
         $this->emit(
             $person,
             'possible-duplicate',
@@ -182,6 +194,29 @@ final class NotificationIntegrationService
                 'com_xdecaropeople'
             );
         }
+    }
+
+    private function eventEnabled(string $eventType): bool
+    {
+        $configured = ComponentHelper::getParams('com_xdecaropeople')->get(
+            'notification_event_types',
+            ['created', 'possible_duplicate']
+        );
+
+        if (is_string($configured)) {
+            $configured = preg_split('/\s*,\s*/', trim($configured), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        } elseif (!is_array($configured)) {
+            $configured = (array) $configured;
+        }
+
+        $enabled = array_values(array_unique(array_map('strval', $configured)));
+
+        return in_array($eventType, $enabled, true);
+    }
+
+    private function loadLanguage(): void
+    {
+        Factory::getApplication()->getLanguage()->load('com_xdecaropeople', JPATH_ADMINISTRATOR);
     }
 
     private function recipientUserId(): int

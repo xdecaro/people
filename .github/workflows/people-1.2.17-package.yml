@@ -1,4 +1,4 @@
-name: People 1.2.16 package
+name: People 1.2.17 package
 
 on:
   pull_request:
@@ -16,11 +16,11 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Validate People 1.2.16 source
+      - name: Validate People 1.2.17 source
         shell: bash
         run: |
           set -euo pipefail
-          test "$(tr -d '\r\n' < VERSION)" = '1.2.16'
+          test "$(tr -d '\r\n' < VERSION)" = '1.2.17'
           find component package tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
           php tests/core-integration-smoke.php
           php tests/person-validation-summary-contract.php
@@ -38,17 +38,17 @@ jobs:
           component = ET.parse('component/xdecaropeople.xml').getroot()
           package = ET.parse('package/pkg_xdecaropeople.xml').getroot()
           assets = json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
-          assert component.findtext('version') == '1.2.16'
-          assert package.findtext('version') == '1.2.16'
+          assert component.findtext('version') == '1.2.17'
+          assert package.findtext('version') == '1.2.17'
           assert component.find('targetplatform').attrib['version'] == '6.1.3'
           assert package.find('targetplatform').attrib['version'] == '6.1.3'
-          assert assets['version'] == '1.2.16'
-          assert all(item.get('version') == '1.2.16' for item in assets.get('assets', []))
+          assert assets['version'] == '1.2.17'
+          assert all(item.get('version') == '1.2.17' for item in assets.get('assets', []))
           PY
           node --check component/media/js/person-form.js
           node --check component/media/js/person-cancel-fix.js
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
-          test ! -f component/admin/sql/updates/mysql/1.2.16.sql
+          test ! -f component/admin/sql/updates/mysql/1.2.17.sql
       - name: Build deterministic install packages
         shell: bash
         run: |
@@ -59,18 +59,18 @@ jobs:
           build/build.sh
           diff -u /tmp/people-sums dist/SHA256SUMS.txt
           for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.16.zip | grep -Fxq 'pkg_xdecaropeople.xml'
-          unzip -Z1 dist/pkg_xdecaropeople_1.2.16.zip | grep -Fxq 'com_xdecaropeople.zip'
-          unzip -p dist/pkg_xdecaropeople_1.2.16.zip com_xdecaropeople.zip > /tmp/component.zip
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.17.zip | grep -Fxq 'pkg_xdecaropeople.xml'
+          unzip -Z1 dist/pkg_xdecaropeople_1.2.17.zip | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -p dist/pkg_xdecaropeople_1.2.17.zip com_xdecaropeople.zip > /tmp/component.zip
           unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function getPeopleByUuids('
-          unzip -p /tmp/component.zip admin/src/Service/NotificationIntegrationService.php | grep -Fq "bootComponent('com_xdecaronotifications')"
-      - name: Upload People 1.2.16 install package
+          unzip -p /tmp/component.zip admin/src/Service/NotificationIntegrationService.php | grep -Fq "eventEnabled('possible_duplicate')"
+      - name: Upload People 1.2.17 install package
         uses: actions/upload-artifact@v4
         with:
-          name: people-1.2.16-package
+          name: people-1.2.17-package
           path: |
-            dist/pkg_xdecaropeople_1.2.16.zip
-            dist/com_xdecaropeople_1.2.16.zip
+            dist/pkg_xdecaropeople_1.2.17.zip
+            dist/com_xdecaropeople_1.2.17.zip
             dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 7
