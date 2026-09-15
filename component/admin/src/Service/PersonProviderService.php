@@ -42,6 +42,56 @@ final class PersonProviderService
         return $row;
     }
 
+    public function getPeopleByUuids(array $uuids, bool $sensitive = false): array
+    {
+        $this->authorise($sensitive);
+
+        $normalized = [];
+        foreach ($uuids as $uuid) {
+            $uuid = strtolower(trim((string) $uuid));
+            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid)) {
+                continue;
+            }
+            $normalized[$uuid] = $uuid;
+        }
+
+        if ($normalized === []) {
+            return [];
+        }
+
+        $query = $this->db->getQuery(true)
+            ->select($this->columns($sensitive))
+            ->from($this->db->quoteName('#__xdecaropeople_people', 'p'))
+            ->where($this->db->quoteName('p.state') . ' >= 0');
+
+        $placeholders = [];
+        foreach (array_values($normalized) as $index => $uuid) {
+            $placeholder = ':uuid' . $index;
+            $placeholders[] = $placeholder;
+            $query->bind($placeholder, $uuid);
+        }
+        $query->where($this->db->quoteName('p.uuid') . ' IN (' . implode(',', $placeholders) . ')');
+
+        $found = [];
+        foreach ((array) $this->db->setQuery($query)->loadAssocList() as $row) {
+            $row = $this->normalizeStructuredFields($row, $sensitive);
+            $row['entity_reference'] = $this->core->createEntityReference((int) $row['id'])->toArray();
+            $key = strtolower((string) ($row['uuid'] ?? ''));
+            if ($key !== '') {
+                $found[$key] = $row;
+            }
+        }
+
+        $result = [];
+        foreach ($normalized as $uuid) {
+            if (isset($found[$uuid])) {
+                $result[$uuid] = $found[$uuid];
+            }
+        }
+
+        return $result;
+    }
+
     public function searchPeople(array $filters = [], int $limit = 50, bool $sensitive = false): array
     {
         $this->authorise($sensitive);
