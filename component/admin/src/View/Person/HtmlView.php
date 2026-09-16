@@ -25,6 +25,11 @@ final class HtmlView extends BaseHtmlView
         $this->item = $this->get('Item');
 
         $app = Factory::getApplication();
+        $language = $app->getLanguage();
+        if ($language !== null) {
+            $language->load('com_xdecaropeople_competitions', JPATH_ADMINISTRATOR);
+        }
+
         $user = $app->getIdentity();
         $isNew = empty($this->item->id);
         if (!$user->authorise($isNew ? 'core.create' : 'core.edit', 'com_xdecaropeople')) {
