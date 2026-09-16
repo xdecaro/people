@@ -30,8 +30,10 @@
     <languages folder="admin/language">
       <language tag="en-GB">en-GB/com_xdecaropeople.ini</language>
       <language tag="en-GB">en-GB/com_xdecaropeople.sys.ini</language>
+      <language tag="en-GB">en-GB/com_xdecaropeople_competitions.ini</language>
       <language tag="it-IT">it-IT/com_xdecaropeople.ini</language>
       <language tag="it-IT">it-IT/com_xdecaropeople.sys.ini</language>
+      <language tag="it-IT">it-IT/com_xdecaropeople_competitions.ini</language>
     </languages>
   </administration>
   <media destination="com_xdecaropeople" folder="media">
