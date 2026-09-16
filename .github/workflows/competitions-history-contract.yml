@@ -1,0 +1,22 @@
+name: People Competitions History Contract
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: PHP syntax
+        run: php -l tests/competitions-history-contract.php
+      - name: Competitions history contract
+        run: php tests/competitions-history-contract.php
