@@ -1,13 +1,13 @@
 <?php
 
 namespace xdecaro\Component\People\Administrator\Service;
-
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
 use RuntimeException;
+use Throwable;
 
 final class PersonProviderService
 {
@@ -151,16 +151,27 @@ final class PersonProviderService
             'p.person_status', 'p.source_component',
         ];
 
-        if ($sensitive) {
-            $columns = array_merge($columns, [
-                'p.birth_date', 'p.sex', 'p.disability_status', 'p.disability_types', 'p.disability_other',
-                'p.accessibility_needs', 'p.accessibility_other', 'p.birth_place', 'p.birth_place_id', 'p.birth_region',
-                'p.birth_country_code', 'p.nationality_code', 'p.nationality_codes', 'p.tax_identifier',
-                'p.address_line', 'p.address_number', 'p.postal_code', 'p.city', 'p.region', 'p.country_code',
-                'p.residence_place_id', 'p.additional_addresses', 'p.relations_data', 'p.social_instagram',
-                'p.social_facebook', 'p.social_linkedin', 'p.social_tiktok', 'p.social_telegram', 'p.social_x',
-                'p.social_youtube', 'p.website_url', 'p.profile_document_uuid', 'p.notes', 'p.created', 'p.modified',
-            ]);
+        if (!$sensitive) {
+            return $columns;
+        }
+
+        $sensitiveColumns = [
+            'birth_date', 'sex', 'disability_status', 'disability_types', 'disability_other',
+            'accessibility_needs', 'accessibility_other', 'birth_place', 'birth_place_id', 'birth_region',
+            'birth_country_code', 'nationality_code', 'nationality_codes', 'tax_identifier',
+            'address_line', 'address_number', 'postal_code', 'city', 'region', 'country_code',
+            'residence_place_id', 'additional_addresses', 'relations_data', 'social_instagram',
+            'social_facebook', 'social_linkedin', 'social_tiktok', 'social_telegram', 'social_x',
+            'social_youtube', 'website_url', 'profile_document_uuid', 'notes', 'created', 'modified',
+        ];
+
+        $table = $this->db->replacePrefix('#__xdecaropeople_people');
+        $available = array_change_key_case((array) $this->db->getTableColumns($table, true), CASE_LOWER);
+
+        foreach ($sensitiveColumns as $column) {
+            if (array_key_exists(strtolower($column), $available)) {
+                $columns[] = 'p.' . $column;
+            }
         }
 
         return $columns;
@@ -186,9 +197,14 @@ final class PersonProviderService
         }
 
         if (!empty($row['profile_document_uuid'])) {
-            $row['profile_document_reference'] = $this->core
-                ->createDocumentReference((string) $row['profile_document_uuid'])
-                ->toArray();
+            try {
+                $row['profile_document_reference'] = $this->core
+                    ->createDocumentReference((string) $row['profile_document_uuid'])
+                    ->toArray();
+            } catch (Throwable) {
+                // The document reference is optional metadata. Never make the
+                // sensitive People profile unavailable because of it.
+            }
         }
 
         return $row;
