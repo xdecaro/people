@@ -42,7 +42,10 @@ foreach ($assets['assets'] ?? [] as $asset) {
     $expect(($asset['version'] ?? '') === $version, 'Every People Web Asset entry must match VERSION.');
 }
 
-$expect(!is_file($root . '/component/admin/sql/updates/mysql/' . $version . '.sql'), 'A metadata/UI-only People release must not introduce a database schema migration.');
+// People 1.2.16 was specifically a metadata/UI-only release. Keep that
+// historical guarantee scoped to the 1.2.16 marker instead of forbidding
+// legitimate schema-version markers in all later patch releases.
+$expect(!is_file($root . '/component/admin/sql/updates/mysql/1.2.16.sql'), 'People 1.2.16 must remain metadata/UI-only with no schema migration.');
 
 $readme = file_get_contents($root . '/README.md') ?: '';
 $agents = file_get_contents($root . '/AGENTS.md') ?: '';
