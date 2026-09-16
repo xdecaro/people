@@ -1,11 +1,11 @@
 <?php
 
 namespace xdecaro\Component\People\Administrator\Extension;
-
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Extension\MVCComponent;
 use RuntimeException;
+use xdecaro\Component\People\Administrator\Service\CompetitionsIntegrationService;
 use xdecaro\Component\People\Administrator\Service\CoreIntegrationService;
 use xdecaro\Component\People\Administrator\Service\DuplicateService;
 use xdecaro\Component\People\Administrator\Service\NotificationIntegrationService;
@@ -17,6 +17,7 @@ final class PeopleComponent extends MVCComponent
     private ?PersonProviderService $provider = null;
     private ?DuplicateService $duplicates = null;
     private ?NotificationIntegrationService $notifications = null;
+    private ?CompetitionsIntegrationService $competitions = null;
 
     public function setCoreIntegrationService(CoreIntegrationService $service): void
     {
@@ -68,5 +69,19 @@ final class PeopleComponent extends MVCComponent
         }
 
         return $this->notifications;
+    }
+
+    public function setCompetitionsIntegrationService(CompetitionsIntegrationService $service): void
+    {
+        $this->competitions = $service;
+    }
+
+    public function getCompetitionsIntegrationService(): CompetitionsIntegrationService
+    {
+        if (!$this->competitions) {
+            throw new RuntimeException('People Competitions integration service not initialized.');
+        }
+
+        return $this->competitions;
     }
 }

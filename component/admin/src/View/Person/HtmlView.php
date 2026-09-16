@@ -5,15 +5,19 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Throwable;
 use xdecaro\Component\People\Administrator\Extension\PeopleComponent;
 
 final class HtmlView extends BaseHtmlView
 {
     public $form;
     public $item;
+    public bool $competitionsHistoryAvailable = false;
+    public array $competitionsHistory = [];
 
     public function display($tpl = null): void
     {
@@ -21,6 +25,11 @@ final class HtmlView extends BaseHtmlView
         $this->item = $this->get('Item');
 
         $app = Factory::getApplication();
+        $language = $app->getLanguage();
+        if ($language !== null) {
+            $language->load('com_xdecaropeople_competitions', JPATH_ADMINISTRATOR);
+        }
+
         $user = $app->getIdentity();
         $isNew = empty($this->item->id);
         if (!$user->authorise($isNew ? 'core.create' : 'core.edit', 'com_xdecaropeople')) {
@@ -30,6 +39,25 @@ final class HtmlView extends BaseHtmlView
         $component = $app->bootComponent('com_xdecaropeople');
         if ($component instanceof PeopleComponent) {
             $component->getCoreIntegrationService()->enableUi($this->document->getWebAssetManager());
+
+            $personUuid = strtolower(trim((string) ($this->item->uuid ?? '')));
+            if (!$isNew && $personUuid !== '') {
+                try {
+                    $competitions = $component->getCompetitionsIntegrationService();
+                    if ($competitions->isHistoryAvailable()) {
+                        $this->competitionsHistory = $competitions->getPersonHistory($personUuid);
+                        $this->competitionsHistoryAvailable = true;
+                    }
+                } catch (Throwable $e) {
+                    Log::add(
+                        'People Competitions history integration is unavailable: ' . $e->getMessage(),
+                        Log::WARNING,
+                        'com_xdecaropeople'
+                    );
+                    $this->competitionsHistory = [];
+                    $this->competitionsHistoryAvailable = false;
+                }
+            }
         }
 
         $this->document->addScriptOptions('com_xdecaropeople.person', [

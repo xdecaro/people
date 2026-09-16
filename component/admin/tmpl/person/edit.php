@@ -17,6 +17,8 @@ $personHeading = trim(
 if ($personHeading === '') {
     $personHeading = Text::_('COM_XDECAROPEOPLE_PERSON_NEW');
 }
+
+$escape = static fn (mixed $value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
 ?>
 <form
     action="<?php echo Route::_('index.php?option=com_xdecaropeople&view=person&layout=edit&id=' . (int) ($this->item->id ?? 0)); ?>"
@@ -27,7 +29,7 @@ if ($personHeading === '') {
 >
     <div class="xdecaro-scope xdecaro-people-person-edit">
         <div class="xdecaro-person-heading">
-            <h2><?php echo htmlspecialchars($personHeading, ENT_QUOTES, 'UTF-8'); ?></h2>
+            <h2><?php echo $escape($personHeading); ?></h2>
         </div>
 
         <?php
@@ -72,6 +74,57 @@ if ($personHeading === '') {
         echo HTMLHelper::_('uitab.addTab', 'personTabs', 'social', Text::_('COM_XDECAROPEOPLE_FIELDSET_SOCIAL'));
         echo $this->form->renderFieldset('social');
         echo HTMLHelper::_('uitab.endTab');
+
+        if ($this->competitionsHistoryAvailable) {
+            echo HTMLHelper::_('uitab.addTab', 'personTabs', 'competitions', Text::_('COM_XDECAROPEOPLE_COMPETITIONS_TAB'));
+            ?>
+            <div class="xdecaro-card">
+                <h3><?php echo Text::_('COM_XDECAROPEOPLE_COMPETITIONS_HISTORY'); ?></h3>
+                <p class="text-muted">
+                    <?php echo Text::sprintf('COM_XDECAROPEOPLE_COMPETITIONS_HISTORY_COUNT', count($this->competitionsHistory)); ?>
+                </p>
+
+                <?php if ($this->competitionsHistory === []) : ?>
+                    <div class="alert alert-info mb-0" role="status">
+                        <?php echo Text::_('COM_XDECAROPEOPLE_COMPETITIONS_HISTORY_EMPTY'); ?>
+                    </div>
+                <?php else : ?>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_COMPETITIONS_COMPETITION'); ?></th>
+                                    <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_COMPETITIONS_SEASON'); ?></th>
+                                    <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_COMPETITIONS_TEAM'); ?></th>
+                                    <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_COMPETITIONS_ROLE'); ?></th>
+                                    <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_COMPETITIONS_SHIRT_NUMBER'); ?></th>
+                                    <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_COMPETITIONS_STATUS'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($this->competitionsHistory as $historyRow) :
+                                    $season = trim((string) ($historyRow['season_name'] ?? ''));
+                                    if ($season === '' && isset($historyRow['season_year'])) {
+                                        $season = (string) $historyRow['season_year'];
+                                    }
+                                    ?>
+                                    <tr>
+                                        <td><?php echo $escape($historyRow['competition_name'] ?? '—'); ?></td>
+                                        <td><?php echo $escape($season !== '' ? $season : '—'); ?></td>
+                                        <td><?php echo $escape($historyRow['team_name'] ?? '—'); ?></td>
+                                        <td><?php echo $escape($historyRow['role'] ?? '—'); ?></td>
+                                        <td><?php echo $escape($historyRow['shirt_number'] ?? '—'); ?></td>
+                                        <td><?php echo $escape($historyRow['status'] ?? '—'); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <?php
+            echo HTMLHelper::_('uitab.endTab');
+        }
 
         echo HTMLHelper::_('uitab.addTab', 'personTabs', 'publishing', Text::_('JGLOBAL_FIELDSET_PUBLISHING'));
         echo $this->form->renderFieldset('publishing');
