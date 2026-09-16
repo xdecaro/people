@@ -8,47 +8,98 @@ Add a read-only `Competitions` tab to the People person edit screen so an admini
 
 People remains the owner of reusable person master data only. Competition participation, roster membership, sport role, shirt number, team, season, tournament, participation status, roster status and competition-specific photos remain owned by Competitions.
 
-People must not query private Competitions tables directly, persist a copy of competition history, or boot/depend directly on `com_competitions`.
+People must not query private Competitions tables directly and must not persist a copy of competition history.
 
-Cross-product discovery follows the existing People repository rule: Core capability registration and entity references are the boundary between products. People consumes a generic related-activity capability for its own person entity; Competitions registers a provider for that capability.
+The integration follows the existing xdecaro Core contract: People discovers the optional Competitions capability through `CapabilityRegistry`, then calls Competitions through its public component service surface. Core remains domain-neutral and no Core change is required.
 
 The person is identified exclusively through the existing People UUID stored by Competitions as `person_uuid`. People numeric IDs are not used as a cross-product identifier.
 
-If Core does not expose the required capability-provider mechanism yet, implementation must first add the minimal domain-neutral extension point in Core. People must not invent a Competitions-specific fallback API.
+If Competitions is not installed, cannot boot, does not declare the required capability, is incompatible, or does not expose the required public service, People continues to work normally and the Competitions tab is omitted.
 
-If no Competitions provider is installed or registered, People continues to work normally and the Competitions tab is omitted.
+## Competitions capability consumed by People
 
-## Generic related-activity contract
-
-The preferred integration is a Core-owned, domain-neutral capability for related panels/activities attached to an entity reference.
-
-Conceptually, People asks Core for providers registered for:
+Competitions declares the additive capability:
 
 ```text
-entity_type: people.person
-entity_id: <person UUID>
-capability: related_activity
+competitions.people_history v1
 ```
 
-A provider returns normalized panel metadata and rows, for example:
+owned by component `com_xdecarocompetitions`.
+
+People does not assume the capability merely because the component is installed. Its optional integration service boots Competitions, obtains its public Core integration service, registers Competitions capabilities into an in-memory `CapabilityRegistry`, and verifies:
+
+```php
+$registry->supports('com_xdecarocompetitions', 'competitions.people_history', '1')
+```
+
+Only after this capability check may People call the Competitions public person-history service.
+
+This is runtime optional integration, not a package-level mandatory dependency.
+
+## Public Competitions contract consumed by People
+
+Competitions exposes a public component method:
+
+```php
+public function getPersonHistoryService(): PersonHistoryService;
+```
+
+The service exposes:
+
+```php
+public function getHistoryByPersonUuid(string $personUuid): array;
+```
+
+The returned value is an ordered list of associative arrays with this normalized shape:
 
 ```php
 [
-    'key' => 'competitions',
-    'label' => 'Competitions',
-    'title' => 'Storico partecipazioni',
-    'source' => 'com_competitions',
-    'rows' => [/* provider-owned normalized rows */],
+    'player_id' => 123,
+    'roster_id' => 456,
+    'participation_id' => 789,
+    'team_id' => 10,
+    'team_name' => 'Example Team',
+    'season_id' => 20,
+    'season_name' => '2026',
+    'season_year' => 2026,
+    'tournament_id' => 30,
+    'competition_name' => 'Example Cup',
+    'role' => 'player',
+    'shirt_number' => 7,
+    'status' => 'approved',
+    'start_date' => '2026-09-01',
+    'end_date' => '2026-09-07',
 ]
 ```
 
-People does not know Competitions classes, tables or service names. It knows only the Core public capability contract.
+Nullable source values remain `null`; the provider does not invent display values. `competition_name`, `season_name` and `team_name` are resolved from Competitions-owned entities at query time.
 
-The exact Core API name must reuse an existing stable `CapabilityRegistry`/`EntityReference` surface if one already exists. If no suitable public API exists, the Core change must remain generic and reusable by Organizations, Courses, Memberships and other future products; it must not contain Competitions-specific names or fields.
+## People optional integration service
+
+People adds a focused optional runtime service:
+
+```php
+final class CompetitionsIntegrationService
+{
+    public function isHistoryAvailable(): bool;
+    public function getPersonHistory(string $personUuid): array;
+}
+```
+
+Responsibilities:
+
+- boot `com_xdecarocompetitions` only at runtime;
+- validate the public Competitions component surface using `method_exists` rather than compile-time Competitions classes;
+- build an in-memory Core `CapabilityRegistry` and ask Competitions to register its capabilities;
+- require `competitions.people_history` version `1`;
+- call `getPersonHistoryService()->getHistoryByPersonUuid()` only when the capability and service are available;
+- convert optional-integration failures into a controlled empty/unavailable result without breaking People.
+
+People must not import Competitions PHP namespaces and must not access Competitions tables.
 
 ## User interface
 
-The tab is shown only for an existing saved person with a non-empty UUID and when a registered related-activity provider with key `competitions` returns a panel.
+The tab is shown only for an existing saved person with a non-empty UUID and when the Competitions history capability/service is available.
 
 The tab label is `Competitions`.
 
@@ -56,7 +107,7 @@ The content is read-only and contains:
 
 1. a compact summary with the number of linked competition-history rows;
 2. a `Storico partecipazioni` table ordered from newest to oldest;
-3. an empty state `Nessuna partecipazione collegata` when the Competitions provider is available but has no roster history for the person.
+3. an empty state `Nessuna partecipazione collegata` when Competitions history is available but no roster rows exist for the person.
 
 Each history row displays:
 
@@ -71,25 +122,22 @@ The first implementation intentionally does not add statistics, goals, cards, ma
 
 ## People view model
 
-The People `Person` administrator view resolves related-activity panels only for an existing item with a UUID. It exposes presentation data to the template without performing product-specific queries.
-
-A suitable presentation property is:
+The People `Person` administrator view obtains history only for an existing item with a non-empty UUID. It exposes:
 
 ```php
-public array $relatedActivityPanels = [];
+public bool $competitionsHistoryAvailable = false;
+public array $competitionsHistory = [];
 ```
 
-The Competitions tab is derived from the `competitions` panel in that normalized collection.
-
-No competition query belongs in the template.
+No competition query or component boot belongs in the template.
 
 ## Error handling
 
-Failure of an optional related-activity provider must not prevent editing a person in People.
+Competitions integration failures must not prevent editing a person in People.
 
-If Core, the capability registry, or a provider is unavailable, incompatible or throws while resolving optional activity, People continues to render its normal form. A failed optional provider is omitted.
+If Competitions is absent, the capability is not declared, the service is incompatible, or history retrieval fails, the tab is omitted.
 
-Diagnostics may identify the provider key/source but must not include sensitive People values and must not expose internal SQL or stack traces in the UI.
+A controlled warning may be written to Joomla logging. It must not include sensitive person values, SQL text or stack traces in the UI.
 
 People's existing save, apply, save-and-new and cancel flows remain unchanged.
 
@@ -97,43 +145,43 @@ People's existing save, apply, save-and-new and cancel flows remain unchanged.
 
 People continues to enforce its existing person edit ACL before rendering the form.
 
-Related-activity providers used here are read-only. They perform no state-changing operation and require no CSRF token for in-process resolution.
+The Competitions history provider is read-only. It performs no state-changing operation and requires no CSRF token for in-process use.
 
-The Competitions provider response must contain only competition-domain values needed by this tab. It must not include birth date, disability, accessibility, tax, residence, contact data or other sensitive People fields.
+The history response contains only competition-domain values needed by this tab. It must not include birth date, disability, accessibility, tax, residence, contact data or other sensitive People fields.
 
-People never reads Competitions tables directly.
+All database access remains inside Competitions. People never reads Competitions tables directly.
 
 ## Compatibility and graceful degradation
 
 People remains installable and usable without Competitions.
 
-The new feature does not make Competitions a mandatory package dependency of People.
+The new integration does not make Competitions a mandatory package dependency of People.
 
-Existing People records and configuration are unchanged; no People database migration is required for this feature.
+Existing People records and configuration are unchanged; no People database migration is required.
 
-The tab is absent on a new unsaved person because no stable People UUID exists yet for a cross-product lookup.
+The tab is absent on a new unsaved person because no stable People UUID exists yet for the cross-product lookup.
 
 ## Testing
 
 People tests must cover:
 
-- existing person + registered Competitions related-activity provider => `Competitions` panel exposed to the template;
+- existing person + Competitions capability/service => tab available and normalized history exposed to the template;
 - existing person + provider returns no rows => tab available with empty history;
-- new person => related-activity lookup is not performed and the tab is absent;
-- Competitions/provider absent => People remains functional and tab is absent;
-- provider runtime failure => People remains functional and the failed optional panel is absent;
-- template contains the `Competitions` tab only when the normalized panel exists;
-- no direct `#__xdecarocompetitions_*` table references or Competitions classes are introduced into People.
+- new person => history lookup is not performed and tab is absent;
+- Competitions absent => People remains functional and tab is absent;
+- Competitions installed but capability absent => tab is absent;
+- capability present but service incompatible => tab is absent;
+- provider runtime failure => People remains functional and tab is absent;
+- template contains the `Competitions` tab only when `competitionsHistoryAvailable` is true;
+- no direct `#__xdecarocompetitions_*` table references or Competitions namespace imports are introduced into People.
 
-Core contract tests must cover provider registration/resolution if the capability extension point is new.
-
-Competitions contract/runtime tests must cover its provider registration and returned history shape.
+Competitions contract/runtime tests cover its capability registration, public service and returned history shape.
 
 ## UI conventions
 
-Use the existing Joomla `uitab` pattern already used by the People person form. Use existing xdecaro/Core admin table/card primitives where already available; do not introduce a separate visual framework for this tab.
+Use the existing Joomla `uitab` pattern already used by the People person form. Use existing xdecaro/Core admin table/card primitives where available; do not introduce a separate visual framework for this tab.
 
-The output must remain usable in desktop, tablet, smartphone, light mode and dark mode.
+The output must remain usable on desktop, tablet and smartphone, in light and dark mode.
 
 ## Out of scope
 
