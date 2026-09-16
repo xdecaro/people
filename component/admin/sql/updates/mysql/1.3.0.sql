@@ -1,0 +1,2 @@
+-- People 1.3.0
+-- No schema changes. Adds the optional read-only Competitions history tab integration.
