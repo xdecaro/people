@@ -1,0 +1,2 @@
+-- People 1.2.18
+-- No schema changes. Sensitive provider resiliency patch.
