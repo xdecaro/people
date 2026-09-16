@@ -38,7 +38,13 @@ if (str_contains($provider, '#__decaro') && !str_contains($provider, '#__xdecaro
     fwrite(STDERR, "People provider crossed a private legacy-table boundary.\n");
     exit(1);
 }
-foreach (['p.whatsapp', 'p.sex', 'p.disability_status', 'p.address_number', 'p.social_instagram'] as $marker) {
+foreach ([
+    'p.whatsapp',
+    "'sex'",
+    "'disability_status'",
+    "'address_number'",
+    "'social_instagram'",
+] as $marker) {
     if (!str_contains($provider, $marker)) {
         fwrite(STDERR, "People provider missing profile field: {$marker}\n");
         exit(1);
