@@ -39,6 +39,7 @@ jobs:
           php tests/competitions-history-tab-contract.php
           php tests/people-1.3.1-canonical-package-identity-contract.php
           php tests/organizations-history-tab-contract.php
+          php tests/people-1.4.0-relations-membership-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           version = sys.argv[1]
