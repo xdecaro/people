@@ -8,8 +8,17 @@ final class RelationReciprocity
 {
     private const INVERSES = [
         'spouse' => 'spouse',
+        'partner' => 'partner',
         'parent' => 'child',
         'child' => 'parent',
+        'guardian' => 'ward',
+        'ward' => 'guardian',
+        'curator' => 'curated_person',
+        'curated_person' => 'curator',
+        'support_administrator' => 'supported_person',
+        'supported_person' => 'support_administrator',
+        'legal_representative' => 'represented_person',
+        'represented_person' => 'legal_representative',
     ];
 
     public static function inverseType(string $type): ?string
@@ -34,15 +43,20 @@ final class RelationReciprocity
             }
 
             $edges[$type . '|' . $uuid] = [
+                'relation_uuid' => strtolower(trim((string) ($row['relation_uuid'] ?? ''))),
                 'type' => $type,
                 'person_uuid' => $uuid,
+                'valid_from' => trim((string) ($row['valid_from'] ?? '')),
+                'valid_to' => trim((string) ($row['valid_to'] ?? '')),
+                'status' => strtolower(trim((string) ($row['status'] ?? 'active'))) ?: 'active',
+                'note' => trim((string) ($row['note'] ?? '')),
             ];
         }
 
         return $edges;
     }
 
-    public static function upsert(array $relations, string $type, string $personUuid): array
+    public static function upsert(array $relations, string $type, string $personUuid, array $metadata = []): array
     {
         $type = strtolower(trim($type));
         $personUuid = strtolower(trim($personUuid));
@@ -50,6 +64,18 @@ final class RelationReciprocity
         if ($personUuid === '' || self::inverseType($type) === null) {
             return $relations;
         }
+
+        $hasRelationUuid = array_key_exists('relation_uuid', $metadata);
+        $hasValidFrom = array_key_exists('valid_from', $metadata);
+        $hasValidTo = array_key_exists('valid_to', $metadata);
+        $hasStatus = array_key_exists('status', $metadata);
+        $hasNote = array_key_exists('note', $metadata);
+
+        $relationUuid = strtolower(trim((string) ($metadata['relation_uuid'] ?? '')));
+        $validFrom = trim((string) ($metadata['valid_from'] ?? ''));
+        $validTo = trim((string) ($metadata['valid_to'] ?? ''));
+        $status = strtolower(trim((string) ($metadata['status'] ?? 'active'))) ?: 'active';
+        $note = trim((string) ($metadata['note'] ?? ''));
 
         $found = false;
         $result = [];
@@ -67,9 +93,23 @@ final class RelationReciprocity
                     continue;
                 }
 
+                $row['relation_uuid'] = $hasRelationUuid && $relationUuid !== ''
+                    ? $relationUuid
+                    : (string) ($row['relation_uuid'] ?? '');
                 $row['type'] = $type;
                 $row['person_uuid'] = $personUuid;
-                $row['note'] = (string) ($row['note'] ?? '');
+                if ($hasValidFrom) {
+                    $row['valid_from'] = $validFrom;
+                }
+                if ($hasValidTo) {
+                    $row['valid_to'] = $validTo;
+                }
+                if ($hasStatus) {
+                    $row['status'] = in_array($status, ['active', 'inactive'], true) ? $status : 'active';
+                }
+                if ($hasNote) {
+                    $row['note'] = $note;
+                }
                 $found = true;
             }
 
@@ -78,9 +118,13 @@ final class RelationReciprocity
 
         if (!$found) {
             $result[] = [
+                'relation_uuid' => $relationUuid,
                 'type' => $type,
                 'person_uuid' => $personUuid,
-                'note' => '',
+                'valid_from' => $validFrom,
+                'valid_to' => $validTo,
+                'status' => in_array($status, ['active', 'inactive'], true) ? $status : 'active',
+                'note' => $note,
             ];
         }
 

@@ -39,6 +39,7 @@ jobs:
           php tests/competitions-history-tab-contract.php
           php tests/people-1.3.1-canonical-package-identity-contract.php
           php tests/organizations-history-tab-contract.php
+          php tests/people-1.4.0-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           version = sys.argv[1]
@@ -76,6 +77,8 @@ jobs:
           unzip -p "dist/pkg_people_${V}.zip" com_xdecaropeople.zip > /tmp/component.zip
           unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function getPeopleByUuids('
           unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function searchPeopleForIdentity('
+          unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function getRelations('
+          unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function getCurrentAddress('
           unzip -p /tmp/component.zip admin/src/Service/CompetitionsIntegrationService.php | grep -Fq 'getPersonHistory'
           unzip -p /tmp/component.zip admin/src/Service/OrganizationsIntegrationService.php | grep -Fq 'organizations.people_appointments'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/language/it-IT/com_xdecaropeople_organizations.ini'

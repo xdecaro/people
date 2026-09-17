@@ -29,7 +29,12 @@ final class PersonModel extends AdminModel
 
     private const CONTACT_METHODS = ['email', 'phone', 'whatsapp', 'other'];
     private const PERSON_STATUSES = ['active', 'archived', 'deceased'];
-    private const RELATION_TYPES = ['parent', 'child', 'guardian', 'responsible', 'spouse', 'other'];
+    private const RELATION_TYPES = [
+        'parent', 'child', 'guardian', 'ward', 'curator', 'curated_person',
+        'support_administrator', 'supported_person', 'legal_representative',
+        'represented_person', 'responsible', 'spouse', 'partner', 'other',
+    ];
+    private const RELATION_STATUSES = ['active', 'inactive'];
     private const ADDRESS_TYPES = ['domicile', 'correspondence', 'billing', 'other'];
 
     public function getTable($type = 'Person', $prefix = 'Administrator', $config = []): Table
@@ -260,7 +265,11 @@ final class PersonModel extends AdminModel
         }
 
         if (array_key_exists('relations_data', $data)) {
-            $data['relations_data'] = $this->encodeJsonList($this->normalizeRelations($data['relations_data'], $data['uuid'] ?? null));
+            $relations = $this->normalizeRelations($data['relations_data'], $data['uuid'] ?? null);
+            if ($relations === null) {
+                return false;
+            }
+            $data['relations_data'] = $this->encodeJsonList($relations);
         }
 
         if (!$this->validateUniqueUser($data)) {
@@ -426,9 +435,10 @@ final class PersonModel extends AdminModel
         return $result;
     }
 
-    private function normalizeRelations(mixed $rows, mixed $currentUuid): array
+    private function normalizeRelations(mixed $rows, mixed $currentUuid): ?array
     {
         $result = [];
+        $seen = [];
         $currentUuid = strtolower(trim((string) $currentUuid));
 
         foreach ((array) $rows as $row) {
@@ -442,14 +452,87 @@ final class PersonModel extends AdminModel
                 continue;
             }
 
+            if (!$this->relationPersonExists($uuid)) {
+                $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_RELATION_PERSON_INVALID'));
+                return null;
+            }
+
+            $validFrom = $this->normalizeIsoDate($row['valid_from'] ?? null);
+            $validTo = $this->normalizeIsoDate($row['valid_to'] ?? null);
+            if (($row['valid_from'] ?? '') !== '' && $validFrom === null) {
+                $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_RELATION_DATE_INVALID'));
+                return null;
+            }
+            if (($row['valid_to'] ?? '') !== '' && $validTo === null) {
+                $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_RELATION_DATE_INVALID'));
+                return null;
+            }
+            if ($validFrom !== null && $validTo !== null && $validTo < $validFrom) {
+                $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_RELATION_DATE_ORDER'));
+                return null;
+            }
+
+            $status = strtolower(trim((string) ($row['status'] ?? 'active')));
+            if (!in_array($status, self::RELATION_STATUSES, true)) {
+                $status = 'active';
+            }
+
+            $relationUuid = strtolower(trim((string) ($row['relation_uuid'] ?? '')));
+            if (!self::isUuid($relationUuid)) {
+                $relationUuid = self::uuidV4();
+            }
+
+            $key = $type . '|' . $uuid;
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+
             $result[] = [
+                'relation_uuid' => $relationUuid,
                 'type' => $type,
                 'person_uuid' => $uuid,
+                'valid_from' => $validFrom ?? '',
+                'valid_to' => $validTo ?? '',
+                'status' => $status,
                 'note' => trim((string) ($row['note'] ?? '')),
             ];
         }
 
         return $result;
+    }
+
+    private function relationPersonExists(string $uuid): bool
+    {
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select('COUNT(*)')
+            ->from($db->quoteName('#__xdecaropeople_people'))
+            ->where($db->quoteName('uuid') . ' = :uuid')
+            ->where($db->quoteName('state') . ' >= 0')
+            ->bind(':uuid', $uuid);
+
+        return (int) $db->setQuery($query)->loadResult() === 1;
+    }
+
+    private function normalizeIsoDate(mixed $value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/^(\\d{4})-(\\d{2})-(\\d{2})$/', $value, $matches)
+            && checkdate((int) $matches[2], (int) $matches[3], (int) $matches[1])) {
+            return $value;
+        }
+
+        if (preg_match('/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/', $value, $matches)
+            && checkdate((int) $matches[2], (int) $matches[1], (int) $matches[3])) {
+            return $matches[3] . '-' . $matches[2] . '-' . $matches[1];
+        }
+
+        return null;
     }
 
     private function normalizeAllowedList(mixed $value, array $allowed): array

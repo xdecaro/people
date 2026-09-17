@@ -41,6 +41,10 @@ $filterState = (string) $this->state->get('filter.state');
                     <tr>
                         <th><input type="checkbox" name="checkall-toggle" onclick="Joomla.checkAll(this)"></th>
                         <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME'); ?></th>
+                        <?php if ($this->canIdentityDetails) : ?>
+                            <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE'); ?></th>
+                            <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE'); ?></th>
+                        <?php endif; ?>
                         <th><?php echo Text::_('JGLOBAL_EMAIL'); ?></th>
                         <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'); ?></th>
                         <th><?php echo Text::_('JSTATUS'); ?></th>
@@ -63,6 +67,10 @@ $filterState = (string) $this->state->get('filter.state');
                                     <?php echo $this->escape($item->display_name); ?>
                                 </a>
                             </td>
+                            <?php if ($this->canIdentityDetails) : ?>
+                                <td><?php echo !empty($item->birth_date) ? $this->escape(HTMLHelper::_('date', $item->birth_date, Text::_('DATE_FORMAT_FILTER_DATE'))) : '—'; ?></td>
+                                <td><?php echo $this->escape((string) ($item->birth_place ?? '')); ?></td>
+                            <?php endif; ?>
                             <td><?php echo $this->escape((string) $item->email); ?></td>
                             <td><?php echo $this->escape((string) $item->phone); ?></td>
                             <td><?php echo $stateLabel; ?></td>

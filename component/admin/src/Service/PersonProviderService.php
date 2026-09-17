@@ -60,6 +60,70 @@ final class PersonProviderService
         return $result;
     }
 
+    public function personExists(string $uuid): bool
+    {
+        $uuid = strtolower(trim($uuid));
+        if ($uuid === '') {
+            return false;
+        }
+
+        return $this->getPerson($uuid, false) !== null;
+    }
+
+    public function getRelations(string $uuid): array
+    {
+        $this->authorise(true);
+        $person = $this->getPerson($uuid, true);
+        if ($person === null) {
+            return [];
+        }
+
+        $relations = is_array($person['relations_data'] ?? null) ? $person['relations_data'] : [];
+        $relatedUuids = [];
+        foreach ($relations as $relation) {
+            $relatedUuid = strtolower(trim((string) ($relation['person_uuid'] ?? '')));
+            if ($relatedUuid !== '') {
+                $relatedUuids[$relatedUuid] = $relatedUuid;
+            }
+        }
+
+        $people = $relatedUuids !== [] ? $this->getPeopleByUuids(array_values($relatedUuids), false) : [];
+        foreach ($relations as &$relation) {
+            $relatedUuid = strtolower(trim((string) ($relation['person_uuid'] ?? '')));
+            $relation['related_person'] = $people[$relatedUuid] ?? null;
+        }
+        unset($relation);
+
+        return array_values($relations);
+    }
+
+    public function getCurrentAddress(string $uuid): ?array
+    {
+        $this->authorise(true);
+        $person = $this->getPerson($uuid, true);
+        if ($person === null) {
+            return null;
+        }
+
+        $address = [
+            'address_line' => $person['address_line'] ?? null,
+            'address_number' => $person['address_number'] ?? null,
+            'postal_code' => $person['postal_code'] ?? null,
+            'city' => $person['city'] ?? null,
+            'region' => $person['region'] ?? null,
+            'country_code' => $person['country_code'] ?? null,
+            'residence_place_id' => $person['residence_place_id'] ?? null,
+        ];
+
+        foreach ($address as $value) {
+            if (trim((string) ($value ?? '')) !== '') {
+                return $address;
+            }
+        }
+
+        return null;
+    }
+
     public function searchPeople(array $filters = [], int $limit = 50, bool $sensitive = false): array
     {
         $this->authorise($sensitive);
