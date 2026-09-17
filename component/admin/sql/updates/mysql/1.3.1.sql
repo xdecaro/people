@@ -1,0 +1,1 @@
+-- People 1.3.1: canonical package identity and limited identity-detail provider; no database schema changes.

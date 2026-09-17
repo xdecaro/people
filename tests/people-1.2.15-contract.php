@@ -11,8 +11,11 @@ if (version_compare($version, '1.2.15', '<')) {
     exit(1);
 }
 
+$packagePath = is_file($root . '/package/pkg_people.xml')
+    ? $root . '/package/pkg_people.xml'
+    : $root . '/package/pkg_xdecaropeople.xml';
 $component = simplexml_load_file($root . '/component/xdecaropeople.xml');
-$package = simplexml_load_file($root . '/package/pkg_xdecaropeople.xml');
+$package = simplexml_load_file($packagePath);
 if ($component === false || $package === false) {
     fwrite(STDERR, "People manifests are invalid XML.\n");
     exit(1);

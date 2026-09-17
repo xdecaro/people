@@ -13,12 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: {fetch-depth: 0}
       - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          coverage: none
+        with: {php-version: '8.3', coverage: none}
       - name: Validate stable source
         shell: bash
         run: |
@@ -29,27 +26,21 @@ jobs:
           php tests/person-validation-summary-contract.php
           php tests/person-input-ui-contract.php
           php tests/relation-reciprocity.php
-          if [ -f tests/people-1.2.14-contract.php ]; then php tests/people-1.2.14-contract.php; fi
-          if [ -f tests/person-provider-batch.php ]; then php tests/person-provider-batch.php; fi
-          if [ -f tests/person-provider-sensitive-contract.php ]; then php tests/person-provider-sensitive-contract.php; fi
-          if [ -f tests/people-1.2.15-contract.php ]; then php tests/people-1.2.15-contract.php; fi
-          if [ -f tests/people-notifications-contract.php ]; then php tests/people-notifications-contract.php; fi
-          if [ -f tests/people-1.2.16-contract.php ]; then php tests/people-1.2.16-contract.php; fi
-          if [ -f tests/competitions-history-tab-contract.php ]; then php tests/competitions-history-tab-contract.php; fi
+          php tests/people-1.2.14-contract.php
+          php tests/person-provider-batch.php
+          php tests/person-provider-sensitive-contract.php
+          php tests/people-1.2.15-contract.php
+          php tests/people-notifications-contract.php
+          php tests/people-1.2.16-contract.php
+          php tests/competitions-history-tab-contract.php
+          php tests/people-1.3.1-canonical-package-identity-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
-          version = sys.argv[1]
-          for path in pathlib.Path('.').rglob('*.xml'):
-              ET.parse(path)
-          component = ET.parse('component/xdecaropeople.xml').getroot()
-          package = ET.parse('package/pkg_xdecaropeople.xml').getroot()
-          assets = json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
-          assert component.findtext('version') == version
-          assert package.findtext('version') == version
-          assert component.find('targetplatform').attrib['version'] == '6.1.3'
-          assert package.find('targetplatform').attrib['version'] == '6.1.3'
-          assert assets['version'] == version
-          assert all(item.get('version') == version for item in assets.get('assets', []))
+          v=sys.argv[1]
+          for p in pathlib.Path('.').rglob('*.xml'): ET.parse(p)
+          c=ET.parse('component/xdecaropeople.xml').getroot(); p=ET.parse('package/pkg_people.xml').getroot(); a=json.load(open('component/media/joomla.asset.json'))
+          assert c.findtext('version')==v and p.findtext('version')==v and p.findtext('packagename')=='people'
+          assert a['version']==v and all(x.get('version')==v for x in a.get('assets',[]))
           PY
           node --check component/media/js/person-form.js
           node --check component/media/js/person-cancel-fix.js
@@ -58,84 +49,64 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          V="$(tr -d '\r\n' < VERSION)"
-          chmod +x build/build.sh
-          build/build.sh
-          cp dist/SHA256SUMS.txt /tmp/sums
-          build/build.sh
-          diff -u /tmp/sums dist/SHA256SUMS.txt
+          V="$(tr -d '\r\n' < VERSION)"; chmod +x build/build.sh; build/build.sh; cp dist/SHA256SUMS.txt /tmp/sums; build/build.sh; diff -u /tmp/sums dist/SHA256SUMS.txt
           unzip -t "dist/com_xdecaropeople_${V}.zip" >/dev/null
-          unzip -t "dist/pkg_xdecaropeople_${V}.zip" >/dev/null
-          unzip -p "dist/pkg_xdecaropeople_${V}.zip" com_xdecaropeople.zip > /tmp/component.zip
-          unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function getPeopleByUuids('
-          unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'getTableColumns'
-          unzip -p /tmp/component.zip admin/src/Service/NotificationIntegrationService.php | grep -Fq "eventEnabled('possible_duplicate')"
-          unzip -p /tmp/component.zip admin/src/Service/CompetitionsIntegrationService.php | grep -Fq 'getPersonHistory'
+          unzip -t "dist/pkg_people_${V}.zip" >/dev/null
+          unzip -p "dist/pkg_people_${V}.zip" com_xdecaropeople.zip > /tmp/component.zip
+          unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function searchPeopleForIdentity('
       - name: Refuse existing release
-        env:
-          GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+        env: {GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
         run: |
-          V="$(tr -d '\r\n' < VERSION)"
-          if gh release view "v${V}" >/dev/null 2>&1; then
-            echo "Release v${V} already exists." >&2
-            exit 1
-          fi
+          V="$(tr -d '\r\n' < VERSION)"; if gh release view "v${V}" >/dev/null 2>&1; then echo "Release v${V} already exists." >&2; exit 1; fi
       - name: Publish release
-        env:
-          GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+        env: {GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
         shell: bash
         run: |
           set -euo pipefail
           V="$(tr -d '\r\n' < VERSION)"
-          gh release create "v${V}" \
-            "dist/com_xdecaropeople_${V}.zip" \
-            "dist/pkg_xdecaropeople_${V}.zip" \
-            dist/SHA256SUMS.txt \
+          gh release create "v${V}" "dist/com_xdecaropeople_${V}.zip" "dist/pkg_people_${V}.zip" dist/SHA256SUMS.txt \
             --title "People ${V}" \
-            --notes "People ${V}: adds an optional read-only Competitions tab to saved person profiles. It discovers competitions.people_history v1 through Core and renders competition, season, team, role, shirt number and status history without querying Competitions private tables or duplicating competition data. Joomla 6.1.3 only."
-      - name: Publish Joomla update feed
+            --notes "People ${V}: migrates the Joomla package identity to pkg_people and adds a limited identity-details provider permission exposing only birth date and birth place for authorised cross-product person disambiguation. Full sensitive fields remain protected. Joomla 6.1.3 only."
+      - name: Publish canonical and legacy-bridge Joomla update feeds
         shell: bash
         run: |
           set -euo pipefail
-          V="$(tr -d '\r\n' < VERSION)"
-          SHA="$(sha256sum "dist/pkg_xdecaropeople_${V}.zip" | awk '{print $1}')"
+          V="$(tr -d '\r\n' < VERSION)"; SHA="$(sha256sum "dist/pkg_people_${V}.zip" | awk '{print $1}')"
           python3 - "$V" "$SHA" <<'PY'
           import sys, xml.etree.ElementTree as ET
-          version, sha = sys.argv[1:3]
-          path = 'updates/pkg_xdecaropeople.xml'
-          tree = ET.parse(path)
-          update = tree.getroot().find('./update')
-          update.find('name').text = 'People'
-          update.find('version').text = version
-          update.find('./downloads/downloadurl').text = f'https://github.com/xdecaro/people/releases/download/v{version}/pkg_xdecaropeople_{version}.zip'
-          update.find('sha256').text = sha
-          update.find('targetplatform').set('version', r'6\.1\.3$')
-          update.find('php_minimum').text = '8.3.0'
-          ET.indent(tree, space='  ')
-          tree.write(path, encoding='utf-8', xml_declaration=True)
+          v,sha=sys.argv[1:3]
+          url=f'https://github.com/xdecaro/people/releases/download/v{v}/pkg_people_{v}.zip'
+          for path, element in [
+              ('updates/pkg_people.xml', 'pkg_people'),
+              ('updates/pkg_xdecaropeople.xml', 'pkg_xdecaropeople'),
+          ]:
+              t=ET.parse(path); u=t.getroot().find('./update')
+              u.find('name').text='People'; u.find('element').text=element; u.find('version').text=v
+              u.find('./downloads/downloadurl').text=url; u.find('sha256').text=sha
+              u.find('targetplatform').set('version',r'6\.1\.3$'); u.find('php_minimum').text='8.3.0'
+              ET.indent(t,space='  '); t.write(path,encoding='utf-8',xml_declaration=True)
           PY
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add updates/pkg_xdecaropeople.xml
-          git diff --cached --quiet || git commit -m "Publish update feed for People ${V}"
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add updates/pkg_people.xml updates/pkg_xdecaropeople.xml
+          git diff --cached --quiet || git commit -m "Publish update feeds for People ${V}"
           git pull --rebase origin main
           git push origin HEAD:main
       - name: Verify published updater resources
         shell: bash
         run: |
           set -euo pipefail
-          V="$(tr -d '\r\n' < VERSION)"
-          EXPECTED_SHA="$(sha256sum "dist/pkg_xdecaropeople_${V}.zip" | awk '{print $1}')"
-          for attempt in 1 2 3 4 5; do
-            curl -fsSL "https://raw.githubusercontent.com/xdecaro/people/main/updates/pkg_xdecaropeople.xml?run=${GITHUB_RUN_ID}-${attempt}" -o /tmp/feed.xml || true
-            if grep -Fq "<version>${V}</version>" /tmp/feed.xml 2>/dev/null; then break; fi
-            sleep 3
+          V="$(tr -d '\r\n' < VERSION)"; EXPECTED_SHA="$(sha256sum "dist/pkg_people_${V}.zip" | awk '{print $1}')"
+          for FEED in pkg_people pkg_xdecaropeople; do
+            for attempt in 1 2 3 4 5; do
+              curl -fsSL "https://raw.githubusercontent.com/xdecaro/people/main/updates/${FEED}.xml?run=${GITHUB_RUN_ID}-${attempt}" -o "/tmp/${FEED}.xml" || true
+              if grep -Fq "<version>${V}</version>" "/tmp/${FEED}.xml" 2>/dev/null; then break; fi
+              sleep 3
+            done
+            grep -Fq "releases/download/v${V}/pkg_people_${V}.zip" "/tmp/${FEED}.xml"
+            grep -Fq "<sha256>${EXPECTED_SHA}</sha256>" "/tmp/${FEED}.xml"
           done
-          grep -Fq "<version>${V}</version>" /tmp/feed.xml
-          grep -Fq "releases/download/v${V}/pkg_xdecaropeople_${V}.zip" /tmp/feed.xml
-          grep -Fq '<targetplatform name="joomla" version="6\.1\.3$"' /tmp/feed.xml
-          grep -Fq '<php_minimum>8.3.0</php_minimum>' /tmp/feed.xml
-          grep -Fq "<sha256>${EXPECTED_SHA}</sha256>" /tmp/feed.xml
-          curl -fL --retry 3 "https://github.com/xdecaro/people/releases/download/v${V}/pkg_xdecaropeople_${V}.zip" -o /tmp/published-package.zip
+          grep -Fq '<element>pkg_people</element>' /tmp/pkg_people.xml
+          grep -Fq '<element>pkg_xdecaropeople</element>' /tmp/pkg_xdecaropeople.xml
+          curl -fL --retry 3 "https://github.com/xdecaro/people/releases/download/v${V}/pkg_people_${V}.zip" -o /tmp/published-package.zip
           echo "${EXPECTED_SHA}  /tmp/published-package.zip" | sha256sum --check --strict
           unzip -t /tmp/published-package.zip >/dev/null

@@ -37,16 +37,18 @@ jobs:
           php tests/people-notifications-contract.php
           php tests/people-1.2.16-contract.php
           php tests/competitions-history-tab-contract.php
+          php tests/people-1.3.1-canonical-package-identity-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           version = sys.argv[1]
           for path in pathlib.Path('.').rglob('*.xml'):
               ET.parse(path)
           component = ET.parse('component/xdecaropeople.xml').getroot()
-          package = ET.parse('package/pkg_xdecaropeople.xml').getroot()
+          package = ET.parse('package/pkg_people.xml').getroot()
           assets = json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
           assert component.findtext('version') == version
           assert package.findtext('version') == version
+          assert package.findtext('packagename') == 'people'
           assert component.find('targetplatform').attrib['version'] == '6.1.3'
           assert package.find('targetplatform').attrib['version'] == '6.1.3'
           assert assets['version'] == version
@@ -67,17 +69,18 @@ jobs:
           build/build.sh
           diff -u /tmp/people-sums dist/SHA256SUMS.txt
           for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
-          unzip -Z1 "dist/pkg_xdecaropeople_${V}.zip" | grep -Fxq 'pkg_xdecaropeople.xml'
-          unzip -Z1 "dist/pkg_xdecaropeople_${V}.zip" | grep -Fxq 'com_xdecaropeople.zip'
-          unzip -p "dist/pkg_xdecaropeople_${V}.zip" com_xdecaropeople.zip > /tmp/component.zip
+          unzip -Z1 "dist/pkg_people_${V}.zip" | grep -Fxq 'pkg_people.xml'
+          unzip -Z1 "dist/pkg_people_${V}.zip" | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -p "dist/pkg_people_${V}.zip" com_xdecaropeople.zip > /tmp/component.zip
           unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function getPeopleByUuids('
+          unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function searchPeopleForIdentity('
           unzip -p /tmp/component.zip admin/src/Service/CompetitionsIntegrationService.php | grep -Fq 'getPersonHistory'
       - name: Upload current People install package
         uses: actions/upload-artifact@v4
         with:
           name: people-package
           path: |
-            dist/pkg_xdecaropeople_*.zip
+            dist/pkg_people_*.zip
             dist/com_xdecaropeople_*.zip
             dist/SHA256SUMS.txt
           if-no-files-found: error
