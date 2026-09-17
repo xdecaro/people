@@ -28,8 +28,12 @@ foreach ([
 }
 
 $packageScript = file_get_contents($root . '/package/script.php') ?: '';
-if (!str_contains($packageScript, "MINIMUM_CORE='2.0.1'")) {
+if (!str_contains($packageScript, "MINIMUM_CORE = '2.0.1'")) {
     fwrite(STDERR, "People package must require Core 2.0.1 or later.\n");
+    exit(1);
+}
+if (!str_contains($packageScript, "'pkg_core'") || !str_contains($packageScript, "'pkg_xdecarocore'")) {
+    fwrite(STDERR, "People package must recognize canonical and legacy Core package identities during migration.\n");
     exit(1);
 }
 
@@ -38,17 +42,16 @@ if (str_contains($provider, '#__decaro') && !str_contains($provider, '#__xdecaro
     fwrite(STDERR, "People provider crossed a private legacy-table boundary.\n");
     exit(1);
 }
-foreach ([
-    'p.whatsapp',
-    "'sex'",
-    "'disability_status'",
-    "'address_number'",
-    "'social_instagram'",
-] as $marker) {
+foreach (['p.whatsapp', "'sex'", "'disability_status'", "'address_number'", "'social_instagram'"] as $marker) {
     if (!str_contains($provider, $marker)) {
         fwrite(STDERR, "People provider missing profile field: {$marker}\n");
         exit(1);
     }
+}
+if (!str_contains($provider, 'function searchPeopleForIdentity(')
+    || !str_contains($provider, 'people.view_identity_details')) {
+    fwrite(STDERR, "People identity-disambiguation provider contract is missing.\n");
+    exit(1);
 }
 
 $serviceProvider = file_get_contents($root . '/component/admin/services/provider.php') ?: '';
@@ -134,12 +137,7 @@ foreach ([
 }
 
 $personScript = file_get_contents($root . '/component/media/js/person-form.js') ?: '';
-foreach ([
-    'formatBirthDateInput',
-    'initPhoneNormalization',
-    'setConditionalRequired',
-    'validateAllLocations',
-] as $marker) {
+foreach (['formatBirthDateInput', 'initPhoneNormalization', 'setConditionalRequired', 'validateAllLocations'] as $marker) {
     if (!str_contains($personScript, $marker)) {
         fwrite(STDERR, "Person form script missing current marker: {$marker}\n");
         exit(1);
@@ -153,9 +151,15 @@ if (!CountryMetadata::isAlpha2('IT') || !CountryMetadata::isAlpha3('ITA')) {
     exit(1);
 }
 
+$packagePath = is_file($root . '/package/pkg_people.xml')
+    ? $root . '/package/pkg_people.xml'
+    : $root . '/package/pkg_xdecaropeople.xml';
+$feedPath = is_file($root . '/updates/pkg_people.xml')
+    ? $root . '/updates/pkg_people.xml'
+    : $root . '/updates/pkg_xdecaropeople.xml';
 $manifest = simplexml_load_file($root . '/component/xdecaropeople.xml');
-$package = simplexml_load_file($root . '/package/pkg_xdecaropeople.xml');
-$feed = simplexml_load_file($root . '/updates/pkg_xdecaropeople.xml');
+$package = simplexml_load_file($packagePath);
+$feed = simplexml_load_file($feedPath);
 if ($manifest === false || $package === false || $feed === false) {
     fwrite(STDERR, "People XML metadata is invalid.\n");
     exit(1);
@@ -185,6 +189,11 @@ if ((string) $manifest->author !== 'Luca De Caro' || (string) $package->author !
 }
 if ((string) $package->name !== 'People' || (string) $feed->update->name !== 'People') {
     fwrite(STDERR, "People visible package/update branding must remain People.\n");
+    exit(1);
+}
+if (is_file($root . '/package/pkg_people.xml')
+    && ((string) $package->packagename !== 'people' || (string) $feed->update->element !== 'pkg_people')) {
+    fwrite(STDERR, "People canonical package identity is inconsistent.\n");
     exit(1);
 }
 
