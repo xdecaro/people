@@ -67,30 +67,46 @@ jobs:
           gh release create "v${V}" "dist/com_xdecaropeople_${V}.zip" "dist/pkg_people_${V}.zip" dist/SHA256SUMS.txt \
             --title "People ${V}" \
             --notes "People ${V}: migrates the Joomla package identity to pkg_people and adds a limited identity-details provider permission exposing only birth date and birth place for authorised cross-product person disambiguation. Full sensitive fields remain protected. Joomla 6.1.3 only."
-      - name: Publish Joomla update feed
+      - name: Publish canonical and legacy-bridge Joomla update feeds
         shell: bash
         run: |
           set -euo pipefail
           V="$(tr -d '\r\n' < VERSION)"; SHA="$(sha256sum "dist/pkg_people_${V}.zip" | awk '{print $1}')"
           python3 - "$V" "$SHA" <<'PY'
           import sys, xml.etree.ElementTree as ET
-          v,sha=sys.argv[1:3]; path='updates/pkg_people.xml'; t=ET.parse(path); u=t.getroot().find('./update')
-          u.find('name').text='People'; u.find('element').text='pkg_people'; u.find('version').text=v
-          u.find('./downloads/downloadurl').text=f'https://github.com/xdecaro/people/releases/download/v{v}/pkg_people_{v}.zip'
-          u.find('sha256').text=sha; u.find('targetplatform').set('version',r'6\.1\.3$'); u.find('php_minimum').text='8.3.0'
-          ET.indent(t,space='  '); t.write(path,encoding='utf-8',xml_declaration=True)
+          v,sha=sys.argv[1:3]
+          url=f'https://github.com/xdecaro/people/releases/download/v{v}/pkg_people_{v}.zip'
+          for path, element in [
+              ('updates/pkg_people.xml', 'pkg_people'),
+              ('updates/pkg_xdecaropeople.xml', 'pkg_xdecaropeople'),
+          ]:
+              t=ET.parse(path); u=t.getroot().find('./update')
+              u.find('name').text='People'; u.find('element').text=element; u.find('version').text=v
+              u.find('./downloads/downloadurl').text=url; u.find('sha256').text=sha
+              u.find('targetplatform').set('version',r'6\.1\.3$'); u.find('php_minimum').text='8.3.0'
+              ET.indent(t,space='  '); t.write(path,encoding='utf-8',xml_declaration=True)
           PY
           git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add updates/pkg_people.xml; git diff --cached --quiet || git commit -m "Publish update feed for People ${V}"; git pull --rebase origin main; git push origin HEAD:main
+          git add updates/pkg_people.xml updates/pkg_xdecaropeople.xml
+          git diff --cached --quiet || git commit -m "Publish update feeds for People ${V}"
+          git pull --rebase origin main
+          git push origin HEAD:main
       - name: Verify published updater resources
         shell: bash
         run: |
           set -euo pipefail
           V="$(tr -d '\r\n' < VERSION)"; EXPECTED_SHA="$(sha256sum "dist/pkg_people_${V}.zip" | awk '{print $1}')"
-          for attempt in 1 2 3 4 5; do curl -fsSL "https://raw.githubusercontent.com/xdecaro/people/main/updates/pkg_people.xml?run=${GITHUB_RUN_ID}-${attempt}" -o /tmp/feed.xml || true; if grep -Fq "<version>${V}</version>" /tmp/feed.xml 2>/dev/null; then break; fi; sleep 3; done
-          grep -Fq "<element>pkg_people</element>" /tmp/feed.xml
-          grep -Fq "releases/download/v${V}/pkg_people_${V}.zip" /tmp/feed.xml
-          grep -Fq "<sha256>${EXPECTED_SHA}</sha256>" /tmp/feed.xml
+          for FEED in pkg_people pkg_xdecaropeople; do
+            for attempt in 1 2 3 4 5; do
+              curl -fsSL "https://raw.githubusercontent.com/xdecaro/people/main/updates/${FEED}.xml?run=${GITHUB_RUN_ID}-${attempt}" -o "/tmp/${FEED}.xml" || true
+              if grep -Fq "<version>${V}</version>" "/tmp/${FEED}.xml" 2>/dev/null; then break; fi
+              sleep 3
+            done
+            grep -Fq "releases/download/v${V}/pkg_people_${V}.zip" "/tmp/${FEED}.xml"
+            grep -Fq "<sha256>${EXPECTED_SHA}</sha256>" "/tmp/${FEED}.xml"
+          done
+          grep -Fq '<element>pkg_people</element>' /tmp/pkg_people.xml
+          grep -Fq '<element>pkg_xdecaropeople</element>' /tmp/pkg_xdecaropeople.xml
           curl -fL --retry 3 "https://github.com/xdecaro/people/releases/download/v${V}/pkg_people_${V}.zip" -o /tmp/published-package.zip
           echo "${EXPECTED_SHA}  /tmp/published-package.zip" | sha256sum --check --strict
           unzip -t /tmp/published-package.zip >/dev/null
