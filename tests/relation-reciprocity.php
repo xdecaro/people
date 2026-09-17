@@ -29,7 +29,12 @@ use xdecaro\Component\People\Administrator\Service\RelationReciprocity;
 $assert(RelationReciprocity::inverseType('spouse') === 'spouse', 'Spouse must be reciprocal with spouse.');
 $assert(RelationReciprocity::inverseType('parent') === 'child', 'Parent must be reciprocal with child.');
 $assert(RelationReciprocity::inverseType('child') === 'parent', 'Child must be reciprocal with parent.');
-$assert(RelationReciprocity::inverseType('guardian') === null, 'Guardian must remain directional.');
+$assert(RelationReciprocity::inverseType('guardian') === 'ward', 'Guardian must be reciprocal with ward.');
+$assert(RelationReciprocity::inverseType('ward') === 'guardian', 'Ward must be reciprocal with guardian.');
+$assert(RelationReciprocity::inverseType('curator') === 'curated_person', 'Curator must be reciprocal with curated person.');
+$assert(RelationReciprocity::inverseType('support_administrator') === 'supported_person', 'Support administrator must be reciprocal with supported person.');
+$assert(RelationReciprocity::inverseType('legal_representative') === 'represented_person', 'Legal representative must be reciprocal with represented person.');
+$assert(RelationReciprocity::inverseType('partner') === 'partner', 'Partner must be reciprocal with partner.');
 $assert(RelationReciprocity::inverseType('responsible') === null, 'Responsible must remain directional.');
 $assert(RelationReciprocity::inverseType('other') === null, 'Other relation must remain directional.');
 
@@ -38,8 +43,17 @@ $relations = [
     ['type' => 'guardian', 'person_uuid' => 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'note' => 'keep'],
 ];
 
-$relations = RelationReciprocity::upsert($relations, 'spouse', $sourceUuid);
-$assert(count(array_filter($relations, static fn (array $row): bool => ($row['type'] ?? '') === 'spouse' && ($row['person_uuid'] ?? '') === $sourceUuid)) === 1, 'Reciprocal spouse relation must be added exactly once.');
+$relations = RelationReciprocity::upsert($relations, 'spouse', $sourceUuid, [
+    'relation_uuid' => '11111111-1111-4111-8111-111111111111',
+    'valid_from' => '2026-01-01',
+    'valid_to' => '',
+    'status' => 'active',
+    'note' => 'shared',
+]);
+$spouseRows = array_values(array_filter($relations, static fn (array $row): bool => ($row['type'] ?? '') === 'spouse' && ($row['person_uuid'] ?? '') === $sourceUuid));
+$assert(count($spouseRows) === 1, 'Reciprocal spouse relation must be added exactly once.');
+$assert(($spouseRows[0]['valid_from'] ?? '') === '2026-01-01', 'Reciprocal metadata must preserve relation start date.');
+$assert(($spouseRows[0]['relation_uuid'] ?? '') === '11111111-1111-4111-8111-111111111111', 'Reciprocal metadata must preserve relation UUID.');
 
 $relations = RelationReciprocity::upsert($relations, 'spouse', $sourceUuid);
 $assert(count(array_filter($relations, static fn (array $row): bool => ($row['type'] ?? '') === 'spouse' && ($row['person_uuid'] ?? '') === $sourceUuid)) === 1, 'Repeated synchronization must not duplicate reciprocal relations.');
