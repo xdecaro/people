@@ -44,8 +44,6 @@ $checks = [
     [$access, 'people.view_identity_details', 'People ACL must expose the limited identity-details permission.'],
     [$provider, 'searchPeopleForIdentity', 'People provider must expose a dedicated identity-disambiguation search method.'],
     [$provider, 'people.view_identity_details', 'Identity-disambiguation provider access must use the limited ACL action.'],
-    [$provider, 'birth_date', 'Identity-disambiguation provider must expose birth_date.'],
-    [$provider, 'birth_place', 'Identity-disambiguation provider must expose birth_place.'],
 ];
 
 foreach ($checks as [$haystack, $needle, $message]) {
@@ -55,14 +53,20 @@ foreach ($checks as [$haystack, $needle, $message]) {
     }
 }
 
-if (!preg_match('/identityColumns\(\).*?birth_date.*?birth_place/s', $provider)) {
-    fwrite(STDERR, "People identity-details provider must use an explicit minimal column allowlist.\n");
+if (!preg_match('/private function identityColumns\(\): array\s*\{(.*?)\n\s*\}\n\n\s*private function columns/s', $provider, $matches)) {
+    fwrite(STDERR, "Unable to isolate People identityColumns().\n");
     exit(1);
 }
-
-if (preg_match('/identityColumns\(\).*?(?:disability_status|tax_identifier|address_line|accessibility_needs)/s', $provider)) {
-    fwrite(STDERR, "People identity-details allowlist must not contain unrelated sensitive fields.\n");
+$identityBody = $matches[1];
+if (!str_contains($identityBody, "'birth_date'") || !str_contains($identityBody, "'birth_place'")) {
+    fwrite(STDERR, "People identity-details provider must explicitly allow only birth date/place identity fields.\n");
     exit(1);
+}
+foreach (['disability_status', 'tax_identifier', 'address_line', 'accessibility_needs'] as $forbidden) {
+    if (str_contains($identityBody, $forbidden)) {
+        fwrite(STDERR, "People identity-details allowlist contains unrelated sensitive field: {$forbidden}\n");
+        exit(1);
+    }
 }
 
 echo "People 1.3.1 canonical package and identity-details contract OK\n";
