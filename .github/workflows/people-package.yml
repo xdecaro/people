@@ -40,6 +40,7 @@ jobs:
           php tests/people-1.3.1-canonical-package-identity-contract.php
           php tests/organizations-history-tab-contract.php
           php tests/people-1.4.0-contract.php
+          php tests/people-1.5.0-membership-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           version = sys.argv[1]
@@ -60,6 +61,7 @@ jobs:
           node --check component/media/js/person-cancel-fix.js
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
           ! grep -Rni '#__xdecaroorganizations_' component
+          ! grep -Rni '#__decaromembership_' component
           test -f "component/admin/sql/updates/mysql/${V}.sql"
       - name: Build deterministic install packages
         shell: bash
@@ -81,6 +83,7 @@ jobs:
           unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'function getCurrentAddress('
           unzip -p /tmp/component.zip admin/src/Service/CompetitionsIntegrationService.php | grep -Fq 'getPersonHistory'
           unzip -p /tmp/component.zip admin/src/Service/OrganizationsIntegrationService.php | grep -Fq 'organizations.people_appointments'
+          unzip -p /tmp/component.zip admin/src/Service/MembershipIntegrationService.php | grep -Fq 'membership.person_memberships'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/language/it-IT/com_xdecaropeople_organizations.ini'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/language/en-GB/com_xdecaropeople_organizations.ini'
       - name: Upload current People install package
