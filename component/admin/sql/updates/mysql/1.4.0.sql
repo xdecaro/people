@@ -1,0 +1,1 @@
+-- People 1.4.0: relationship metadata/provider expansion; no database schema changes required.
