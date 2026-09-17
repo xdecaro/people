@@ -5,8 +5,8 @@ declare(strict_types=1);
 $root = dirname(__DIR__);
 $version = trim((string) file_get_contents($root . '/VERSION'));
 
-if ($version !== '1.3.2') {
-    fwrite(STDERR, "People canonical package/integration release must be 1.3.2.\n");
+if ($version !== '1.4.0') {
+    fwrite(STDERR, "People canonical package/integration release must be 1.4.0.\n");
     exit(1);
 }
 
@@ -20,11 +20,12 @@ $requiredFiles = [
     $root . '/component/admin/src/Service/OrganizationsIntegrationService.php',
     $root . '/component/admin/language/en-GB/com_xdecaropeople_organizations.ini',
     $root . '/component/admin/language/it-IT/com_xdecaropeople_organizations.ini',
-    $root . '/component/admin/sql/updates/mysql/1.3.2.sql',
+    $root . '/component/admin/sql/updates/mysql/1.4.0.sql',
+    $root . '/component/admin/src/Service/MembershipIntegrationService.php',
 ];
 foreach ($requiredFiles as $path) {
     if (!is_file($path)) {
-        fwrite(STDERR, "Missing People 1.3.2 canonical file: {$path}\n");
+        fwrite(STDERR, "Missing People 1.4.0 canonical file: {$path}\n");
         exit(1);
     }
 }
@@ -38,13 +39,13 @@ $access = (string) file_get_contents($root . '/component/admin/access.xml');
 $provider = (string) file_get_contents($root . '/component/admin/src/Service/PersonProviderService.php');
 
 $checks = [
-    [$componentManifest, '<version>1.3.2</version>', 'People component manifest must use version 1.3.2.'],
+    [$componentManifest, '<version>1.4.0</version>', 'People component manifest must use version 1.4.0.'],
     [$componentManifest, 'com_xdecaropeople_organizations.ini', 'People component manifest must install Organizations integration languages.'],
     [$manifest, '<packagename>people</packagename>', 'People package must use packagename people.'],
-    [$manifest, '<version>1.3.2</version>', 'People package manifest must use version 1.3.2.'],
+    [$manifest, '<version>1.4.0</version>', 'People package manifest must use version 1.4.0.'],
     [$manifest, 'updates/pkg_people.xml', 'People package must register the canonical update feed.'],
     [$feed, '<element>pkg_people</element>', 'People update feed must identify pkg_people.'],
-    [$feed, 'pkg_people_1.3.2.zip', 'People update feed must publish pkg_people_1.3.2.zip.'],
+    [$feed, 'pkg_people_1.4.0.zip', 'People update feed must publish pkg_people_1.4.0.zip.'],
     [$build, 'pkg_people_${VERSION}.zip', 'People build must create the canonical package ZIP.'],
     [$installer, 'pkg_peopleInstallerScript', 'People installer class must follow the canonical package identity.'],
     [$installer, 'pkg_xdecaropeople', 'People installer must recognize the legacy package during migration.'],
@@ -77,4 +78,4 @@ foreach (['disability_status', 'tax_identifier', 'address_line', 'accessibility_
     }
 }
 
-echo "People 1.3.2 canonical package, identity-details and Organizations integration contract OK\n";
+echo "People 1.4.0 canonical package, identity-details and Organizations integration contract OK\n";
