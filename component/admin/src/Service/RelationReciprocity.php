@@ -65,6 +65,12 @@ final class RelationReciprocity
             return $relations;
         }
 
+        $hasRelationUuid = array_key_exists('relation_uuid', $metadata);
+        $hasValidFrom = array_key_exists('valid_from', $metadata);
+        $hasValidTo = array_key_exists('valid_to', $metadata);
+        $hasStatus = array_key_exists('status', $metadata);
+        $hasNote = array_key_exists('note', $metadata);
+
         $relationUuid = strtolower(trim((string) ($metadata['relation_uuid'] ?? '')));
         $validFrom = trim((string) ($metadata['valid_from'] ?? ''));
         $validTo = trim((string) ($metadata['valid_to'] ?? ''));
@@ -87,13 +93,23 @@ final class RelationReciprocity
                     continue;
                 }
 
-                $row['relation_uuid'] = $relationUuid !== '' ? $relationUuid : (string) ($row['relation_uuid'] ?? '');
+                $row['relation_uuid'] = $hasRelationUuid && $relationUuid !== ''
+                    ? $relationUuid
+                    : (string) ($row['relation_uuid'] ?? '');
                 $row['type'] = $type;
                 $row['person_uuid'] = $personUuid;
-                $row['valid_from'] = $validFrom;
-                $row['valid_to'] = $validTo;
-                $row['status'] = in_array($status, ['active', 'inactive'], true) ? $status : 'active';
-                $row['note'] = $note;
+                if ($hasValidFrom) {
+                    $row['valid_from'] = $validFrom;
+                }
+                if ($hasValidTo) {
+                    $row['valid_to'] = $validTo;
+                }
+                if ($hasStatus) {
+                    $row['status'] = in_array($status, ['active', 'inactive'], true) ? $status : 'active';
+                }
+                if ($hasNote) {
+                    $row['note'] = $note;
+                }
                 $found = true;
             }
 
