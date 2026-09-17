@@ -11,7 +11,7 @@ $assert = static function (bool $condition, string $message) use (&$failures): v
 };
 
 $version = trim((string) file_get_contents($root . '/VERSION'));
-$assert($version === '1.4.0', 'People VERSION must be 1.4.0.');
+$assert(version_compare($version, '1.4.0', '>='), 'People VERSION must be 1.4.0 or newer.');
 
 $relationForm = (string) file_get_contents($root . '/component/admin/forms/person_relation.xml');
 $model = (string) file_get_contents($root . '/component/admin/src/Model/PersonModel.php');
@@ -66,4 +66,4 @@ if ($failures !== []) {
     exit(1);
 }
 
-echo "People 1.4.0 relationship and identity contract OK\n";
+echo "People 1.4.0+ relationship and identity compatibility contract OK\n";
