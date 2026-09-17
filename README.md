@@ -6,7 +6,7 @@ Stable reusable person master data for the xdecaro ecosystem.
 - Package: `pkg_people` (`pkg_xdecaropeople` is retained only as a legacy update/migration identity)
 - Namespace: `xdecaro\Component\People`
 - Tables: `#__xdecaropeople_*`
-- Stable candidate version: `1.4.0`
+- Stable candidate version: `1.5.0`
 - Joomla: `6.1.3` only
 - PHP: `8.3+`
 - Requires xdecaro Core `2.0.1+`
@@ -47,3 +47,10 @@ People integrates with the shared `com_xdecaronotifications` center. In **People
 People emits privacy-safe in-app notifications when a person is created, important profile data changes, Joomla publication state changes, or a possible duplicate is detected. Notification text contains the person's display name and a generic event description only; sensitive field values are never copied into notification text. If Notifications is unavailable or no recipient is configured, People persistence continues normally.
 
 People 1.4.0 adds no People database columns or tables; the upgrade is non-destructive.
+
+
+## Membership integration
+
+People 1.5.0 può mostrare una scheda **Membership** di sola lettura quando Membership espone la capability pubblica `membership.person_memberships` v1. Il collegamento usa esclusivamente il `person_uuid` stabile e non interroga tabelle private Membership. Se Membership è assente, incompatibile o non autorizzato, People continua a funzionare normalmente e la scheda non viene mostrata.
+
+People resta proprietario dell'identità personale; categoria, sede, stato associativo, diritti ed eventuale storico restano di proprietà Membership.

@@ -209,6 +209,54 @@ $organizationEndReasonLabel = static function (array $appointment): string {
             echo HTMLHelper::_('uitab.endTab');
         }
 
+        if ($this->membershipAvailable) {
+            echo HTMLHelper::_('uitab.addTab', 'personTabs', 'membership', Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_TAB'));
+            ?>
+            <div class="xdecaro-card">
+                <h3><?php echo Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_TITLE'); ?></h3>
+                <?php if ($this->memberships === []) : ?>
+                    <div class="alert alert-info mb-0" role="status"><?php echo Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_EMPTY'); ?></div>
+                <?php else : ?>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead><tr>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_NUMBER'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_CATEGORY'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_LOCATION'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_STATUS'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_SINCE'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_VOTE_ACTIVE'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_MEMBERSHIP_VOTE_PASSIVE'); ?></th>
+                            </tr></thead>
+                            <tbody>
+                            <?php foreach ($this->memberships as $membership) : ?>
+                                <tr>
+                                    <td>
+                                    <?php if (!empty($membership['member_id'])) : ?>
+                                        <a href="<?php echo Route::_('index.php?option=com_decaromembership&view=record&entity=members&id=' . (int) $membership['member_id']); ?>">
+                                            <?php echo $escape($membership['member_number'] ?? '—'); ?>
+                                        </a>
+                                    <?php else : ?>
+                                        <?php echo $escape($membership['member_number'] ?? '—'); ?>
+                                    <?php endif; ?>
+                                    </td>
+                                    <td><?php echo $escape($membership['category_name'] ?? '—'); ?></td>
+                                    <td><?php echo $escape($membership['location_name'] ?? '—'); ?></td>
+                                    <td><?php echo $escape($membership['status'] ?? '—'); ?></td>
+                                    <td><?php echo $escape($membership['first_registration_date'] ?? '—'); ?></td>
+                                    <td><?php echo !empty($membership['voting_active']) ? Text::_('JYES') : Text::_('JNO'); ?></td>
+                                    <td><?php echo !empty($membership['voting_passive']) ? Text::_('JYES') : Text::_('JNO'); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <?php
+            echo HTMLHelper::_('uitab.endTab');
+        }
+
         if ($this->competitionsHistoryAvailable) {
             echo HTMLHelper::_('uitab.addTab', 'personTabs', 'competitions', Text::_('COM_XDECAROPEOPLE_COMPETITIONS_TAB'));
             ?>

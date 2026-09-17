@@ -12,6 +12,7 @@ use Joomla\Database\DatabaseInterface;
 use Joomla\DI\Container;
 use Joomla\DI\ServiceProviderInterface;
 use xdecaro\Component\People\Administrator\Extension\PeopleComponent;
+use xdecaro\Component\People\Administrator\Service\MembershipIntegrationService;
 
 return new class implements ServiceProviderInterface
 {
@@ -51,6 +52,10 @@ return new class implements ServiceProviderInterface
             OrganizationsIntegrationService::class,
             static fn(): OrganizationsIntegrationService => new OrganizationsIntegrationService()
         );
+        $container->share(
+            MembershipIntegrationService::class,
+            static fn(): MembershipIntegrationService => new MembershipIntegrationService()
+        );
 
         $container->set(
             ComponentInterface::class,
@@ -65,6 +70,7 @@ return new class implements ServiceProviderInterface
                 $component->setNotificationIntegrationService($container->get(NotificationIntegrationService::class));
                 $component->setCompetitionsIntegrationService($container->get(CompetitionsIntegrationService::class));
                 $component->setOrganizationsIntegrationService($container->get(OrganizationsIntegrationService::class));
+                $component->setMembershipIntegrationService($container->get(MembershipIntegrationService::class));
 
                 return $component;
             }

@@ -10,6 +10,7 @@ use xdecaro\Component\People\Administrator\Service\CoreIntegrationService;
 use xdecaro\Component\People\Administrator\Service\DuplicateService;
 use xdecaro\Component\People\Administrator\Service\NotificationIntegrationService;
 use xdecaro\Component\People\Administrator\Service\OrganizationsIntegrationService;
+use xdecaro\Component\People\Administrator\Service\MembershipIntegrationService;
 use xdecaro\Component\People\Administrator\Service\PersonProviderService;
 
 final class PeopleComponent extends MVCComponent
@@ -20,6 +21,7 @@ final class PeopleComponent extends MVCComponent
     private ?NotificationIntegrationService $notifications = null;
     private ?CompetitionsIntegrationService $competitions = null;
     private ?OrganizationsIntegrationService $organizations = null;
+    private ?MembershipIntegrationService $membership = null;
 
     public function setCoreIntegrationService(CoreIntegrationService $service): void
     {
@@ -99,5 +101,19 @@ final class PeopleComponent extends MVCComponent
         }
 
         return $this->organizations;
+    }
+
+    public function setMembershipIntegrationService(MembershipIntegrationService $service): void
+    {
+        $this->membership = $service;
+    }
+
+    public function getMembershipIntegrationService(): MembershipIntegrationService
+    {
+        if (!$this->membership) {
+            throw new RuntimeException('People Membership integration service not initialized.');
+        }
+
+        return $this->membership;
     }
 }
