@@ -1,15 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form addfieldprefix="xdecaro\Component\People\Administrator\Field">
+  <field name="relation_uuid" type="hidden" filter="cmd"/>
   <field name="type" type="list" label="COM_XDECAROPEOPLE_FIELD_RELATION_TYPE" filter="cmd" required="true">
     <option value="parent">COM_XDECAROPEOPLE_RELATION_PARENT</option>
     <option value="child">COM_XDECAROPEOPLE_RELATION_CHILD</option>
     <option value="guardian">COM_XDECAROPEOPLE_RELATION_GUARDIAN</option>
+    <option value="ward">COM_XDECAROPEOPLE_RELATION_WARD</option>
+    <option value="curator">COM_XDECAROPEOPLE_RELATION_CURATOR</option>
+    <option value="curated_person">COM_XDECAROPEOPLE_RELATION_CURATED_PERSON</option>
+    <option value="support_administrator">COM_XDECAROPEOPLE_RELATION_SUPPORT_ADMINISTRATOR</option>
+    <option value="supported_person">COM_XDECAROPEOPLE_RELATION_SUPPORTED_PERSON</option>
+    <option value="legal_representative">COM_XDECAROPEOPLE_RELATION_LEGAL_REPRESENTATIVE</option>
+    <option value="represented_person">COM_XDECAROPEOPLE_RELATION_REPRESENTED_PERSON</option>
     <option value="responsible">COM_XDECAROPEOPLE_RELATION_RESPONSIBLE</option>
     <option value="spouse">COM_XDECAROPEOPLE_RELATION_SPOUSE</option>
+    <option value="partner">COM_XDECAROPEOPLE_RELATION_PARTNER</option>
     <option value="other">COM_XDECAROPEOPLE_RELATION_OTHER</option>
   </field>
   <field name="person_uuid" type="Person" label="COM_XDECAROPEOPLE_FIELD_RELATED_PERSON" filter="cmd" required="true" layout="joomla.form.field.list-fancy-select">
     <option value="">COM_XDECAROPEOPLE_SELECT_PERSON</option>
+  </field>
+  <field name="valid_from" type="calendar" label="COM_XDECAROPEOPLE_FIELD_RELATION_VALID_FROM" format="%d/%m/%Y" filter="raw" filterformat="d/m/Y" inputmode="numeric" todaybutton="true"/>
+  <field name="valid_to" type="calendar" label="COM_XDECAROPEOPLE_FIELD_RELATION_VALID_TO" format="%d/%m/%Y" filter="raw" filterformat="d/m/Y" inputmode="numeric" todaybutton="true"/>
+  <field name="status" type="list" label="COM_XDECAROPEOPLE_FIELD_RELATION_STATUS" default="active" filter="cmd">
+    <option value="active">COM_XDECAROPEOPLE_RELATION_STATUS_ACTIVE</option>
+    <option value="inactive">COM_XDECAROPEOPLE_RELATION_STATUS_INACTIVE</option>
   </field>
   <field name="note" type="text" label="COM_XDECAROPEOPLE_FIELD_RELATION_NOTE" filter="string" maxlength="190"/>
 </form>
