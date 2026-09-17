@@ -3,6 +3,7 @@ namespace xdecaro\Component\People\Administrator\Model;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\Database\DatabaseQuery;
 use Joomla\Database\ParameterType;
@@ -41,21 +42,32 @@ final class PeopleModel extends ListModel
     protected function getListQuery(): DatabaseQuery
     {
         $db = $this->getDatabase();
+        $user = Factory::getApplication()->getIdentity();
+        $canIdentity = $user->authorise('people.view_identity_details', 'com_xdecaropeople')
+            || $user->authorise('people.view_sensitive', 'com_xdecaropeople')
+            || $user->authorise('core.admin', 'com_xdecaropeople');
+
+        $columns = [
+            'a.id',
+            'a.uuid',
+            'a.user_id',
+            'a.display_name',
+            'a.first_name',
+            'a.last_name',
+            'a.email',
+            'a.phone',
+            'a.state',
+            'a.access',
+            'a.created',
+            'a.modified',
+        ];
+        if ($canIdentity) {
+            $columns[] = 'a.birth_date';
+            $columns[] = 'a.birth_place';
+        }
+
         $query = $db->getQuery(true)
-            ->select([
-                'a.id',
-                'a.uuid',
-                'a.user_id',
-                'a.display_name',
-                'a.first_name',
-                'a.last_name',
-                'a.email',
-                'a.phone',
-                'a.state',
-                'a.access',
-                'a.created',
-                'a.modified',
-            ])
+            ->select($columns)
             ->from($db->quoteName('#__xdecaropeople_people', 'a'));
 
         $state = $this->getState('filter.state');
@@ -70,16 +82,23 @@ final class PeopleModel extends ListModel
         $search = trim((string) $this->getState('filter.search'));
         if ($search !== '') {
             $like = '%' . str_replace(' ', '%', $search) . '%';
-            $query->where(
-                '(' . $db->quoteName('a.display_name') . ' LIKE :s1 OR '
-                . $db->quoteName('a.first_name') . ' LIKE :s2 OR '
-                . $db->quoteName('a.last_name') . ' LIKE :s3 OR '
-                . $db->quoteName('a.email') . ' LIKE :s4)'
-            )
+            $conditions = [
+                $db->quoteName('a.display_name') . ' LIKE :s1',
+                $db->quoteName('a.first_name') . ' LIKE :s2',
+                $db->quoteName('a.last_name') . ' LIKE :s3',
+                $db->quoteName('a.email') . ' LIKE :s4',
+            ];
+            if ($canIdentity) {
+                $conditions[] = $db->quoteName('a.birth_place') . ' LIKE :s5';
+            }
+            $query->where('(' . implode(' OR ', $conditions) . ')')
                 ->bind(':s1', $like)
                 ->bind(':s2', $like)
                 ->bind(':s3', $like)
                 ->bind(':s4', $like);
+            if ($canIdentity) {
+                $query->bind(':s5', $like);
+            }
         }
 
         $order = (string) $this->state->get('list.ordering', 'a.last_name');
