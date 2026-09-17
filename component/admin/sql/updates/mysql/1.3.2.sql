@@ -1,0 +1,1 @@
+-- People 1.3.2: optional Organizations current/history integration; no database schema changes.
