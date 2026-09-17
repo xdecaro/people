@@ -56,7 +56,10 @@ $assert(($spouseRows[0]['valid_from'] ?? '') === '2026-01-01', 'Reciprocal metad
 $assert(($spouseRows[0]['relation_uuid'] ?? '') === '11111111-1111-4111-8111-111111111111', 'Reciprocal metadata must preserve relation UUID.');
 
 $relations = RelationReciprocity::upsert($relations, 'spouse', $sourceUuid);
-$assert(count(array_filter($relations, static fn (array $row): bool => ($row['type'] ?? '') === 'spouse' && ($row['person_uuid'] ?? '') === $sourceUuid)) === 1, 'Repeated synchronization must not duplicate reciprocal relations.');
+$spouseRows = array_values(array_filter($relations, static fn (array $row): bool => ($row['type'] ?? '') === 'spouse' && ($row['person_uuid'] ?? '') === $sourceUuid));
+$assert(count($spouseRows) === 1, 'Repeated synchronization must not duplicate reciprocal relations.');
+$assert(($spouseRows[0]['valid_from'] ?? '') === '2026-01-01', 'Idempotent synchronization must not erase relation metadata.');
+$assert(($spouseRows[0]['relation_uuid'] ?? '') === '11111111-1111-4111-8111-111111111111', 'Idempotent synchronization must preserve relation UUID.');
 
 $relations = RelationReciprocity::remove($relations, 'spouse', $sourceUuid);
 $assert(count(array_filter($relations, static fn (array $row): bool => ($row['type'] ?? '') === 'spouse' && ($row['person_uuid'] ?? '') === $sourceUuid)) === 0, 'Removing a managed relation must remove its reciprocal edge.');
