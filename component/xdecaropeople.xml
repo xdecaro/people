@@ -5,7 +5,7 @@
   <creationDate>2026-09</creationDate>
   <license>GNU General Public License version 2 or later</license>
   <authorUrl>https://github.com/xdecaro/people</authorUrl>
-  <version>1.3.0</version>
+  <version>1.3.1</version>
   <description>COM_XDECAROPEOPLE_XML_DESCRIPTION</description>
   <namespace path="src">xdecaro\Component\People</namespace>
   <targetplatform name="joomla" version="6.1.3"/>
@@ -41,14 +41,6 @@
     <folder>css</folder>
     <folder>js</folder>
   </media>
-  <install>
-    <sql>
-      <file driver="mysql" charset="utf8">sql/install.mysql.utf8mb4.sql</file>
-    </sql>
-  </install>
-  <update>
-    <schemas>
-      <schemapath type="mysql">sql/updates/mysql</schemapath>
-    </schemas>
-  </update>
+  <install><sql><file driver="mysql" charset="utf8">sql/install.mysql.utf8mb4.sql</file></sql></install>
+  <update><schemas><schemapath type="mysql">sql/updates/mysql</schemapath></schemas></update>
 </extension>
