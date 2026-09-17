@@ -18,13 +18,23 @@ final class PersonField extends ListField
     {
         $options = parent::getOptions();
         $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $currentId = Factory::getApplication()->getInput()->getInt('id');
+        $app = Factory::getApplication();
+        $user = $app->getIdentity();
+        $canIdentity = $user->authorise('people.view_identity_details', 'com_xdecaropeople')
+            || $user->authorise('people.view_sensitive', 'com_xdecaropeople')
+            || $user->authorise('core.admin', 'com_xdecaropeople');
+        $currentId = $app->getInput()->getInt('id');
+        $columns = [
+            $db->quoteName('uuid'),
+            $db->quoteName('display_name'),
+            $db->quoteName('id'),
+        ];
+        if ($canIdentity) {
+            $columns[] = $db->quoteName('birth_date');
+            $columns[] = $db->quoteName('birth_place');
+        }
         $query = $db->getQuery(true)
-            ->select([
-                $db->quoteName('uuid'),
-                $db->quoteName('display_name'),
-                $db->quoteName('id'),
-            ])
+            ->select($columns)
             ->from($db->quoteName('#__xdecaropeople_people'))
             ->where($db->quoteName('state') . ' >= 0')
             ->order($db->quoteName('last_name') . ' ASC, ' . $db->quoteName('first_name') . ' ASC');
@@ -41,7 +51,16 @@ final class PersonField extends ListField
                 continue;
             }
 
-            $options[] = HTMLHelper::_('select.option', $uuid, $name . ' (#' . (int) $row['id'] . ')');
+            $meta = [];
+            if ($canIdentity && !empty($row['birth_date'])) {
+                $meta[] = (string) $row['birth_date'];
+            }
+            if ($canIdentity && !empty($row['birth_place'])) {
+                $meta[] = (string) $row['birth_place'];
+            }
+            $label = $name . ($meta !== [] ? ' · ' . implode(' · ', $meta) : '');
+
+            $options[] = HTMLHelper::_('select.option', $uuid, $label);
         }
 
         return $options;
