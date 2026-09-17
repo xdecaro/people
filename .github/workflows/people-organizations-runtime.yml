@@ -1,0 +1,237 @@
+name: People Organizations runtime
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: joomla
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout People
+        uses: actions/checkout@v4
+      - name: Checkout Organizations 1.0.27 candidate
+        uses: actions/checkout@v4
+        with:
+          repository: xdecaro/organizations
+          ref: feat/organizations-1.0.27-person-appointments
+          path: organizations-src
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: 'mysqli, zip, simplexml'
+          coverage: none
+      - name: Build People and Organizations
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x build/build.sh organizations-src/build/build.sh
+          build/build.sh
+          (cd organizations-src && build/build.sh)
+      - name: Download verified Joomla and Core
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 'https://github.com/joomla/joomla-cms/releases/download/6.1.3/Joomla_6.1.3-Stable-Full_Package.zip' -o /tmp/joomla.zip
+          echo 'a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1  /tmp/joomla.zip' | sha256sum --check --strict
+          curl -fL --retry 3 'https://github.com/xdecaro/core/releases/download/v2.0.1/pkg_xdecarocore_2.0.1.zip' -o /tmp/core.zip
+          echo 'cec892dafeea4a0499ad1851ab0f9d0b111495c2248e0147076ad4bb648f64a9  /tmp/core.zip' | sha256sum --check --strict
+          mkdir joomla
+          unzip -q /tmp/joomla.zip -d joomla
+      - name: Install Joomla, Core and People only
+        shell: bash
+        run: |
+          set -euo pipefail
+          PEOPLE_VERSION="$(tr -d '\r\n' < VERSION)"
+          cd joomla
+          php installation/joomla.php install \
+            --site-name='People Organizations CI' \
+            --admin-user='Integration Admin' \
+            --admin-username=admin \
+            --admin-password="PeopleOrganizations-${GITHUB_RUN_ID}!" \
+            --admin-email=admin@example.invalid \
+            --db-type=mysqli \
+            --db-host=127.0.0.1 \
+            --db-user=root \
+            --db-pass='' \
+            --db-name=joomla \
+            --db-prefix=people_ \
+            --db-encryption=0 \
+            --no-interaction
+          php cli/joomla.php extension:install --path=/tmp/core.zip -vvv
+          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_people_${PEOPLE_VERSION}.zip" -vvv
+      - name: Verify graceful degradation without Organizations
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          cat > organizations-unavailable-probe.php <<'PHP'
+          <?php
+          $_SERVER['HTTP_HOST'] = 'localhost';
+          define('_JEXEC', 1);
+          define('JPATH_BASE', __DIR__);
+          require JPATH_BASE . '/includes/defines.php';
+          require JPATH_BASE . '/includes/framework.php';
+          $container = \Joomla\CMS\Factory::getContainer();
+          $container->alias('session', 'session.cli')
+              ->alias('JSession', 'session.cli')
+              ->alias(\Joomla\CMS\Session\Session::class, 'session.cli')
+              ->alias(\Joomla\Session\Session::class, 'session.cli')
+              ->alias(\Joomla\Session\SessionInterface::class, 'session.cli');
+          $app = $container->get('JApplicationAdministrator');
+          \Joomla\CMS\Factory::$application = $app;
+          $app->createExtensionNamespaceMap();
+          $people = $app->bootComponent('com_xdecaropeople');
+          $bridge = $people->getOrganizationsIntegrationService();
+          if ($bridge->isHistoryAvailable()) {
+              fwrite(STDERR, "Organizations integration must be unavailable before Organizations is installed.\n");
+              exit(1);
+          }
+          echo "People graceful Organizations degradation OK\n";
+          PHP
+          php organizations-unavailable-probe.php
+      - name: Install Organizations candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORGANIZATIONS_VERSION="$(tr -d '\r\n' < organizations-src/VERSION)"
+          cd joomla
+          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/organizations-src/dist/pkg_organizations_${ORGANIZATIONS_VERSION}.zip" -vvv
+      - name: Verify People reads current and historical Organizations appointments
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          cat > people-organizations-runtime-probe.php <<'PHP'
+          <?php
+          $_SERVER['HTTP_HOST'] = 'localhost';
+          define('_JEXEC', 1);
+          define('JPATH_BASE', __DIR__);
+          require JPATH_BASE . '/includes/defines.php';
+          require JPATH_BASE . '/includes/framework.php';
+
+          $container = \Joomla\CMS\Factory::getContainer();
+          $container->alias('session', 'session.cli')
+              ->alias('JSession', 'session.cli')
+              ->alias(\Joomla\CMS\Session\Session::class, 'session.cli')
+              ->alias(\Joomla\Session\Session::class, 'session.cli')
+              ->alias(\Joomla\Session\SessionInterface::class, 'session.cli');
+          $app = $container->get('JApplicationAdministrator');
+          \Joomla\CMS\Factory::$application = $app;
+          $app->createExtensionNamespaceMap();
+          $db = $container->get(\Joomla\Database\DatabaseInterface::class);
+
+          $query = $db->getQuery(true)
+              ->select($db->quoteName('id'))
+              ->from($db->quoteName('#__users'))
+              ->where($db->quoteName('username') . ' = ' . $db->quote('admin'));
+          $adminId = (int) $db->setQuery($query, 0, 1)->loadResult();
+          $userFactory = $container->get(\Joomla\CMS\User\UserFactoryInterface::class);
+          $app->loadIdentity($userFactory->loadUserById($adminId));
+
+          $personUuid = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+          $person = (object) [
+              'uuid' => $personUuid,
+              'display_name' => 'Runtime Person',
+              'first_name' => 'Runtime',
+              'last_name' => 'Person',
+              'person_status' => 'active',
+              'source_component' => 'com_xdecaropeople',
+              'state' => 1,
+              'access' => 1,
+              'created' => \Joomla\CMS\Factory::getDate()->toSql(),
+              'created_by' => $adminId,
+          ];
+          $db->insertObject('#__xdecaropeople_people', $person, 'id');
+
+          $organization = (object) [
+              'uuid' => '11111111-2222-4333-8444-555555555555',
+              'name' => 'Runtime Organization',
+              'type' => 'organization',
+              'state' => 1,
+              'access' => 1,
+              'created' => \Joomla\CMS\Factory::getDate()->toSql(),
+              'created_by' => $adminId,
+          ];
+          $db->insertObject('#__xdecaroorganizations_organizations', $organization, 'id');
+          $organizationId = (int) $organization->id;
+
+          $appointments = [
+              (object) [
+                  'uuid' => '10000000-0000-4000-8000-000000000001',
+                  'organization_id' => $organizationId,
+                  'person_uuid' => $personUuid,
+                  'person_name_snapshot' => 'Runtime Person',
+                  'role_code' => 'councillor',
+                  'starts_on' => '2026-09-14',
+                  'planned_ends_on' => '2027-09-17',
+                  'state' => 1,
+                  'created' => \Joomla\CMS\Factory::getDate()->toSql(),
+                  'created_by' => $adminId,
+              ],
+              (object) [
+                  'uuid' => '10000000-0000-4000-8000-000000000002',
+                  'organization_id' => $organizationId,
+                  'person_uuid' => $personUuid,
+                  'person_name_snapshot' => 'Runtime Person',
+                  'role_code' => 'secretary',
+                  'starts_on' => '2024-01-01',
+                  'planned_ends_on' => '2025-01-01',
+                  'ended_on' => '2025-01-01',
+                  'end_reason' => 'term_end',
+                  'state' => 1,
+                  'created' => \Joomla\CMS\Factory::getDate()->toSql(),
+                  'created_by' => $adminId,
+              ],
+          ];
+          foreach ($appointments as $appointment) {
+              $db->insertObject('#__xdecaroorganizations_appointments', $appointment, 'id');
+          }
+
+          $people = $app->bootComponent('com_xdecaropeople');
+          $bridge = $people->getOrganizationsIntegrationService();
+          if (!$bridge->isHistoryAvailable()) {
+              fwrite(STDERR, "Organizations history capability is not available through People.\n");
+              exit(1);
+          }
+
+          $rows = $bridge->getPersonAppointments($personUuid);
+          if (count($rows) !== 2) {
+              fwrite(STDERR, 'Expected two organization appointments through People, got ' . count($rows) . "\n");
+              exit(1);
+          }
+
+          $current = array_values(array_filter($rows, static fn(array $row): bool => !empty($row['is_current'])));
+          $history = array_values(array_filter($rows, static fn(array $row): bool => empty($row['is_current'])));
+          if (count($current) !== 1 || count($history) !== 1) {
+              fwrite(STDERR, "People did not preserve Organizations current/history classification.\n");
+              exit(1);
+          }
+          if (($current[0]['organization_name'] ?? '') !== 'Runtime Organization' || ($current[0]['role_code'] ?? '') !== 'councillor') {
+              fwrite(STDERR, "Current Organizations row is incorrect.\n");
+              exit(1);
+          }
+          if (($history[0]['visual_status'] ?? '') !== 'ended' || ($history[0]['role_code'] ?? '') !== 'secretary') {
+              fwrite(STDERR, "Historical Organizations row is incorrect.\n");
+              exit(1);
+          }
+
+          echo "People Organizations history runtime OK\n";
+          PHP
+          php people-organizations-runtime-probe.php
