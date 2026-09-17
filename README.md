@@ -41,3 +41,11 @@ People integrates with the shared `com_xdecaronotifications` center. In **People
 People emits privacy-safe in-app notifications when a person is created, important profile data changes, Joomla publication state changes, or a possible duplicate is detected. Notification text contains the person's display name and a generic event description only; sensitive field values are never copied into notification text. If Notifications is unavailable or no recipient is configured, People persistence continues normally.
 
 People 1.3.2 adds no People database columns or tables.
+
+
+## People 1.4.0
+
+- Relazioni personali estese con curatore, amministratore di sostegno, rappresentante legale, validità e stato.
+- I selettori persona mostrano data e luogo di nascita quando il contesto è autorizzato, per distinguere meglio gli omonimi.
+- Il provider pubblico espone anche `personExists()`, `getRelations()` e `getCurrentAddress()` senza duplicare dati negli altri componenti.
+- La scheda persona può mostrare Membership in sola lettura tramite capability pubblica; People continua a funzionare se Membership non è installato.
