@@ -79,6 +79,40 @@ final class PersonProviderService
         return $rows[0] ?? null;
     }
 
+    public function personExists(int|string $id): bool
+    {
+        return $this->getPerson($id, false) !== null;
+    }
+
+    public function getRelations(int|string $id): array
+    {
+        $person = $this->getPerson($id, true);
+        if (!$person) {
+            return [];
+        }
+
+        $relations = $person['relations_data'] ?? [];
+        return is_array($relations) ? array_values($relations) : [];
+    }
+
+    public function getCurrentAddress(int|string $id): ?array
+    {
+        $person = $this->getPerson($id, true);
+        if (!$person) {
+            return null;
+        }
+
+        return [
+            'address_line' => $person['address_line'] ?? null,
+            'address_number' => $person['address_number'] ?? null,
+            'postal_code' => $person['postal_code'] ?? null,
+            'city' => $person['city'] ?? null,
+            'region' => $person['region'] ?? null,
+            'country_code' => $person['country_code'] ?? null,
+            'residence_place_id' => $person['residence_place_id'] ?? null,
+        ];
+    }
+
     private function searchRows(array $filters, int $limit, array $columns, bool $normalizeSensitive): array
     {
         $limit = max(1, min(200, $limit));
