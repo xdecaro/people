@@ -74,7 +74,7 @@ jobs:
             --no-interaction
           php cli/joomla.php extension:install --path=/tmp/core.zip -vvv
           php cli/joomla.php extension:install --path=/tmp/notifications.zip -vvv
-          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_xdecaropeople_${VERSION}.zip" -vvv
+          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_people_${VERSION}.zip" -vvv
       - name: Verify selected People notification types through public services
         shell: bash
         run: |
