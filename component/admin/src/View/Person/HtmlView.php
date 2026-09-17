@@ -18,6 +18,9 @@ final class HtmlView extends BaseHtmlView
     public $item;
     public bool $competitionsHistoryAvailable = false;
     public array $competitionsHistory = [];
+    public bool $organizationsHistoryAvailable = false;
+    public array $organizationsCurrent = [];
+    public array $organizationsHistory = [];
 
     public function display($tpl = null): void
     {
@@ -28,6 +31,7 @@ final class HtmlView extends BaseHtmlView
         $language = $app->getLanguage();
         if ($language !== null) {
             $language->load('com_xdecaropeople_competitions', JPATH_ADMINISTRATOR);
+            $language->load('com_xdecaropeople_organizations', JPATH_ADMINISTRATOR);
         }
 
         $user = $app->getIdentity();
@@ -42,6 +46,35 @@ final class HtmlView extends BaseHtmlView
 
             $personUuid = strtolower(trim((string) ($this->item->uuid ?? '')));
             if (!$isNew && $personUuid !== '') {
+                try {
+                    $organizations = $component->getOrganizationsIntegrationService();
+                    if ($organizations->isHistoryAvailable()) {
+                        $organizationAppointments = $organizations->getPersonAppointments($personUuid);
+                        foreach ($organizationAppointments as $appointment) {
+                            if (!empty($appointment['is_current'])) {
+                                $this->organizationsCurrent[] = $appointment;
+                            } else {
+                                $this->organizationsHistory[] = $appointment;
+                            }
+                        }
+
+                        if ($language !== null) {
+                            $language->load('com_xdecaroorganizations', JPATH_ADMINISTRATOR);
+                        }
+
+                        $this->organizationsHistoryAvailable = true;
+                    }
+                } catch (Throwable $e) {
+                    Log::add(
+                        'People Organizations history integration is unavailable: ' . $e->getMessage(),
+                        Log::WARNING,
+                        'com_xdecaropeople'
+                    );
+                    $this->organizationsCurrent = [];
+                    $this->organizationsHistory = [];
+                    $this->organizationsHistoryAvailable = false;
+                }
+
                 try {
                     $competitions = $component->getCompetitionsIntegrationService();
                     if ($competitions->isHistoryAvailable()) {

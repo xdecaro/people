@@ -1,4 +1,4 @@
-name: People 1.3.1 canonical package and identity details
+name: People 1.3.2 canonical package and Organizations integration
 
 on:
   pull_request:
@@ -7,9 +7,12 @@ on:
       - 'package/**'
       - 'updates/**'
       - 'build/**'
+      - 'component/xdecaropeople.xml'
       - 'component/admin/access.xml'
       - 'component/admin/src/Service/PersonProviderService.php'
+      - 'component/admin/src/Service/OrganizationsIntegrationService.php'
       - 'component/admin/language/**'
+      - 'component/admin/sql/updates/mysql/1.3.2.sql'
       - 'tests/people-1.3.1-canonical-package-identity-contract.php'
       - '.github/workflows/people-1.3.1-contract.yml'
   workflow_dispatch:
@@ -26,5 +29,5 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: People 1.3.1 contract
+      - name: People 1.3.2 contract
         run: php tests/people-1.3.1-canonical-package-identity-contract.php

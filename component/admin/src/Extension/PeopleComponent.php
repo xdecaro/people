@@ -9,6 +9,7 @@ use xdecaro\Component\People\Administrator\Service\CompetitionsIntegrationServic
 use xdecaro\Component\People\Administrator\Service\CoreIntegrationService;
 use xdecaro\Component\People\Administrator\Service\DuplicateService;
 use xdecaro\Component\People\Administrator\Service\NotificationIntegrationService;
+use xdecaro\Component\People\Administrator\Service\OrganizationsIntegrationService;
 use xdecaro\Component\People\Administrator\Service\PersonProviderService;
 
 final class PeopleComponent extends MVCComponent
@@ -18,6 +19,7 @@ final class PeopleComponent extends MVCComponent
     private ?DuplicateService $duplicates = null;
     private ?NotificationIntegrationService $notifications = null;
     private ?CompetitionsIntegrationService $competitions = null;
+    private ?OrganizationsIntegrationService $organizations = null;
 
     public function setCoreIntegrationService(CoreIntegrationService $service): void
     {
@@ -83,5 +85,19 @@ final class PeopleComponent extends MVCComponent
         }
 
         return $this->competitions;
+    }
+
+    public function setOrganizationsIntegrationService(OrganizationsIntegrationService $service): void
+    {
+        $this->organizations = $service;
+    }
+
+    public function getOrganizationsIntegrationService(): OrganizationsIntegrationService
+    {
+        if (!$this->organizations) {
+            throw new RuntimeException('People Organizations integration service not initialized.');
+        }
+
+        return $this->organizations;
     }
 }
