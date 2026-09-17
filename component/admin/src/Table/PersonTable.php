@@ -267,7 +267,7 @@ final class PersonTable extends Table
 
         $relations = $this->decodeRelations($target['relations_data'] ?? null);
         $updated = $add
-            ? RelationReciprocity::upsert($relations, $inverseType, $sourceUuid)
+            ? RelationReciprocity::upsert($relations, $inverseType, $sourceUuid, $edge)
             : RelationReciprocity::remove($relations, $inverseType, $sourceUuid);
 
         if ($updated === $relations) {
