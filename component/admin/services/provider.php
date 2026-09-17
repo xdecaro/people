@@ -47,6 +47,10 @@ return new class implements ServiceProviderInterface
             CompetitionsIntegrationService::class,
             static fn(): CompetitionsIntegrationService => new CompetitionsIntegrationService()
         );
+        $container->share(
+            OrganizationsIntegrationService::class,
+            static fn(): OrganizationsIntegrationService => new OrganizationsIntegrationService()
+        );
 
         $container->set(
             ComponentInterface::class,
@@ -60,6 +64,7 @@ return new class implements ServiceProviderInterface
                 $component->setDuplicateService($container->get(DuplicateService::class));
                 $component->setNotificationIntegrationService($container->get(NotificationIntegrationService::class));
                 $component->setCompetitionsIntegrationService($container->get(CompetitionsIntegrationService::class));
+                $component->setOrganizationsIntegrationService($container->get(OrganizationsIntegrationService::class));
 
                 return $component;
             }
