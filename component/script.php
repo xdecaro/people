@@ -202,7 +202,7 @@ final class com_xdecaropeopleInstallerScript
                 }
 
                 $before = $people[$targetUuid]['relations'];
-                $after = RelationReciprocity::upsert($before, $inverseType, $sourceUuid);
+                $after = RelationReciprocity::upsert($before, $inverseType, $sourceUuid, $edge);
                 if ($after === $before) {
                     continue;
                 }
