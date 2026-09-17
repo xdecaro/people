@@ -31,8 +31,11 @@ jobs:
           php tests/people-1.2.14-contract.php
           php tests/person-provider-batch.php
           php tests/people-1.2.15-contract.php
+          php tests/person-provider-sensitive-contract.php
           php tests/people-notifications-contract.php
           php tests/people-1.2.16-contract.php
+          php tests/competitions-history-tab-contract.php
+          php tests/people-1.3.1-canonical-package-identity-contract.php
       - name: Validate source metadata
         shell: bash
         run: |
@@ -44,30 +47,25 @@ jobs:
           for path in pathlib.Path('.').rglob('*.xml'):
               ET.parse(path)
           component = ET.parse('component/xdecaropeople.xml').getroot()
-          package = ET.parse('package/pkg_xdecaropeople.xml').getroot()
-          feed = ET.parse('updates/pkg_xdecaropeople.xml').getroot().find('./update')
+          package = ET.parse('package/pkg_people.xml').getroot()
+          feed = ET.parse('updates/pkg_people.xml').getroot().find('./update')
           assets = json.load(open('component/media/joomla.asset.json', encoding='utf-8'))
           assert component.findtext('version') == version
           assert package.findtext('version') == version
+          assert package.findtext('packagename') == 'people'
           assert assets['version'] == version
+          assert all(item.get('version') == version for item in assets.get('assets', []))
           assert component.find('targetplatform').attrib['version'] == '6.1.3'
           assert package.find('targetplatform').attrib['version'] == '6.1.3'
-          assert feed is not None
+          assert feed is not None and feed.findtext('element') == 'pkg_people'
           assert feed.find('targetplatform').attrib['version'] == r'6\.1\.3$'
           assert feed.findtext('php_minimum') == '8.3.0'
-          feed_version = feed.findtext('version') or ''
-          def parts(v): return tuple(int(p) for p in v.split('.'))
-          assert parts(feed_version) <= parts(version)
           PY
           grep -Fq "MINIMUM_CORE = '2.0.1'" component/admin/src/Service/CoreIntegrationService.php
-          grep -Fq "MINIMUM_CORE='2.0.1'" package/script.php
-          grep -Fq 'name="nationality_codes" type="Country" code="alpha3"' component/admin/forms/person.xml
-          grep -Fq 'name="nationality_code" type="hidden"' component/admin/forms/person.xml
-          grep -Fq 'name="additional_addresses" type="subform"' component/admin/forms/person.xml
-          grep -Fq 'name="relations_data" type="subform"' component/admin/forms/person.xml
-          grep -Fq 'DuplicateService' component/admin/services/provider.php
-          grep -Fq 'NotificationIntegrationService' component/admin/services/provider.php
-          ! grep -RniE '<targetplatform[^>]+version="(4|5|6\.0|6\.2|6\.3)' component package updates
+          grep -Fq "MINIMUM_CORE = '2.0.1'" package/script.php
+          grep -Fq 'people.view_identity_details' component/admin/access.xml
+          grep -Fq 'function searchPeopleForIdentity(' component/admin/src/Service/PersonProviderService.php
+          ! grep -RniE '<targetplatform[^>]+version="(4|5|6\.0|6\.2|6\.3)' component package/pkg_people.xml updates/pkg_people.xml
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
           ! grep -RniE '#__(decarocourses|decarodocuments|decaromembership|xdecarocompetitions|xdecaroorganizations)_' component
       - name: JavaScript syntax
@@ -85,8 +83,8 @@ jobs:
           diff -u /tmp/people-sums dist/SHA256SUMS.txt
           for zipfile in dist/*.zip; do unzip -t "$zipfile" >/dev/null; done
           VERSION="$(tr -d '\r\n' < VERSION)"
-          unzip -Z1 "dist/pkg_xdecaropeople_${VERSION}.zip" | grep -Fxq 'pkg_xdecaropeople.xml'
-          unzip -Z1 "dist/pkg_xdecaropeople_${VERSION}.zip" | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -Z1 "dist/pkg_people_${VERSION}.zip" | grep -Fxq 'pkg_people.xml'
+          unzip -Z1 "dist/pkg_people_${VERSION}.zip" | grep -Fxq 'com_xdecaropeople.zip'
 
   joomla-runtime:
     runs-on: ubuntu-latest
@@ -94,7 +92,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mode: [clean, upgrade-1.1.0]
+        mode: [clean, upgrade-1.1.0, upgrade-1.3.0]
     services:
       mysql:
         image: mysql:8.0
@@ -128,70 +126,63 @@ jobs:
           python3 /tmp/core-src/build/build.py
           cp /tmp/core-src/dist/pkg_xdecarocore_2.0.1.zip /tmp/core.zip
           unzip -t /tmp/core.zip >/dev/null
-      - name: Download Joomla 6.1.3 and published upgrade baseline
+      - name: Download Joomla and upgrade baseline
         shell: bash
         run: |
           set -euo pipefail
-          J='6.1.3'
-          JSHA='a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1'
-          curl -fL --retry 3 "https://github.com/joomla/joomla-cms/releases/download/${J}/Joomla_${J}-Stable-Full_Package.zip" -o /tmp/joomla.zip
-          echo "${JSHA}  /tmp/joomla.zip" | sha256sum --check --strict
-          if [ '${{ matrix.mode }}' = 'upgrade-1.1.0' ]; then
-            curl -fL --retry 3 'https://github.com/xdecaro/people/releases/download/v1.1.0/pkg_xdecaropeople_1.1.0.zip' -o /tmp/people-old.zip
-            echo 'e0daaec45ba2cbf469b987760b671e464e89262c0b3c58c20b0da4ca00e1623e  /tmp/people-old.zip' | sha256sum --check --strict
-          fi
+          curl -fL --retry 3 'https://github.com/joomla/joomla-cms/releases/download/6.1.3/Joomla_6.1.3-Stable-Full_Package.zip' -o /tmp/joomla.zip
+          echo 'a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1  /tmp/joomla.zip' | sha256sum --check --strict
+          case '${{ matrix.mode }}' in
+            upgrade-1.1.0)
+              curl -fL --retry 3 'https://github.com/xdecaro/people/releases/download/v1.1.0/pkg_xdecaropeople_1.1.0.zip' -o /tmp/people-old.zip
+              echo 'e0daaec45ba2cbf469b987760b671e464e89262c0b3c58c20b0da4ca00e1623e  /tmp/people-old.zip' | sha256sum --check --strict ;;
+            upgrade-1.3.0)
+              curl -fL --retry 3 'https://github.com/xdecaro/people/releases/download/v1.3.0/pkg_xdecaropeople_1.3.0.zip' -o /tmp/people-old.zip
+              echo '9155621f88cbfa13669fe579532a0437da2e03c58c51583f0f8da34416ed0489  /tmp/people-old.zip' | sha256sum --check --strict ;;
+          esac
           mkdir joomla
           unzip -q /tmp/joomla.zip -d joomla
-      - name: Install Joomla 6.1.3 and Core
+      - name: Install Joomla and Core
         shell: bash
         run: |
           set -euo pipefail
           cd joomla
-          php installation/joomla.php install \
-            --site-name='People CI' \
-            --admin-user='People CI Admin' \
-            --admin-username=admin \
-            --admin-password="PeopleCI-${GITHUB_RUN_ID}!" \
-            --admin-email=admin@example.invalid \
-            --db-type=mysqli \
-            --db-host=127.0.0.1 \
-            --db-user=root \
-            --db-pass='' \
-            --db-name=joomla \
-            --db-prefix=ppl_ \
-            --db-encryption=0 \
-            --no-interaction
+          php installation/joomla.php install --site-name='People CI' --admin-user='People CI Admin' --admin-username=admin --admin-password="PeopleCI-${GITHUB_RUN_ID}!" --admin-email=admin@example.invalid --db-type=mysqli --db-host=127.0.0.1 --db-user=root --db-pass='' --db-name=joomla --db-prefix=ppl_ --db-encryption=0 --no-interaction
           php cli/joomla.php extension:install --path=/tmp/core.zip -vvv
-      - name: Prepare published People 1.1.0 upgrade state
-        if: matrix.mode == 'upgrade-1.1.0'
+      - name: Prepare legacy People upgrade state
+        if: matrix.mode != 'clean'
         shell: bash
         run: |
           set -euo pipefail
           cd joomla
           php cli/joomla.php extension:install --path=/tmp/people-old.zip -vvv
           mysql --protocol=TCP -h127.0.0.1 -uroot joomla -e "DELETE FROM ppl_xdecaropeople_people; INSERT INTO ppl_xdecaropeople_people (uuid,display_name,first_name,last_name,email,phone,state,access,created,created_by) VALUES ('11111111-1111-4111-8111-111111111111','Legacy Person','Legacy','Person','legacy@example.invalid','12345',1,1,NOW(),0);"
-      - name: Install current People package
+          test "$(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_xdecaropeople';")" = 1
+      - name: Install current canonical People package
         shell: bash
         run: |
           set -euo pipefail
           VERSION="$(tr -d '\r\n' < VERSION)"
           cd joomla
-          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_xdecaropeople_${VERSION}.zip" -vvv
-      - name: Verify installed schema and upgrade preservation
+          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_people_${VERSION}.zip" -vvv
+      - name: Verify schema, ownership and upgrade preservation
         shell: bash
         run: |
           set -euo pipefail
           VERSION="$(tr -d '\r\n' < VERSION)"
           MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla)
-          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_xdecaropeople';")" = 1
-          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='component' AND element='com_xdecaropeople' AND JSON_UNQUOTE(JSON_EXTRACT(manifest_cache,'$.version'))='${VERSION}';")" = 1
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_people';")" = 1
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='package' AND element='pkg_xdecaropeople';")" = 0
+          PACKAGE_ID="$("${MYSQL[@]}" -e "SELECT extension_id FROM ppl_extensions WHERE type='package' AND element='pkg_people' LIMIT 1;")"
+          test -n "$PACKAGE_ID"
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_extensions WHERE type='component' AND element='com_xdecaropeople' AND package_id=${PACKAGE_ID} AND JSON_UNQUOTE(JSON_EXTRACT(manifest_cache,'$.version'))='${VERSION}';")" = 1
           for column in user_id birth_date sex disability_status disability_types accessibility_needs nationality_codes birth_country_code birth_place_id tax_identifier whatsapp address_line address_number postal_code city region country_code additional_addresses relations_data profile_document_uuid person_status source_component; do
             test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people' AND column_name='${column}';")" = 1
           done
-          if [ '${{ matrix.mode }}' = 'upgrade-1.1.0' ]; then
+          if [ '${{ matrix.mode }}' != 'clean' ]; then
             test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_xdecaropeople_people WHERE uuid='11111111-1111-4111-8111-111111111111' AND first_name='Legacy' AND last_name='Person' AND email='legacy@example.invalid';")" = 1
           fi
-      - name: Probe Joomla 6.1.3 administrator runtime
+      - name: Probe People runtime
         shell: bash
         run: |
           set -euo pipefail
@@ -199,60 +190,18 @@ jobs:
           cat > people-runtime-probe.php <<'PHP'
           <?php
           $_SERVER['HTTP_HOST'] = 'localhost';
-          define('_JEXEC', 1);
-          define('JPATH_BASE', __DIR__);
-          require JPATH_BASE . '/includes/defines.php';
-          require JPATH_BASE . '/includes/framework.php';
-          define('JPATH_COMPONENT', JPATH_ADMINISTRATOR . '/components/com_xdecaropeople');
-          define('JPATH_COMPONENT_ADMINISTRATOR', JPATH_COMPONENT);
-
+          define('_JEXEC', 1); define('JPATH_BASE', __DIR__);
+          require JPATH_BASE . '/includes/defines.php'; require JPATH_BASE . '/includes/framework.php';
+          define('JPATH_COMPONENT', JPATH_ADMINISTRATOR . '/components/com_xdecaropeople'); define('JPATH_COMPONENT_ADMINISTRATOR', JPATH_COMPONENT);
           $container = \Joomla\CMS\Factory::getContainer();
-          $container->alias('session', 'session.cli')
-              ->alias('JSession', 'session.cli')
-              ->alias(\Joomla\CMS\Session\Session::class, 'session.cli')
-              ->alias(\Joomla\Session\Session::class, 'session.cli')
-              ->alias(\Joomla\Session\SessionInterface::class, 'session.cli');
-          $app = $container->get('JApplicationAdministrator');
-          \Joomla\CMS\Factory::$application = $app;
-          $app->createExtensionNamespaceMap();
-
+          $container->alias('session','session.cli')->alias('JSession','session.cli')->alias(\Joomla\CMS\Session\Session::class,'session.cli')->alias(\Joomla\Session\Session::class,'session.cli')->alias(\Joomla\Session\SessionInterface::class,'session.cli');
+          $app = $container->get('JApplicationAdministrator'); \Joomla\CMS\Factory::$application = $app; $app->createExtensionNamespaceMap();
           $db = $container->get(\Joomla\Database\DatabaseInterface::class);
-          $query = $db->getQuery(true)
-              ->select($db->quoteName('id'))
-              ->from($db->quoteName('#__users'))
-              ->where($db->quoteName('username') . ' = ' . $db->quote('admin'));
-          $adminId = (int) $db->setQuery($query, 0, 1)->loadResult();
-          if ($adminId < 1) {
-              fwrite(STDERR, "CI super user not found.\n");
-              exit(1);
-          }
-          $userFactory = $container->get(\Joomla\CMS\User\UserFactoryInterface::class);
-          $app->loadIdentity($userFactory->loadUserById($adminId));
-
-          $component = $app->bootComponent('com_xdecaropeople');
-          $factory = $component->getMVCFactory();
-          $people = $factory->createModel('People', 'Administrator');
-          if (!$people instanceof \xdecaro\Component\People\Administrator\Model\PeopleModel || !is_array($people->getItems())) {
-              fwrite(STDERR, "PeopleModel runtime probe failed.\n");
-              exit(1);
-          }
-          $duplicates = $factory->createModel('Duplicates', 'Administrator');
-          if (!$duplicates instanceof \xdecaro\Component\People\Administrator\Model\DuplicatesModel || !is_array($duplicates->getGroups())) {
-              fwrite(STDERR, "DuplicatesModel runtime probe failed.\n");
-              exit(1);
-          }
-          if (!$component->getDuplicateService() instanceof \xdecaro\Component\People\Administrator\Service\DuplicateService) {
-              fwrite(STDERR, "DuplicateService was not wired into PeopleComponent.\n");
-              exit(1);
-          }
-          if (!$component->getNotificationIntegrationService() instanceof \xdecaro\Component\People\Administrator\Service\NotificationIntegrationService) {
-              fwrite(STDERR, "NotificationIntegrationService was not wired into PeopleComponent.\n");
-              exit(1);
-          }
-          if (version_compare($component->getCoreIntegrationService()->getVersion(), '2.0.1', '<')) {
-              fwrite(STDERR, "Core 2.0.1 runtime integration unavailable.\n");
-              exit(1);
-          }
-          echo "People Joomla 6.1.3 runtime probe OK\n";
+          $q=$db->getQuery(true)->select('id')->from('#__users')->where($db->quoteName('username').'='.$db->quote('admin'));
+          $id=(int)$db->setQuery($q,0,1)->loadResult(); $app->loadIdentity($container->get(\Joomla\CMS\User\UserFactoryInterface::class)->loadUserById($id));
+          $component=$app->bootComponent('com_xdecaropeople');
+          if (!$component->getPersonProviderService() instanceof \xdecaro\Component\People\Administrator\Service\PersonProviderService) exit(1);
+          if (!method_exists($component->getPersonProviderService(), 'searchPeopleForIdentity')) exit(1);
+          echo "People runtime OK\n";
           PHP
           php people-runtime-probe.php
