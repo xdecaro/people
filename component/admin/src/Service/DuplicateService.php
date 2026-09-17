@@ -132,7 +132,7 @@ final class DuplicateService
 
         $email = self::normalizeText($record['email'] ?? null);
         if ($email !== '') {
-            $criteria[] = $this->criterion('email', 'strong', $email, $email);
+            $criteria[] = $this->criterion('email', 'possible', $email, $email);
         }
 
         if ($canSensitive) {
@@ -164,12 +164,12 @@ final class DuplicateService
 
         $phone = self::normalizePhone($record['phone'] ?? null);
         if ($phone !== '') {
-            $criteria[] = $this->criterion('phone', 'strong', $phone, $phone);
+            $criteria[] = $this->criterion('phone', 'possible', $phone, $phone);
         }
 
         $whatsapp = self::normalizePhone($record['whatsapp'] ?? null);
         if ($whatsapp !== '') {
-            $criteria[] = $this->criterion('whatsapp', 'strong', $whatsapp, $whatsapp);
+            $criteria[] = $this->criterion('whatsapp', 'possible', $whatsapp, $whatsapp);
         }
 
         if ($nameKey !== '') {
