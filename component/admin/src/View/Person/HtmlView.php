@@ -21,6 +21,8 @@ final class HtmlView extends BaseHtmlView
     public bool $organizationsHistoryAvailable = false;
     public array $organizationsCurrent = [];
     public array $organizationsHistory = [];
+    public bool $membershipAvailable = false;
+    public array $memberships = [];
 
     public function display($tpl = null): void
     {
@@ -73,6 +75,22 @@ final class HtmlView extends BaseHtmlView
                     $this->organizationsCurrent = [];
                     $this->organizationsHistory = [];
                     $this->organizationsHistoryAvailable = false;
+                }
+
+                try {
+                    $membership = $component->getMembershipIntegrationService();
+                    if ($membership->isAvailable()) {
+                        $this->memberships = $membership->getPersonMemberships($personUuid);
+                        $this->membershipAvailable = true;
+                    }
+                } catch (Throwable $e) {
+                    Log::add(
+                        'People Membership integration is unavailable: ' . $e->getMessage(),
+                        Log::WARNING,
+                        'com_xdecaropeople'
+                    );
+                    $this->memberships = [];
+                    $this->membershipAvailable = false;
                 }
 
                 try {
