@@ -14,8 +14,14 @@ $version = trim((string) file_get_contents($root . '/VERSION'));
 $expect(version_compare($version, '1.2.16', '>='), "Expected People VERSION 1.2.16 or newer, got {$version}.");
 
 $component = simplexml_load_file($root . '/component/xdecaropeople.xml');
-$package = simplexml_load_file($root . '/package/pkg_xdecaropeople.xml');
-$feed = simplexml_load_file($root . '/updates/pkg_xdecaropeople.xml');
+$packagePath = is_file($root . '/package/pkg_people.xml')
+    ? $root . '/package/pkg_people.xml'
+    : $root . '/package/pkg_xdecaropeople.xml';
+$feedPath = is_file($root . '/updates/pkg_people.xml')
+    ? $root . '/updates/pkg_people.xml'
+    : $root . '/updates/pkg_xdecaropeople.xml';
+$package = simplexml_load_file($packagePath);
+$feed = simplexml_load_file($feedPath);
 $expect($component !== false && $package !== false && $feed !== false, 'People XML metadata must parse.');
 
 if ($component !== false) {
