@@ -31,6 +31,7 @@ final class HtmlView extends BaseHtmlView
         $language = $app->getLanguage();
         if ($language !== null) {
             $language->load('com_xdecaropeople_competitions', JPATH_ADMINISTRATOR);
+            $language->load('com_xdecaropeople_organizations', JPATH_ADMINISTRATOR);
         }
 
         $user = $app->getIdentity();
