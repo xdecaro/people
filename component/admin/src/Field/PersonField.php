@@ -23,6 +23,8 @@ final class PersonField extends ListField
             ->select([
                 $db->quoteName('uuid'),
                 $db->quoteName('display_name'),
+                $db->quoteName('birth_date'),
+                $db->quoteName('birth_place'),
                 $db->quoteName('id'),
             ])
             ->from($db->quoteName('#__xdecaropeople_people'))
@@ -41,7 +43,15 @@ final class PersonField extends ListField
                 continue;
             }
 
-            $options[] = HTMLHelper::_('select.option', $uuid, $name . ' (#' . (int) $row['id'] . ')');
+            $identity = [];
+            if (!empty($row['birth_date'])) {
+                $identity[] = (string) $row['birth_date'];
+            }
+            if (!empty($row['birth_place'])) {
+                $identity[] = (string) $row['birth_place'];
+            }
+            $suffix = $identity !== [] ? ' — ' . implode(' · ', $identity) : '';
+            $options[] = HTMLHelper::_('select.option', $uuid, $name . $suffix . ' (#' . (int) $row['id'] . ')');
         }
 
         return $options;
