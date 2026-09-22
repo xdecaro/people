@@ -299,6 +299,7 @@
 
     let duplicates = 0;
     const consolidated = [];
+    const conflicts = [];
 
     groups.forEach((group) => {
       if (group.length === 1) {
@@ -307,6 +308,30 @@
       }
 
       duplicates += group.length - 1;
+
+      const conflictingFields = targets
+        .map((target) => target.key)
+        .filter((key) => {
+          const values = new Set(
+            group
+              .map((row) => clean(row[key]).toLocaleUpperCase())
+              .filter(Boolean)
+          );
+          return values.size > 1;
+        });
+
+      if (conflictingFields.length) {
+        const rowNumbers = group.map((row) => row._row).sort((a, b) => a - b);
+        conflicts.push({
+          row: rowNumbers[0],
+          status: 'invalid',
+          message: 'duplicate_conflict',
+          warnings: [],
+          details: `${strings.conflictRows || 'Rows'}: ${rowNumbers.join(', ')} — ${strings.conflictFields || 'Fields'}: ${conflictingFields.join(', ')}`,
+        });
+        return;
+      }
+
       const sorted = [...group].sort((a, b) => completenessScore(b) - completenessScore(a) || a._row - b._row);
       const winner = { ...sorted[0] };
 
@@ -321,7 +346,11 @@
       consolidated.push(winner);
     });
 
-    return { rows: consolidated.sort((a, b) => a._row - b._row), duplicates };
+    return {
+      rows: consolidated.sort((a, b) => a._row - b._row),
+      duplicates,
+      conflicts,
+    };
   };
 
   const postPayload = async (url, payload) => {
@@ -418,6 +447,7 @@
         const messages = [];
         if (item.message) messages.push(translateCode(item.message));
         (item.warnings || []).forEach((warning) => messages.push(translateCode(warning)));
+        if (item.details) messages.push(String(item.details));
         messageCell.textContent = messages.filter(Boolean).join('; ');
 
         row.append(rowCell, statusCell, messageCell);
@@ -474,7 +504,7 @@
       const consolidated = consolidateDuplicates(valid);
       state.fileDuplicateCount = consolidated.duplicates;
       state.prepared = consolidated.rows;
-      state.invalid = invalid;
+      state.invalid = [...invalid, ...consolidated.conflicts];
 
       const identityRows = state.prepared.map((row) => ({
         _row: row._row,
@@ -576,7 +606,10 @@
         .map((item) => [
           item.row || '',
           statusLabel(item.status),
-          [item.message, ...(item.warnings || [])].filter(Boolean).map(translateCode).join('; '),
+          [
+            ...[item.message, ...(item.warnings || [])].filter(Boolean).map(translateCode),
+            item.details || '',
+          ].filter(Boolean).join('; '),
         ]),
     ];
 
