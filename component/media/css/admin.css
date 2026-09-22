@@ -236,3 +236,35 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.xdecaro-import-review {
+  border: 1px solid var(--border-color, rgba(127, 127, 127, .25));
+  border-radius: .55rem;
+  padding: .75rem 1rem;
+}
+
+.xdecaro-import-review > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.xdecaro-import-review[open] > summary {
+  margin-bottom: .5rem;
+}
+
+.xdecaro-import-review td:first-child,
+.xdecaro-import-review th:first-child {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.xdecaro-import-review td:nth-child(3),
+.xdecaro-import-review th:nth-child(3) {
+  white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+  .xdecaro-import-review {
+    padding: .65rem .75rem;
+  }
+}
