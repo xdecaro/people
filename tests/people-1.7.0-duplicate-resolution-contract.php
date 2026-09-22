@@ -20,6 +20,10 @@ $template = (string) file_get_contents($root . '/component/admin/tmpl/duplicates
 $install = (string) file_get_contents($root . '/component/admin/sql/install.mysql.utf8mb4.sql');
 $update = (string) file_get_contents($root . '/component/admin/sql/updates/mysql/1.7.0.sql');
 $css = (string) file_get_contents($root . '/component/media/css/admin.css');
+$di = (string) file_get_contents($root . '/component/admin/services/provider.php');
+$competitions = (string) file_get_contents($root . '/component/admin/src/Service/CompetitionsIntegrationService.php');
+$organizations = (string) file_get_contents($root . '/component/admin/src/Service/OrganizationsIntegrationService.php');
+$membership = (string) file_get_contents($root . '/component/admin/src/Service/MembershipIntegrationService.php');
 
 foreach ([
     'function ignoreGroup(',
@@ -53,8 +57,24 @@ foreach ([
     'resolveCanonicalId',
     '#__xdecaropeople_merges',
     'merged_from_uuid',
+    'getEquivalentUuids',
 ] as $needle) {
     $assert(str_contains($provider, $needle), 'Merged UUID provider compatibility missing: ' . $needle);
+}
+
+
+foreach ([$competitions, $organizations, $membership] as $integration) {
+    $assert(str_contains($integration, 'getEquivalentUuids'), 'Merged UUID aliases must be included in optional integration lookups.');
+    $assert(str_contains($integration, 'PersonProviderService $people'), 'Optional integrations must receive the People provider for alias expansion.');
+}
+
+foreach ([
+    'new CompetitionsIntegrationService(',
+    'new OrganizationsIntegrationService(',
+    'new MembershipIntegrationService(',
+    '$container->get(PersonProviderService::class)',
+] as $needle) {
+    $assert(str_contains($di, $needle), 'Merge-aware integration DI missing: ' . $needle);
 }
 
 foreach ([
