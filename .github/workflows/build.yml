@@ -41,6 +41,7 @@ jobs:
           php tests/people-1.5.0-membership-contract.php
           php tests/people-1.6.0-import-contract.php
           php tests/people-1.6.1-import-review-contract.php
+          php tests/people-1.7.0-duplicate-resolution-contract.php
       - name: Validate source metadata
         shell: bash
         run: |
@@ -93,6 +94,10 @@ jobs:
           unzip -Z1 "dist/pkg_people_${VERSION}.zip" | grep -Fxq 'com_xdecaropeople.zip'
           unzip -p "dist/pkg_people_${VERSION}.zip" com_xdecaropeople.zip > /tmp/component.zip
           unzip -p /tmp/component.zip admin/src/Service/ImportService.php | grep -Fq 'function importBatch'
+          unzip -p /tmp/component.zip admin/src/Service/DuplicateService.php | grep -Fq 'function mergeGroup'
+          unzip -p /tmp/component.zip admin/src/Controller/DuplicateController.php | grep -Fq 'function dismiss'
+          unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'resolveCanonicalUuid'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.0.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/import.js'
 
   joomla-runtime:
@@ -188,6 +193,8 @@ jobs:
           for column in user_id birth_date sex disability_status disability_types accessibility_needs nationality_codes birth_country_code birth_place_id tax_identifier whatsapp address_line address_number postal_code city region country_code additional_addresses relations_data profile_document_uuid person_status source_component; do
             test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_people' AND column_name='${column}';")" = 1
           done
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_duplicate_ignores';")" = 1
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ppl_xdecaropeople_merges';")" = 1
           if [ '${{ matrix.mode }}' != 'clean' ]; then
             test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ppl_xdecaropeople_people WHERE uuid='11111111-1111-4111-8111-111111111111' AND first_name='Legacy' AND last_name='Person' AND email='legacy@example.invalid';")" = 1
           fi
@@ -241,3 +248,9 @@ jobs:
           echo "People runtime and CSV import OK\n";
           PHP
           php people-runtime-probe.php
+      - name: Probe duplicate merge runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          php ../tests/people-1.7.0-duplicate-runtime.php

@@ -12,6 +12,10 @@ use xdecaro\Core\Integration\CapabilityRegistry;
 /** Optional read-only bridge to the public Membership person-memberships API. */
 final class MembershipIntegrationService
 {
+    public function __construct(private PersonProviderService $people)
+    {
+    }
+
     private const COMPONENT = 'com_decaromembership';
     private const CAPABILITY = 'membership.person_memberships';
     private const CAPABILITY_VERSION = '1';
@@ -46,7 +50,21 @@ final class MembershipIntegrationService
                 throw new RuntimeException('Membership person-memberships service is incompatible.');
             }
 
-            return array_values((array) $service->getMembershipsByPersonUuid($personUuid));
+            $memberships = [];
+            $seen = [];
+
+            foreach ($this->people->getEquivalentUuids($personUuid) ?: [$personUuid] as $lookupUuid) {
+                foreach ((array) $service->getMembershipsByPersonUuid($lookupUuid) as $item) {
+                    $fingerprint = hash('sha256', serialize($item));
+                    if (isset($seen[$fingerprint])) {
+                        continue;
+                    }
+                    $seen[$fingerprint] = true;
+                    $memberships[] = $item;
+                }
+            }
+
+            return array_values($memberships);
         } catch (Throwable $e) {
             throw new RuntimeException('Membership person-memberships lookup is unavailable.', (int) $e->getCode(), $e);
         }

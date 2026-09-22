@@ -268,3 +268,118 @@
     padding: .65rem .75rem;
   }
 }
+
+.xdecaro-duplicate-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .45rem .65rem;
+}
+
+.xdecaro-duplicate-groups {
+  display: grid;
+  gap: 1rem;
+}
+
+.xdecaro-duplicate-group {
+  overflow: hidden;
+}
+
+.xdecaro-duplicate-group-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.xdecaro-duplicate-compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: .85rem;
+}
+
+.xdecaro-duplicate-person {
+  min-width: 0;
+  padding: .9rem;
+  border: 1px solid var(--border-color, rgba(127, 127, 127, .25));
+  border-radius: .55rem;
+  background: var(--body-bg, #fff);
+}
+
+.xdecaro-duplicate-person-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+  padding-bottom: .7rem;
+  margin-bottom: .7rem;
+  border-bottom: 1px solid var(--border-color, rgba(127, 127, 127, .2));
+}
+
+.xdecaro-duplicate-fields {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.xdecaro-duplicate-fields > div {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, .8fr) minmax(0, 1.6fr);
+  gap: .6rem;
+  padding: .38rem 0;
+  border-bottom: 1px solid var(--border-color, rgba(127, 127, 127, .12));
+}
+
+.xdecaro-duplicate-fields > div:last-child {
+  border-bottom: 0;
+}
+
+.xdecaro-duplicate-fields dt,
+.xdecaro-duplicate-fields dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.xdecaro-duplicate-fields dt {
+  font-weight: 600;
+}
+
+.xdecaro-duplicate-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--border-color, rgba(127, 127, 127, .2));
+}
+
+@media (max-width: 575.98px) {
+  .xdecaro-duplicate-group-header,
+  .xdecaro-duplicate-person-heading,
+  .xdecaro-duplicate-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .xdecaro-duplicate-person-heading .btn,
+  .xdecaro-duplicate-actions .btn {
+    width: 100%;
+  }
+
+  .xdecaro-duplicate-fields > div {
+    grid-template-columns: 1fr;
+    gap: .1rem;
+  }
+}
+
+.xdecaro-duplicate-merge-confirm > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.xdecaro-duplicate-merge-confirm > summary::-webkit-details-marker {
+  display: none;
+}
+

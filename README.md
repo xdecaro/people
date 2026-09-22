@@ -6,7 +6,7 @@ Stable reusable person master data for the xdecaro ecosystem.
 - Package: `pkg_people` (`pkg_xdecaropeople` is retained only as a legacy update/migration identity)
 - Namespace: `xdecaro\Component\People`
 - Tables: `#__xdecaropeople_*`
-- Stable candidate version: `1.6.1`
+- Stable candidate version: `1.7.0`
 - Joomla: `6.1.3` only
 - PHP: `8.3+`
 - Requires xdecaro Core `2.0.1+`
@@ -62,3 +62,8 @@ People 1.6.0 adds a Joomla administrator CSV import flow with client-side encodi
 
 
 People 1.6.1 improves CSV review by showing every row that needs correction before import, including source row number, person name, tax identifier and the specific validation/conflict reason. Invalid rows remain excluded from bulk import.
+
+
+## Duplicate resolution
+
+People 1.7.0 replaces the old duplicate warning table with a side-by-side review workflow. Strong matches can be resolved by choosing a canonical person: missing fields are copied into the canonical record, conflicting existing values are not overwritten, source records are archived rather than deleted, and source UUIDs continue to resolve to the canonical person through the public People provider. Possible-only matches can be dismissed as not duplicates. Resolution history is retained in dedicated tables.

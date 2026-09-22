@@ -11,6 +11,10 @@ use xdecaro\Core\Integration\CapabilityRegistry;
 /** Optional read-only bridge to the public Competitions person-history API. */
 final class CompetitionsIntegrationService
 {
+    public function __construct(private PersonProviderService $people)
+    {
+    }
+
     private const COMPONENT = 'com_xdecarocompetitions';
     private const CAPABILITY = 'competitions.people_history';
     private const CAPABILITY_VERSION = '1';
@@ -44,7 +48,21 @@ final class CompetitionsIntegrationService
                 throw new RuntimeException('Competitions person history service is incompatible.');
             }
 
-            return array_values((array) $service->getHistoryByPersonUuid($personUuid));
+            $history = [];
+            $seen = [];
+
+            foreach ($this->people->getEquivalentUuids($personUuid) ?: [$personUuid] as $lookupUuid) {
+                foreach ((array) $service->getHistoryByPersonUuid($lookupUuid) as $item) {
+                    $fingerprint = hash('sha256', serialize($item));
+                    if (isset($seen[$fingerprint])) {
+                        continue;
+                    }
+                    $seen[$fingerprint] = true;
+                    $history[] = $item;
+                }
+            }
+
+            return array_values($history);
         } catch (Throwable $e) {
             throw new RuntimeException('Competitions person history lookup is unavailable.', (int) $e->getCode(), $e);
         }

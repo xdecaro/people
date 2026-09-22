@@ -18,7 +18,9 @@ $required = [
     "p.uuid') . ' IN ('",
     '$this->normalizeStructuredFields($row, $sensitive)',
     '$found[$key] = $row',
-    '$result[$uuid] = $found[$uuid]',
+    '$result[$requestedUuid] = $row',
+    'resolveCanonicalUuid',
+    'merged_from_uuid',
 ];
 
 foreach ($required as $marker) {

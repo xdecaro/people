@@ -50,7 +50,7 @@ $expect(str_contains($duplicatesService, 'hasMatch'), 'Duplicate warning and dup
 $expect(str_contains($model, 'getDuplicateService()->hasMatch'), 'Person save warning must use DuplicateService matching.');
 $expect(str_contains($duplicatesTemplate, 'person.edit&id='), 'Duplicate page must link to each matching person.');
 $expect(str_contains($duplicatesTemplate, 'COM_XDECAROPEOPLE_DUPLICATE_STRENGTH'), 'Duplicate page must show confidence.');
-$expect(str_contains($duplicatesTemplate, 'COM_XDECAROPEOPLE_DUPLICATE_PERSONS'), 'Duplicate page must show involved people.');
+$expect(str_contains($duplicatesTemplate, 'xdecaro-duplicate-compare'), 'Duplicate page must show involved people in a comparison UI.');
 
 foreach ([$it, $en] as $language) {
     foreach ([
