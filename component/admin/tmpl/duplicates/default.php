@@ -76,12 +76,65 @@ $statusBadge = static function (string $status): array {
         default => ['', ''],
     };
 };
+
+$dashboardCards = [
+    [
+        'key' => 'total',
+        'filter' => 'all',
+        'label' => Text::_('COM_XDECAROPEOPLE_DUPLICATE_DASHBOARD_TOTAL'),
+        'class' => 'xdecaro-duplicate-kpi--total',
+    ],
+    [
+        'key' => 'conflict',
+        'filter' => 'conflict',
+        'label' => Text::_('COM_XDECAROPEOPLE_DUPLICATE_DASHBOARD_CONFLICT'),
+        'class' => 'xdecaro-duplicate-kpi--conflict',
+    ],
+    [
+        'key' => 'strong',
+        'filter' => 'strong',
+        'label' => Text::_('COM_XDECAROPEOPLE_DUPLICATE_DASHBOARD_STRONG'),
+        'class' => 'xdecaro-duplicate-kpi--strong',
+    ],
+    [
+        'key' => 'possible',
+        'filter' => 'possible',
+        'label' => Text::_('COM_XDECAROPEOPLE_DUPLICATE_DASHBOARD_POSSIBLE'),
+        'class' => 'xdecaro-duplicate-kpi--possible',
+    ],
+];
+
+$duplicateFilterUrl = static fn(string $filter): string => Route::_(
+    'index.php?option=com_xdecaropeople&view=duplicates&duplicate_filter=' . rawurlencode($filter)
+);
 ?>
 <div class="xdecaro-scope xdecaro-duplicates">
     <div class="alert alert-info mb-3">
         <strong><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATES_REVIEW_TITLE'); ?></strong>
         <div class="mt-1"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATES_REVIEW_HELP'); ?></div>
     </div>
+
+    <section class="xdecaro-duplicate-dashboard mb-3" aria-label="<?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_DASHBOARD_TITLE'); ?>">
+        <?php foreach ($dashboardCards as $card) : ?>
+            <?php
+            $isActive = $this->filter === $card['filter'];
+            $value = (int) ($this->summary[$card['key']] ?? 0);
+            ?>
+            <a
+                class="xdecaro-duplicate-kpi <?php echo $this->escape($card['class']); ?><?php echo $isActive ? ' is-active' : ''; ?>"
+                href="<?php echo $duplicateFilterUrl($card['filter']); ?>"
+                <?php echo $isActive ? 'aria-current="page"' : ''; ?>
+            >
+                <strong class="xdecaro-duplicate-kpi-value"><?php echo $value; ?></strong>
+                <span class="xdecaro-duplicate-kpi-label"><?php echo $this->escape($card['label']); ?></span>
+            </a>
+        <?php endforeach; ?>
+
+        <div class="xdecaro-duplicate-kpi xdecaro-duplicate-kpi--records">
+            <strong class="xdecaro-duplicate-kpi-value"><?php echo (int) ($this->summary['records'] ?? 0); ?></strong>
+            <span class="xdecaro-duplicate-kpi-label"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_DASHBOARD_RECORDS'); ?></span>
+        </div>
+    </section>
 
     <div class="xdecaro-duplicate-legend mb-3">
         <span class="badge bg-primary"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_STRONG'); ?></span>
@@ -92,8 +145,15 @@ $statusBadge = static function (string $status): array {
         <span><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_CONFLICT_HELP'); ?></span>
     </div>
 
-    <?php if (!$this->groups) : ?>
+    <?php if ((int) ($this->summary['total'] ?? 0) === 0) : ?>
         <div class="alert alert-success"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_NONE'); ?></div>
+    <?php elseif (!$this->groups) : ?>
+        <div class="alert alert-info">
+            <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_FILTER_EMPTY'); ?>
+            <a class="alert-link" href="<?php echo $duplicateFilterUrl('all'); ?>">
+                <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_FILTER_SHOW_ALL'); ?>
+            </a>
+        </div>
     <?php else : ?>
         <div class="xdecaro-duplicate-groups">
             <?php foreach ($this->groups as $group) : ?>
