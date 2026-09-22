@@ -26,6 +26,7 @@ $fieldLabels = [
     'address' => 'COM_XDECAROPEOPLE_FIELD_ADDRESS',
     'source_component' => 'COM_XDECAROPEOPLE_FIELD_SOURCE_COMPONENT',
     'created' => 'JGLOBAL_CREATED',
+    'user_id' => 'COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER',
 ];
 
 $renderValue = static function (mixed $value): string {
@@ -144,6 +145,18 @@ $addressFor = static function (array $record): string {
                                             </div>
                                         <?php endif; ?>
 
+                                        <div>
+                                            <dt><?php echo Text::_($fieldLabels['user_id']); ?></dt>
+                                            <dd>
+                                                <?php if ((int) ($record['user_id'] ?? 0) > 0) : ?>
+                                                    <span class="badge bg-info text-dark">
+                                                        <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER_LINKED', (int) $record['user_id']); ?>
+                                                    </span>
+                                                <?php else : ?>
+                                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER_NONE'); ?>
+                                                <?php endif; ?>
+                                            </dd>
+                                        </div>
                                         <div>
                                             <dt><?php echo Text::_($fieldLabels['email']); ?></dt>
                                             <dd><?php echo $this->escape($renderValue($record['email'] ?? '')); ?></dd>
