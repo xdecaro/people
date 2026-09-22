@@ -112,7 +112,12 @@ final class ImportService
                 continue;
             }
 
+            $transactionStarted = false;
+
             try {
+                $this->db->transactionStart();
+                $transactionStarted = true;
+
                 $person = (object) array_merge($record, [
                     'uuid' => self::uuidV4(),
                     'display_name' => trim($record['first_name'] . ' ' . $record['last_name']),
@@ -168,6 +173,8 @@ final class ImportService
                     'created' => Factory::getDate()->toSql(),
                 ];
                 $this->db->insertObject('#__xdecaropeople_history', $history);
+                $this->db->transactionCommit();
+                $transactionStarted = false;
 
                 if ($taxIdentifier !== '') {
                     $taxSet[$taxIdentifier] = true;
@@ -186,6 +193,18 @@ final class ImportService
                     'warnings' => $warnings,
                 ];
             } catch (Throwable $exception) {
+                if ($transactionStarted) {
+                    try {
+                        $this->db->transactionRollback();
+                    } catch (Throwable $rollbackException) {
+                        Log::add(
+                            'People CSV import rollback failed: ' . $rollbackException->getMessage(),
+                            Log::ERROR,
+                            'com_xdecaropeople'
+                        );
+                    }
+                }
+
                 Log::add(
                     'People CSV import row ' . $rowNumber . ' failed: ' . $exception->getMessage(),
                     Log::ERROR,
