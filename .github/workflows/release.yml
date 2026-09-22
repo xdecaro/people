@@ -40,6 +40,7 @@ jobs:
           php tests/people-1.6.0-import-contract.php
           php tests/people-1.6.1-import-review-contract.php
           php tests/people-1.7.0-duplicate-resolution-contract.php
+          php tests/people-1.7.1-duplicate-accordion-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           v=sys.argv[1]
