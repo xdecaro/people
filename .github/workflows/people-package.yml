@@ -44,6 +44,7 @@ jobs:
           php tests/people-1.6.0-import-contract.php
           php tests/people-1.6.1-import-review-contract.php
           php tests/people-1.7.0-duplicate-resolution-contract.php
+          php tests/people-1.7.1-duplicate-accordion-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           version = sys.argv[1]
@@ -93,6 +94,7 @@ jobs:
           unzip -p /tmp/component.zip admin/src/Controller/DuplicateController.php | grep -Fq 'function dismiss'
           unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'resolveCanonicalUuid'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.0.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.1.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/import.js'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/language/it-IT/com_xdecaropeople_organizations.ini'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/language/en-GB/com_xdecaropeople_organizations.ini'

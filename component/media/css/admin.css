@@ -383,3 +383,102 @@
   display: none;
 }
 
+.xdecaro-duplicate-group > summary {
+  list-style: none;
+}
+
+.xdecaro-duplicate-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.xdecaro-duplicate-accordion-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.xdecaro-duplicate-accordion-summary:hover {
+  background: var(--bs-tertiary-bg, rgba(127, 127, 127, .08));
+}
+
+.xdecaro-duplicate-summary-main {
+  min-width: 0;
+}
+
+.xdecaro-duplicate-summary-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .35rem;
+  flex: 0 0 auto;
+}
+
+.xdecaro-duplicate-chevron {
+  width: .65rem;
+  height: .65rem;
+  margin-left: .25rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform .18s ease;
+}
+
+.xdecaro-duplicate-group[open] .xdecaro-duplicate-chevron {
+  transform: rotate(225deg);
+}
+
+.xdecaro-duplicate-difference-summary {
+  color: var(--bs-danger-text-emphasis, inherit);
+}
+
+.xdecaro-duplicate-field {
+  margin: 0 -.45rem;
+  padding: .42rem .45rem !important;
+  border-radius: .35rem;
+}
+
+.xdecaro-duplicate-field dt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .4rem;
+}
+
+.xdecaro-duplicate-field--same {
+  background: var(--bs-success-bg-subtle, rgba(25, 135, 84, .10));
+}
+
+.xdecaro-duplicate-field--different {
+  background: var(--bs-danger-bg-subtle, rgba(220, 53, 69, .12));
+  box-shadow: inset .2rem 0 0 var(--bs-danger, #dc3545);
+}
+
+.xdecaro-duplicate-field--missing {
+  background: var(--bs-warning-bg-subtle, rgba(255, 193, 7, .12));
+}
+
+.xdecaro-duplicate-field--empty,
+.xdecaro-duplicate-field--meta {
+  background: transparent;
+}
+
+@media (max-width: 767.98px) {
+  .xdecaro-duplicate-accordion-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .xdecaro-duplicate-summary-counts {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .xdecaro-duplicate-chevron {
+    margin-left: auto;
+  }
+}
+

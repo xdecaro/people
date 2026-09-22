@@ -132,4 +132,64 @@ if ((int) $db->setQuery($query)->loadResult() !== 1) {
     exit(1);
 }
 
-echo "People 1.7.0 duplicate merge runtime OK\n";
+$conflictA = (object) [
+    'uuid' => '44444444-4444-4444-8444-444444444444',
+    'display_name' => 'Lucia Bianchi',
+    'first_name' => 'Lucia',
+    'last_name' => 'Bianchi',
+    'birth_date' => '1990-02-03',
+    'tax_identifier' => 'BNCLCU90B43H501A',
+    'person_status' => 'active',
+    'state' => 1,
+    'access' => 1,
+    'created' => $now,
+    'created_by' => $adminId,
+];
+$db->insertObject('#__xdecaropeople_people', $conflictA, 'id');
+
+$conflictB = (object) [
+    'uuid' => '55555555-5555-4555-8555-555555555555',
+    'display_name' => 'Lucia Bianchi',
+    'first_name' => 'Lucia',
+    'last_name' => 'Bianchi',
+    'birth_date' => '1990-02-03',
+    'tax_identifier' => 'BNCLCU90B43H501B',
+    'person_status' => 'active',
+    'state' => 1,
+    'access' => 1,
+    'created' => $now,
+    'created_by' => $adminId,
+];
+$db->insertObject('#__xdecaropeople_people', $conflictB, 'id');
+
+$blocked = false;
+try {
+    $duplicates->mergeGroup(
+        (int) $conflictA->id,
+        'name_birth',
+        'lucia|bianchi|1990-02-03',
+        [(int) $conflictA->id, (int) $conflictB->id],
+        $adminId
+    );
+} catch (\RuntimeException $exception) {
+    $blocked = $exception->getCode() === 400;
+}
+
+if (!$blocked) {
+    fwrite(STDERR, "Conflicting tax identifiers must block a name/birth merge.\n");
+    exit(1);
+}
+
+$query = $db->getQuery(true)
+    ->select('COUNT(*)')
+    ->from($db->quoteName('#__xdecaropeople_people'))
+    ->where($db->quoteName('id') . ' IN (' . (int) $conflictA->id . ',' . (int) $conflictB->id . ')')
+    ->where($db->quoteName('state') . ' = 1')
+    ->where($db->quoteName('person_status') . ' = ' . $db->quote('active'));
+
+if ((int) $db->setQuery($query)->loadResult() !== 2) {
+    fwrite(STDERR, "Blocked conflict merge changed the source records.\n");
+    exit(1);
+}
+
+echo "People 1.7.1 duplicate merge and conflict runtime OK\n";

@@ -71,12 +71,19 @@ final class DuplicateService
                 continue;
             }
 
+            $bucket = $this->applyGroupRisk($bucket, $canSensitive);
+
+            if (($bucket['redundant'] ?? false) === true) {
+                continue;
+            }
+
             $groups[] = $bucket;
         }
 
         usort($groups, static function (array $a, array $b): int {
-            $strengthA = ($a['strength'] ?? '') === 'strong' ? 0 : 1;
-            $strengthB = ($b['strength'] ?? '') === 'strong' ? 0 : 1;
+            $order = ['conflict' => 0, 'strong' => 1, 'possible' => 2];
+            $strengthA = $order[(string) ($a['strength'] ?? 'possible')] ?? 3;
+            $strengthB = $order[(string) ($b['strength'] ?? 'possible')] ?? 3;
 
             return [$strengthA, (string) ($a['type'] ?? ''), (string) ($a['value'] ?? '')]
                 <=> [$strengthB, (string) ($b['type'] ?? ''), (string) ($b['value'] ?? '')];
@@ -157,6 +164,8 @@ final class DuplicateService
         if (count($rows) !== count($recordIds) || !isset($rows[$targetId])) {
             throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_RECORD_MISSING'), 404);
         }
+
+        $this->assertMergeIdentityCompatible($type, $rows);
 
         $target = $rows[$targetId];
         if ((string) ($target['person_status'] ?? '') === 'archived') {
@@ -280,6 +289,84 @@ final class DuplicateService
             'source_ids' => array_keys($sources),
             'copied_fields' => array_values($copiedFields),
         ];
+    }
+
+    private function applyGroupRisk(array $bucket, bool $canSensitive): array
+    {
+        $bucket['merge_allowed'] = ($bucket['strength'] ?? '') === 'strong';
+        $bucket['redundant'] = false;
+        $bucket['conflict_fields'] = [];
+
+        if (!$canSensitive || (string) ($bucket['type'] ?? '') !== 'name_birth') {
+            return $bucket;
+        }
+
+        $records = array_values((array) ($bucket['records'] ?? []));
+        $taxValues = [];
+        $nonEmptyTaxCount = 0;
+
+        foreach ($records as $record) {
+            $tax = self::normalizeTin($record['tax_identifier'] ?? null);
+            if ($tax === '') {
+                continue;
+            }
+
+            $nonEmptyTaxCount++;
+            $taxValues[$tax] = true;
+        }
+
+        if (count($taxValues) > 1) {
+            $bucket['strength'] = 'conflict';
+            $bucket['merge_allowed'] = false;
+            $bucket['conflict_fields'] = ['tax_identifier'];
+
+            return $bucket;
+        }
+
+        if (count($taxValues) === 1 && $nonEmptyTaxCount === count($records)) {
+            // The same records are already represented by the stronger tax-identifier group.
+            $bucket['redundant'] = true;
+
+            return $bucket;
+        }
+
+        // Same name + birth date alone is not enough for an automatic merge.
+        $bucket['strength'] = 'possible';
+        $bucket['merge_allowed'] = false;
+
+        return $bucket;
+    }
+
+    private function assertMergeIdentityCompatible(string $type, array $rows): void
+    {
+        if (!in_array($type, ['tax_identifier', 'name_birth'], true)) {
+            throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_MERGE_NOT_ALLOWED'), 400);
+        }
+
+        $taxValues = [];
+        $missingTax = false;
+
+        foreach ($rows as $row) {
+            $tax = self::normalizeTin($row['tax_identifier'] ?? null);
+            if ($tax === '') {
+                $missingTax = true;
+                continue;
+            }
+
+            $taxValues[$tax] = true;
+        }
+
+        if (count($taxValues) > 1) {
+            throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_TAX_CONFLICT'), 400);
+        }
+
+        if ($type === 'name_birth' && ($missingTax || count($taxValues) !== 1)) {
+            throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_MERGE_NOT_ALLOWED'), 400);
+        }
+
+        if ($type === 'tax_identifier' && count($taxValues) !== 1) {
+            throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_MERGE_NOT_ALLOWED'), 400);
+        }
     }
 
     private function loadCandidates(bool $canSensitive, int $excludeId = 0): array
