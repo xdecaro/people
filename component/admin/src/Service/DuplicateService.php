@@ -207,10 +207,8 @@ final class DuplicateService
         }
 
         $singleUserId = $userIds !== [] ? (int) reset($userIds) : 0;
-        $moveUserLink = (int) ($updatedTarget['user_id'] ?? 0) < 1 && $singleUserId > 0;
-        if ($moveUserLink) {
-            $updatedTarget['user_id'] = $singleUserId;
-            $copiedFields['user_id'] = 'user_id';
+        if ($singleUserId > 0 && (int) ($target['user_id'] ?? 0) !== $singleUserId) {
+            throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_KEEP_LINKED_USER'), 400);
         }
 
         $now = Factory::getDate()->toSql();
@@ -229,11 +227,7 @@ final class DuplicateService
                     'modified_by' => $userId,
                 ];
 
-                if ($moveUserLink && (int) ($source['user_id'] ?? 0) === $singleUserId) {
-                    $sourceUpdate->user_id = null;
-                }
-
-                $this->db->updateObject('#__xdecaropeople_people', $sourceUpdate, 'id', true);
+                $this->db->updateObject('#__xdecaropeople_people', $sourceUpdate, 'id');
 
                 $mergeRow = (object) [
                     'source_person_id' => $sourceId,
