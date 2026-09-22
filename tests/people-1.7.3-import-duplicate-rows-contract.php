@@ -105,4 +105,18 @@ if (version_compare($version, '1.7.4', '>=')) {
     }
 }
 
+if (version_compare($version, '1.7.5', '>=')) {
+    $css = (string) file_get_contents($root . '/component/media/css/admin.css');
+
+    foreach ([
+        'gap: .35rem;',
+        'min-height: 3.15rem;',
+        'padding: .42rem .65rem;',
+        'gap: .25rem;',
+        'padding: 0 .6rem .55rem;',
+    ] as $needle) {
+        $assert(str_contains($css, $needle), 'Compact duplicate review styling missing: ' . $needle);
+    }
+}
+
 echo "People 1.7.3+ CSV duplicate-row review compatibility contract OK\n";
