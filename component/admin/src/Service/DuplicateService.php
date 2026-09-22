@@ -329,13 +329,7 @@ final class DuplicateService
             ->select('*')
             ->from($this->db->quoteName('#__xdecaropeople_people'));
 
-        $placeholders = [];
-        foreach (array_values($ids) as $index => $id) {
-            $placeholder = ':id' . $index;
-            $placeholders[] = $placeholder;
-            $query->bind($placeholder, $id, ParameterType::INTEGER);
-        }
-
+        $placeholders = $query->bindArray(array_values($ids), ParameterType::INTEGER);
         $query->where($this->db->quoteName('id') . ' IN (' . implode(',', $placeholders) . ')');
 
         $rows = [];
