@@ -233,7 +233,7 @@ final class DuplicateService
                     $sourceUpdate->user_id = null;
                 }
 
-                $this->db->updateObject('#__xdecaropeople_people', $sourceUpdate, 'id');
+                $this->db->updateObject('#__xdecaropeople_people', $sourceUpdate, 'id', true);
 
                 $mergeRow = (object) [
                     'source_person_id' => $sourceId,
