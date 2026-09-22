@@ -10,7 +10,7 @@ $assert = static function (bool $condition, string $message): void {
     }
 };
 
-$assert($version === '1.7.0', 'People 1.7.0 version expected.');
+$assert(version_compare($version, '1.7.0', '>='), 'People 1.7.0 or newer expected.');
 
 $service = (string) file_get_contents($root . '/component/admin/src/Service/DuplicateService.php');
 $controller = (string) file_get_contents($root . '/component/admin/src/Controller/DuplicateController.php');
@@ -108,4 +108,4 @@ foreach ([$install, $update] as $schema) {
 $assert(str_contains($css, '.xdecaro-duplicate-compare'), 'Responsive duplicate comparison styling missing.');
 $assert(str_contains($css, '@media (max-width: 575.98px)'), 'Mobile duplicate comparison styling missing.');
 
-echo "People 1.7.0 duplicate resolution contract OK\n";
+echo "People 1.7.0+ duplicate resolution compatibility contract OK\n";
