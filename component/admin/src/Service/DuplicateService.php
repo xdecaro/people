@@ -287,6 +287,7 @@ final class DuplicateService
         $columns = [
             $this->db->quoteName('id'),
             $this->db->quoteName('uuid'),
+            $this->db->quoteName('user_id'),
             $this->db->quoteName('display_name'),
             $this->db->quoteName('first_name'),
             $this->db->quoteName('last_name'),
@@ -418,6 +419,7 @@ final class DuplicateService
         $summary = [
             'id' => (int) ($record['id'] ?? 0),
             'uuid' => trim((string) ($record['uuid'] ?? '')),
+            'user_id' => (int) ($record['user_id'] ?? 0),
             'display_name' => $displayName,
             'email' => trim((string) ($record['email'] ?? '')),
             'phone' => self::normalizePhone($record['phone'] ?? null),
