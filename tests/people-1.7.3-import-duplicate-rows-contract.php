@@ -69,4 +69,33 @@ foreach ([$it, $en] as $language) {
     }
 }
 
+
+if (version_compare($version, '1.7.4', '>=')) {
+    $css = (string) file_get_contents($root . '/component/media/css/admin.css');
+
+    foreach ([
+        'const groups = new Map()',
+        "details.className = 'xdecaro-import-duplicate-group'",
+        "details.name = 'xdecaro-import-duplicate-review'",
+        'duplicateGroupRows',
+        'duplicateGroupRecords',
+        'duplicateGroupConflict',
+        'duplicateGroupConsolidated',
+        'group.items.push(item)',
+    ] as $needle) {
+        $assert(str_contains($js, $needle), 'Grouped duplicate review JavaScript missing: ' . $needle);
+    }
+
+    $assert(str_contains($template, 'xdecaro-import-duplicate-groups'), 'Grouped duplicate review container missing.');
+    $assert(!str_contains($template, '<tbody id="xdecaro-people-import-duplicate-body"></tbody>'), 'Old flat duplicate table must be removed.');
+
+    foreach ([
+        '.xdecaro-import-duplicate-groups',
+        '.xdecaro-import-duplicate-group-summary',
+        '.xdecaro-import-duplicate-group[open] .xdecaro-import-duplicate-chevron',
+    ] as $needle) {
+        $assert(str_contains($css, $needle), 'Grouped duplicate review styling missing: ' . $needle);
+    }
+}
+
 echo "People 1.7.3+ CSV duplicate-row review compatibility contract OK\n";
