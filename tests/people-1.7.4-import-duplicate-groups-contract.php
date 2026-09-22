@@ -27,7 +27,7 @@ foreach ([
     'duplicateGroupRecords',
     'duplicateGroupConflict',
     'duplicateGroupConsolidated',
-    'group.items.push(item)',
+    'groups.get(groupKey).items.push(item)',
     'group.rows.join',
 ] as $needle) {
     $assert(str_contains($js, $needle), 'Grouped duplicate review JavaScript missing: ' . $needle);
