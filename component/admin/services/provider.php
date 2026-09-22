@@ -52,15 +52,21 @@ return new class implements ServiceProviderInterface
         );
         $container->share(
             CompetitionsIntegrationService::class,
-            static fn(): CompetitionsIntegrationService => new CompetitionsIntegrationService()
+            static fn(Container $container): CompetitionsIntegrationService => new CompetitionsIntegrationService(
+                $container->get(PersonProviderService::class)
+            )
         );
         $container->share(
             OrganizationsIntegrationService::class,
-            static fn(): OrganizationsIntegrationService => new OrganizationsIntegrationService()
+            static fn(Container $container): OrganizationsIntegrationService => new OrganizationsIntegrationService(
+                $container->get(PersonProviderService::class)
+            )
         );
         $container->share(
             MembershipIntegrationService::class,
-            static fn(): MembershipIntegrationService => new MembershipIntegrationService()
+            static fn(Container $container): MembershipIntegrationService => new MembershipIntegrationService(
+                $container->get(PersonProviderService::class)
+            )
         );
 
         $container->set(
