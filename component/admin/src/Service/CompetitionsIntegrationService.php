@@ -11,6 +11,10 @@ use xdecaro\Core\Integration\CapabilityRegistry;
 /** Optional read-only bridge to the public Competitions person-history API. */
 final class CompetitionsIntegrationService
 {
+    public function __construct(private PersonProviderService $people)
+    {
+    }
+
     private const COMPONENT = 'com_xdecarocompetitions';
     private const CAPABILITY = 'competitions.people_history';
     private const CAPABILITY_VERSION = '1';
