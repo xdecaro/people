@@ -31,7 +31,7 @@ foreach ([
 }
 
 foreach ([
-    '<details class="card xdecaro-duplicate-group">',
+    '<details class="card xdecaro-duplicate-group" name="xdecaro-duplicate-review">',
     'xdecaro-duplicate-accordion-summary',
     'xdecaro-duplicate-summary-counts',
     'xdecaro-duplicate-difference-summary',
