@@ -42,6 +42,7 @@ jobs:
           php tests/people-1.6.0-import-contract.php
           php tests/people-1.6.1-import-review-contract.php
           php tests/people-1.7.0-duplicate-resolution-contract.php
+          php tests/people-1.7.1-duplicate-accordion-contract.php
       - name: Validate source metadata
         shell: bash
         run: |
