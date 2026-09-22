@@ -101,6 +101,48 @@ final class PersonProviderService
         return $result;
     }
 
+    public function getEquivalentUuids(string $uuid): array
+    {
+        $this->authorise(false);
+
+        $canonical = $this->resolveCanonicalUuid(strtolower(trim($uuid)));
+        if ($canonical === '') {
+            return [];
+        }
+
+        $result = [$canonical => $canonical];
+        $queue = [$canonical];
+        $depth = 0;
+
+        while ($queue !== [] && $depth < 10) {
+            $current = array_shift($queue);
+            $depth++;
+
+            try {
+                $query = $this->db->getQuery(true)
+                    ->select($this->db->quoteName('source_uuid'))
+                    ->from($this->db->quoteName('#__xdecaropeople_merges'))
+                    ->where($this->db->quoteName('target_uuid') . ' = :targetUuid')
+                    ->bind(':targetUuid', $current);
+
+                $sources = (array) $this->db->setQuery($query)->loadColumn();
+            } catch (Throwable) {
+                break;
+            }
+
+            foreach ($sources as $sourceUuid) {
+                $sourceUuid = strtolower(trim((string) $sourceUuid));
+                if ($sourceUuid === '' || isset($result[$sourceUuid])) {
+                    continue;
+                }
+                $result[$sourceUuid] = $sourceUuid;
+                $queue[] = $sourceUuid;
+            }
+        }
+
+        return array_values($result);
+    }
+
     public function personExists(string $uuid): bool
     {
         $uuid = strtolower(trim($uuid));
