@@ -88,7 +88,7 @@ if (version_compare($version, '1.7.4', '>=')) {
         'duplicateGroupRecords',
         'duplicateGroupConflict',
         'duplicateGroupConsolidated',
-        'group.items.push(item)',
+        'groups.get(groupKey).items.push(item)',
     ] as $needle) {
         $assert(str_contains($js, $needle), 'Grouped duplicate review JavaScript missing: ' . $needle);
     }
