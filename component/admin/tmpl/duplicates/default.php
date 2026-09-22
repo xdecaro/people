@@ -19,6 +19,7 @@ $fieldLabels = [
     'birth_date' => 'COM_XDECAROPEOPLE_FIELD_BIRTH_DATE',
     'sex' => 'COM_XDECAROPEOPLE_FIELD_SEX',
     'tax_identifier' => 'COM_XDECAROPEOPLE_FIELD_TAX_IDENTIFIER',
+    'user_id' => 'COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER',
     'email' => 'JGLOBAL_EMAIL',
     'phone' => 'COM_XDECAROPEOPLE_FIELD_PHONE',
     'whatsapp' => 'COM_XDECAROPEOPLE_FIELD_WHATSAPP',
@@ -26,7 +27,6 @@ $fieldLabels = [
     'address' => 'COM_XDECAROPEOPLE_FIELD_ADDRESS',
     'source_component' => 'COM_XDECAROPEOPLE_FIELD_SOURCE_COMPONENT',
     'created' => 'JGLOBAL_CREATED',
-    'user_id' => 'COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER',
 ];
 
 $renderValue = static function (mixed $value): string {
@@ -49,6 +49,33 @@ $addressFor = static function (array $record): string {
 
     return trim(implode(' · ', array_filter([$line, $place], static fn(string $value): bool => $value !== '')));
 };
+
+$fieldValue = static function (array $record, string $field) use ($addressFor): string {
+    if ($field === 'address') {
+        return $addressFor($record);
+    }
+
+    if ($field === 'user_id') {
+        $userId = (int) ($record['user_id'] ?? 0);
+        return $userId > 0 ? (string) $userId : '';
+    }
+
+    return trim((string) ($record[$field] ?? ''));
+};
+
+$normalizeCompare = static function (string $value): string {
+    $value = preg_replace('/\s+/u', ' ', trim($value)) ?? '';
+    return mb_strtolower($value, 'UTF-8');
+};
+
+$statusBadge = static function (string $status): array {
+    return match ($status) {
+        'same' => ['COM_XDECAROPEOPLE_DUPLICATE_FIELD_SAME', 'bg-success-subtle text-success-emphasis'],
+        'different' => ['COM_XDECAROPEOPLE_DUPLICATE_FIELD_DIFFERENT', 'bg-danger-subtle text-danger-emphasis'],
+        'missing' => ['COM_XDECAROPEOPLE_DUPLICATE_FIELD_MISSING', 'bg-warning-subtle text-warning-emphasis'],
+        default => ['', ''],
+    };
+};
 ?>
 <div class="xdecaro-scope xdecaro-duplicates">
     <div class="alert alert-info mb-3">
@@ -57,10 +84,12 @@ $addressFor = static function (array $record): string {
     </div>
 
     <div class="xdecaro-duplicate-legend mb-3">
-        <span class="badge bg-danger"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_STRONG'); ?></span>
+        <span class="badge bg-primary"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_STRONG'); ?></span>
         <span><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRONG_HELP'); ?></span>
         <span class="badge bg-warning text-dark"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_POSSIBLE'); ?></span>
         <span><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_POSSIBLE_HELP'); ?></span>
+        <span class="badge bg-danger"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_CONFLICT'); ?></span>
+        <span><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_CONFLICT_HELP'); ?></span>
     </div>
 
     <?php if (!$this->groups) : ?>
@@ -70,9 +99,17 @@ $addressFor = static function (array $record): string {
             <?php foreach ($this->groups as $group) : ?>
                 <?php
                 $strength = (string) ($group['strength'] ?? 'possible');
-                $strengthLabel = $strength === 'strong'
-                    ? Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_STRONG')
-                    : Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_POSSIBLE');
+                $strengthLabel = match ($strength) {
+                    'strong' => Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_STRONG'),
+                    'conflict' => Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_CONFLICT'),
+                    default => Text::_('COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_POSSIBLE'),
+                };
+                $strengthClass = match ($strength) {
+                    'strong' => 'bg-primary',
+                    'conflict' => 'bg-danger',
+                    default => 'bg-warning text-dark',
+                };
+
                 $type = (string) ($group['type'] ?? '');
                 $typeLabel = isset($typeLabels[$type]) ? Text::_($typeLabels[$type]) : $type;
                 $records = array_values((array) ($group['records'] ?? []));
@@ -80,28 +117,108 @@ $addressFor = static function (array $record): string {
                     static fn(array $record): int => (int) ($record['id'] ?? 0),
                     $records
                 )));
+
+                $comparisonFields = [
+                    'birth_date',
+                    'sex',
+                    'tax_identifier',
+                    'user_id',
+                    'email',
+                    'phone',
+                    'whatsapp',
+                    'birth_place',
+                    'address',
+                ];
+
+                if (!$this->canSensitive) {
+                    $comparisonFields = ['user_id', 'email', 'phone', 'whatsapp'];
+                }
+
+                $fieldStatuses = [];
+                $statusCounts = ['same' => 0, 'different' => 0, 'missing' => 0];
+                $differentLabels = [];
+
+                foreach ($comparisonFields as $field) {
+                    $values = array_map(
+                        static fn(array $record): string => $fieldValue($record, $field),
+                        $records
+                    );
+                    $nonEmpty = array_values(array_filter(
+                        $values,
+                        static fn(string $value): bool => trim($value) !== ''
+                    ));
+
+                    if ($nonEmpty === []) {
+                        $fieldStatuses[$field] = 'empty';
+                        continue;
+                    }
+
+                    $unique = [];
+                    foreach ($nonEmpty as $value) {
+                        $unique[$normalizeCompare($value)] = true;
+                    }
+
+                    if (count($unique) > 1) {
+                        $fieldStatuses[$field] = 'different';
+                        $statusCounts['different']++;
+                        $differentLabels[] = Text::_($fieldLabels[$field]);
+                    } elseif (count($nonEmpty) < count($records)) {
+                        $fieldStatuses[$field] = 'missing';
+                        $statusCounts['missing']++;
+                    } else {
+                        $fieldStatuses[$field] = 'same';
+                        $statusCounts['same']++;
+                    }
+                }
                 ?>
-                <section class="card xdecaro-duplicate-group">
-                    <div class="card-header xdecaro-duplicate-group-header">
-                        <div>
+                <details class="card xdecaro-duplicate-group">
+                    <summary class="card-header xdecaro-duplicate-accordion-summary">
+                        <div class="xdecaro-duplicate-summary-main">
                             <div class="d-flex flex-wrap align-items-center gap-2">
-                                <span class="badge <?php echo $strength === 'strong' ? 'bg-danger' : 'bg-warning text-dark'; ?>">
+                                <span class="badge <?php echo $strengthClass; ?>">
                                     <?php echo $this->escape($strengthLabel); ?>
                                 </span>
                                 <strong><?php echo $this->escape($typeLabel); ?></strong>
+                                <span class="badge bg-secondary">
+                                    <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_RECORD_COUNT', count($records)); ?>
+                                </span>
                             </div>
+
                             <div class="small text-body-secondary mt-1">
                                 <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MATCH_REASON'); ?>:
                                 <strong><?php echo $this->escape((string) ($group['value'] ?? $group['key'] ?? '')); ?></strong>
                             </div>
+
+                            <?php if ($differentLabels !== []) : ?>
+                                <div class="small mt-1 xdecaro-duplicate-difference-summary">
+                                    <strong><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_DIFFERENT_FIELDS'); ?>:</strong>
+                                    <?php echo $this->escape(implode(', ', $differentLabels)); ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
-                        <span class="badge bg-secondary">
-                            <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_RECORD_COUNT', count($records)); ?>
-                        </span>
-                    </div>
+                        <div class="xdecaro-duplicate-summary-counts" aria-label="<?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_COMPARISON_SUMMARY'); ?>">
+                            <span class="badge bg-success-subtle text-success-emphasis">
+                                <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_COUNT_SAME', $statusCounts['same']); ?>
+                            </span>
+                            <span class="badge bg-danger-subtle text-danger-emphasis">
+                                <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_COUNT_DIFFERENT', $statusCounts['different']); ?>
+                            </span>
+                            <span class="badge bg-warning-subtle text-warning-emphasis">
+                                <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_COUNT_MISSING', $statusCounts['missing']); ?>
+                            </span>
+                            <span class="xdecaro-duplicate-chevron" aria-hidden="true"></span>
+                        </div>
+                    </summary>
 
                     <div class="card-body">
+                        <?php if ($strength === 'conflict') : ?>
+                            <div class="alert alert-danger">
+                                <strong><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_CONFLICT_TITLE'); ?></strong>
+                                <div><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_CONFLICT_BLOCKED'); ?></div>
+                            </div>
+                        <?php endif; ?>
+
                         <div class="xdecaro-duplicate-compare">
                             <?php foreach ($records as $record) : ?>
                                 <?php
@@ -111,7 +228,6 @@ $addressFor = static function (array $record): string {
                                 }
 
                                 $name = trim((string) ($record['display_name'] ?? ''));
-                                $address = $addressFor($record);
                                 ?>
                                 <article class="xdecaro-duplicate-person">
                                     <div class="xdecaro-duplicate-person-heading">
@@ -130,68 +246,48 @@ $addressFor = static function (array $record): string {
                                     </div>
 
                                     <dl class="xdecaro-duplicate-fields">
-                                        <?php if ($this->canSensitive) : ?>
-                                            <div>
-                                                <dt><?php echo Text::_($fieldLabels['birth_date']); ?></dt>
-                                                <dd><?php echo $this->escape($renderValue($record['birth_date'] ?? '')); ?></dd>
+                                        <?php foreach ($comparisonFields as $field) : ?>
+                                            <?php
+                                            $status = $fieldStatuses[$field] ?? 'empty';
+                                            [$statusKey, $statusClass] = $statusBadge($status);
+                                            $value = $fieldValue($record, $field);
+                                            ?>
+                                            <div class="xdecaro-duplicate-field xdecaro-duplicate-field--<?php echo $this->escape($status); ?>">
+                                                <dt>
+                                                    <span><?php echo Text::_($fieldLabels[$field]); ?></span>
+                                                    <?php if ($statusKey !== '') : ?>
+                                                        <span class="badge <?php echo $statusClass; ?>">
+                                                            <?php echo Text::_($statusKey); ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </dt>
+                                                <dd>
+                                                    <?php if ($field === 'user_id') : ?>
+                                                        <?php if ((int) ($record['user_id'] ?? 0) > 0) : ?>
+                                                            <span class="badge bg-info text-dark">
+                                                                <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER_LINKED', (int) $record['user_id']); ?>
+                                                            </span>
+                                                        <?php else : ?>
+                                                            <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER_NONE'); ?>
+                                                        <?php endif; ?>
+                                                    <?php else : ?>
+                                                        <?php echo $this->escape($renderValue($value)); ?>
+                                                    <?php endif; ?>
+                                                </dd>
                                             </div>
-                                            <div>
-                                                <dt><?php echo Text::_($fieldLabels['sex']); ?></dt>
-                                                <dd><?php echo $this->escape($renderValue($record['sex'] ?? '')); ?></dd>
-                                            </div>
-                                            <div>
-                                                <dt><?php echo Text::_($fieldLabels['tax_identifier']); ?></dt>
-                                                <dd><?php echo $this->escape($renderValue($record['tax_identifier'] ?? '')); ?></dd>
-                                            </div>
-                                        <?php endif; ?>
+                                        <?php endforeach; ?>
 
-                                        <div>
-                                            <dt><?php echo Text::_($fieldLabels['user_id']); ?></dt>
-                                            <dd>
-                                                <?php if ((int) ($record['user_id'] ?? 0) > 0) : ?>
-                                                    <span class="badge bg-info text-dark">
-                                                        <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER_LINKED', (int) $record['user_id']); ?>
-                                                    </span>
-                                                <?php else : ?>
-                                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER_NONE'); ?>
-                                                <?php endif; ?>
-                                            </dd>
-                                        </div>
-                                        <div>
-                                            <dt><?php echo Text::_($fieldLabels['email']); ?></dt>
-                                            <dd><?php echo $this->escape($renderValue($record['email'] ?? '')); ?></dd>
-                                        </div>
-                                        <div>
-                                            <dt><?php echo Text::_($fieldLabels['phone']); ?></dt>
-                                            <dd><?php echo $this->escape($renderValue($record['phone'] ?? '')); ?></dd>
-                                        </div>
-                                        <div>
-                                            <dt><?php echo Text::_($fieldLabels['whatsapp']); ?></dt>
-                                            <dd><?php echo $this->escape($renderValue($record['whatsapp'] ?? '')); ?></dd>
-                                        </div>
-
-                                        <?php if ($this->canSensitive) : ?>
-                                            <div>
-                                                <dt><?php echo Text::_($fieldLabels['birth_place']); ?></dt>
-                                                <dd><?php echo $this->escape($renderValue($record['birth_place'] ?? '')); ?></dd>
-                                            </div>
-                                            <div>
-                                                <dt><?php echo Text::_($fieldLabels['address']); ?></dt>
-                                                <dd><?php echo $this->escape($renderValue($address)); ?></dd>
-                                            </div>
-                                        <?php endif; ?>
-
-                                        <div>
+                                        <div class="xdecaro-duplicate-field xdecaro-duplicate-field--meta">
                                             <dt><?php echo Text::_($fieldLabels['source_component']); ?></dt>
                                             <dd><?php echo $this->escape($renderValue($record['source_component'] ?? '')); ?></dd>
                                         </div>
-                                        <div>
+                                        <div class="xdecaro-duplicate-field xdecaro-duplicate-field--meta">
                                             <dt><?php echo Text::_($fieldLabels['created']); ?></dt>
                                             <dd><?php echo $this->escape($renderValue($record['created'] ?? '')); ?></dd>
                                         </div>
                                     </dl>
 
-                                    <?php if ($strength === 'strong' && $this->canMerge && count($records) >= 2) : ?>
+                                    <?php if (($group['merge_allowed'] ?? false) && $this->canMerge && count($records) >= 2) : ?>
                                         <form action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=duplicate.merge'); ?>" method="post" class="mt-3">
                                             <input type="hidden" name="target_id" value="<?php echo $id; ?>">
                                             <input type="hidden" name="match_type" value="<?php echo $this->escape($type); ?>">
@@ -221,11 +317,13 @@ $addressFor = static function (array $record): string {
                         </div>
 
                         <div class="xdecaro-duplicate-actions mt-3">
-                            <?php if ($strength !== 'strong') : ?>
-                                <div class="small text-body-secondary">
-                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_POSSIBLE_ACTION_HINT'); ?>
-                                </div>
-                            <?php endif; ?>
+                            <div class="small text-body-secondary">
+                                <?php
+                                echo $strength === 'conflict'
+                                    ? Text::_('COM_XDECAROPEOPLE_DUPLICATE_CONFLICT_ACTION_HINT')
+                                    : Text::_('COM_XDECAROPEOPLE_DUPLICATE_POSSIBLE_ACTION_HINT');
+                                ?>
+                            </div>
 
                             <form action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=duplicate.dismiss'); ?>" method="post">
                                 <input type="hidden" name="match_type" value="<?php echo $this->escape($type); ?>">
@@ -240,7 +338,7 @@ $addressFor = static function (array $record): string {
                             </form>
                         </div>
                     </div>
-                </section>
+                </details>
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
