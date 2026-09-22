@@ -6,7 +6,7 @@ Stable reusable person master data for the xdecaro ecosystem.
 - Package: `pkg_people` (`pkg_xdecaropeople` is retained only as a legacy update/migration identity)
 - Namespace: `xdecaro\Component\People`
 - Tables: `#__xdecaropeople_*`
-- Stable candidate version: `1.6.0`
+- Stable candidate version: `1.6.1`
 - Joomla: `6.1.3` only
 - PHP: `8.3+`
 - Requires xdecaro Core `2.0.1+`
@@ -59,3 +59,6 @@ People resta proprietario dell'identità personale; categoria, sede, stato assoc
 ## CSV bulk import
 
 People 1.6.0 adds a Joomla administrator CSV import flow with client-side encoding/delimiter detection, explicit column mapping, duplicate consolidation, server-side existing-person analysis and batched writes. It imports only People-owned identity/contact/residence fields, generates the stable People UUID automatically, skips existing people without overwriting them, and intentionally excludes Membership, disability/health and payment/card data. Legacy source locations may be preserved as text without inventing provider IDs; unchanged imported locations remain editable while changed locations must be reselected through Core's world-location service.
+
+
+People 1.6.1 improves CSV review by showing every row that needs correction before import, including source row number, person name, tax identifier and the specific validation/conflict reason. Invalid rows remain excluded from bulk import.
