@@ -41,6 +41,7 @@ jobs:
           php tests/organizations-history-tab-contract.php
           php tests/people-1.4.0-contract.php
           php tests/people-1.5.0-membership-contract.php
+          php tests/people-1.6.0-import-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           version = sys.argv[1]
@@ -59,6 +60,7 @@ jobs:
           PY
           node --check component/media/js/person-form.js
           node --check component/media/js/person-cancel-fix.js
+          node --check component/media/js/import.js
           ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
           ! grep -Rni '#__xdecaroorganizations_' component
           ! grep -Rni '#__decaromembership_' component
@@ -84,6 +86,8 @@ jobs:
           unzip -p /tmp/component.zip admin/src/Service/CompetitionsIntegrationService.php | grep -Fq 'getPersonHistory'
           unzip -p /tmp/component.zip admin/src/Service/OrganizationsIntegrationService.php | grep -Fq 'organizations.people_appointments'
           unzip -p /tmp/component.zip admin/src/Service/MembershipIntegrationService.php | grep -Fq 'membership.person_memberships'
+          unzip -p /tmp/component.zip admin/src/Service/ImportService.php | grep -Fq 'function importBatch'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/import.js'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/language/it-IT/com_xdecaropeople_organizations.ini'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/language/en-GB/com_xdecaropeople_organizations.ini'
       - name: Upload current People install package
