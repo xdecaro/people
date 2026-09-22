@@ -134,7 +134,7 @@ final class PersonTable extends Table
             $birthPlace = trim((string) ($this->birth_place ?? ''));
             $birthPlaceId = trim((string) ($this->birth_place_id ?? ''));
 
-            if ($birthPlace !== '' && $birthPlaceId === '') {
+            if ($birthPlace !== '' && $birthPlaceId === '' && !$this->allowsLegacyImportedLocation('birth_place', $birthPlace, 'birth_place_id')) {
                 $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_BIRTH_PLACE_SELECTION_REQUIRED'));
                 return false;
             }
@@ -151,7 +151,7 @@ final class PersonTable extends Table
             $city = trim((string) ($this->city ?? ''));
             $placeId = trim((string) ($this->residence_place_id ?? ''));
 
-            if ($city !== '' && $placeId === '') {
+            if ($city !== '' && $placeId === '' && !$this->allowsLegacyImportedLocation('city', $city, 'residence_place_id')) {
                 $this->setError(Text::_('COM_XDECAROPEOPLE_ERROR_CITY_SELECTION_REQUIRED'));
                 return false;
             }
@@ -223,6 +223,34 @@ final class PersonTable extends Table
         }
 
         return parent::check();
+    }
+
+    private function allowsLegacyImportedLocation(string $valueField, string $value, string $idField): bool
+    {
+        $id = (int) ($this->id ?? 0);
+        if ($id < 1 || !in_array($valueField, ['birth_place', 'city'], true) || !in_array($idField, ['birth_place_id', 'residence_place_id'], true)) {
+            return false;
+        }
+
+        $db = $this->getDatabase();
+        $query = $db->getQuery(true)
+            ->select([
+                $db->quoteName($valueField),
+                $db->quoteName($idField),
+                $db->quoteName('source_component'),
+            ])
+            ->from($db->quoteName('#__xdecaropeople_people'))
+            ->where($db->quoteName('id') . ' = :id')
+            ->bind(':id', $id, ParameterType::INTEGER)
+            ->setLimit(1);
+
+        $existing = $db->setQuery($query)->loadAssoc();
+        if (!$existing || (string) ($existing['source_component'] ?? '') !== 'com_xdecaropeople.import') {
+            return false;
+        }
+
+        return trim((string) ($existing[$idField] ?? '')) === ''
+            && trim((string) ($existing[$valueField] ?? '')) === trim($value);
     }
 
     private function synchronizeReciprocalRelations(string $sourceUuid, array $beforeRelations, array $afterRelations): void

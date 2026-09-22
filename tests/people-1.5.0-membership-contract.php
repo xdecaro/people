@@ -1,8 +1,8 @@
 <?php
 $root = dirname(__DIR__);
 $version = trim((string) file_get_contents($root . '/VERSION'));
-if ($version !== '1.5.0') {
-    fwrite(STDERR, "People 1.5.0 version expected.\n");
+if (version_compare($version, '1.5.0', '<')) {
+    fwrite(STDERR, "People 1.5.0 or newer expected.\n");
     exit(1);
 }
 
@@ -44,4 +44,4 @@ foreach (["'email', 'possible'","'phone', 'possible'","'whatsapp', 'possible'"] 
     }
 }
 
-echo "People 1.5.0 Membership integration contract OK\n";
+echo "People 1.5.0+ Membership integration compatibility contract OK\n";

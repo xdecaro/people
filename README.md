@@ -6,7 +6,7 @@ Stable reusable person master data for the xdecaro ecosystem.
 - Package: `pkg_people` (`pkg_xdecaropeople` is retained only as a legacy update/migration identity)
 - Namespace: `xdecaro\Component\People`
 - Tables: `#__xdecaropeople_*`
-- Stable candidate version: `1.5.0`
+- Stable candidate version: `1.6.0`
 - Joomla: `6.1.3` only
 - PHP: `8.3+`
 - Requires xdecaro Core `2.0.1+`
@@ -54,3 +54,8 @@ People 1.4.0 adds no People database columns or tables; the upgrade is non-destr
 People 1.5.0 può mostrare una scheda **Membership** di sola lettura quando Membership espone la capability pubblica `membership.person_memberships` v1. Il collegamento usa esclusivamente il `person_uuid` stabile e non interroga tabelle private Membership. Se Membership è assente, incompatibile o non autorizzato, People continua a funzionare normalmente e la scheda non viene mostrata.
 
 People resta proprietario dell'identità personale; categoria, sede, stato associativo, diritti ed eventuale storico restano di proprietà Membership.
+
+
+## CSV bulk import
+
+People 1.6.0 adds a Joomla administrator CSV import flow with client-side encoding/delimiter detection, explicit column mapping, duplicate consolidation, server-side existing-person analysis and batched writes. It imports only People-owned identity/contact/residence fields, generates the stable People UUID automatically, skips existing people without overwriting them, and intentionally excludes Membership, disability/health and payment/card data. Legacy source locations may be preserved as text without inventing provider IDs; unchanged imported locations remain editable while changed locations must be reselected through Core's world-location service.

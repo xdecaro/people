@@ -199,3 +199,40 @@
     min-width: 680px;
   }
 }
+.xdecaro-import-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.xdecaro-import-summary-item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: .15rem;
+  padding: .75rem;
+  border: 1px solid var(--border-color, rgba(127, 127, 127, .25));
+  border-radius: .55rem;
+  background: var(--body-bg, #fff);
+}
+
+.xdecaro-import-summary-item strong {
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.xdecaro-people-import .progress {
+  min-height: 1.25rem;
+}
+
+@media (max-width: 991.98px) {
+  .xdecaro-import-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575.98px) {
+  .xdecaro-import-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

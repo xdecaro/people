@@ -8,6 +8,7 @@ use RuntimeException;
 use xdecaro\Component\People\Administrator\Service\CompetitionsIntegrationService;
 use xdecaro\Component\People\Administrator\Service\CoreIntegrationService;
 use xdecaro\Component\People\Administrator\Service\DuplicateService;
+use xdecaro\Component\People\Administrator\Service\ImportService;
 use xdecaro\Component\People\Administrator\Service\NotificationIntegrationService;
 use xdecaro\Component\People\Administrator\Service\OrganizationsIntegrationService;
 use xdecaro\Component\People\Administrator\Service\MembershipIntegrationService;
@@ -18,6 +19,7 @@ final class PeopleComponent extends MVCComponent
     private ?CoreIntegrationService $core = null;
     private ?PersonProviderService $provider = null;
     private ?DuplicateService $duplicates = null;
+    private ?ImportService $importer = null;
     private ?NotificationIntegrationService $notifications = null;
     private ?CompetitionsIntegrationService $competitions = null;
     private ?OrganizationsIntegrationService $organizations = null;
@@ -59,6 +61,20 @@ final class PeopleComponent extends MVCComponent
         }
 
         return $this->duplicates;
+    }
+
+    public function setImportService(ImportService $service): void
+    {
+        $this->importer = $service;
+    }
+
+    public function getImportService(): ImportService
+    {
+        if (!$this->importer) {
+            throw new RuntimeException('People import service not initialized.');
+        }
+
+        return $this->importer;
     }
 
     public function setNotificationIntegrationService(NotificationIntegrationService $service): void
