@@ -10,7 +10,7 @@ $assert = static function (bool $condition, string $message): void {
     }
 };
 
-$assert($version === '1.6.0', 'People 1.6.0 version expected.');
+$assert(version_compare($version, '1.6.0', '>='), 'People 1.6.0 or newer expected.');
 
 $service = (string) file_get_contents($root . '/component/admin/src/Service/ImportService.php');
 $controller = (string) file_get_contents($root . '/component/admin/src/Controller/ImportController.php');
@@ -61,7 +61,7 @@ foreach ([
 $assets = is_array($asset['assets'] ?? null) ? $asset['assets'] : [];
 $importAssets = array_values(array_filter($assets, static fn(array $item): bool => ($item['name'] ?? '') === 'com_xdecaropeople.import'));
 $assert(count($importAssets) === 1, 'Import JavaScript asset must be registered exactly once.');
-$assert(($importAssets[0]['version'] ?? '') === '1.6.0', 'Import asset version must match People 1.6.0.');
+$assert(($importAssets[0]['version'] ?? '') === $version, 'Import asset version must match current People VERSION.');
 
 foreach ([
     "new TextDecoder('windows-1252')",
@@ -86,4 +86,4 @@ foreach ([
     $assert(!str_contains($service, $forbidden), 'Import service must not own source-domain field: ' . $forbidden);
 }
 
-echo "People 1.6.0 CSV import contract OK\n";
+echo "People 1.6.0+ CSV import compatibility contract OK\n";
