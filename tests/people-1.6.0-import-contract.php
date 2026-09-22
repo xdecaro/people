@@ -66,6 +66,8 @@ $assert(($importAssets[0]['version'] ?? '') === '1.6.0', 'Import asset version m
 foreach ([
     "new TextDecoder('windows-1252')",
     'consolidateDuplicates',
+    'duplicate_conflict',
+    'conflictingFields',
     'batchSize',
     'tax_identifier',
     "formData.append(options.token, '1')",
