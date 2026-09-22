@@ -12,6 +12,10 @@ use xdecaro\Core\Integration\CapabilityRegistry;
 /** Optional read-only bridge to the public Organizations person-appointments API. */
 final class OrganizationsIntegrationService
 {
+    public function __construct(private PersonProviderService $people)
+    {
+    }
+
     private const COMPONENT = 'com_xdecaroorganizations';
     private const CAPABILITY = 'organizations.people_appointments';
     private const CAPABILITY_VERSION = '1';
