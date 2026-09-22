@@ -50,7 +50,21 @@ final class OrganizationsIntegrationService
                 throw new RuntimeException('Organizations person appointments service is incompatible.');
             }
 
-            return array_values((array) $service->getAppointmentsByPersonUuid($personUuid));
+            $appointments = [];
+            $seen = [];
+
+            foreach ($this->people->getEquivalentUuids($personUuid) ?: [$personUuid] as $lookupUuid) {
+                foreach ((array) $service->getAppointmentsByPersonUuid($lookupUuid) as $item) {
+                    $fingerprint = hash('sha256', serialize($item));
+                    if (isset($seen[$fingerprint])) {
+                        continue;
+                    }
+                    $seen[$fingerprint] = true;
+                    $appointments[] = $item;
+                }
+            }
+
+            return array_values($appointments);
         } catch (Throwable $e) {
             throw new RuntimeException('Organizations person appointment lookup is unavailable.', (int) $e->getCode(), $e);
         }
