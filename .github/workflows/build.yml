@@ -210,6 +210,33 @@ jobs:
           $component=$app->bootComponent('com_xdecaropeople');
           if (!$component->getPersonProviderService() instanceof \xdecaro\Component\People\Administrator\Service\PersonProviderService) exit(1);
           if (!method_exists($component->getPersonProviderService(), 'searchPeopleForIdentity')) exit(1);
-          echo "People runtime OK\n";
+          $importer=$component->getImportService();
+          if (!$importer instanceof \xdecaro\Component\People\Administrator\Service\ImportService) exit(1);
+          $importRow=[[
+            '_row'=>2,
+            'first_name'=>'CI',
+            'last_name'=>'Import',
+            'tax_identifier'=>'CIIMPORT00000001',
+            'birth_date'=>'2000-01-02',
+            'sex'=>'M',
+            'birth_place'=>'Roma',
+            'birth_region'=>'RM',
+            'address_line'=>'Via Test',
+            'address_number'=>'1',
+            'postal_code'=>'00100',
+            'city'=>'Roma',
+            'region'=>'RM',
+            'phone'=>'+3906123456',
+            'email'=>'ci-import@example.invalid',
+          ]];
+          $first=$importer->importBatch($importRow,$id,'ens_soci_2026');
+          if (($first['inserted'] ?? 0)!==1 || ($first['errors'] ?? 0)!==0) { var_export($first); exit(1); }
+          $second=$importer->importBatch($importRow,$id,'ens_soci_2026');
+          if (($second['existing'] ?? 0)!==1 || ($second['inserted'] ?? 0)!==0) { var_export($second); exit(1); }
+          $q=$db->getQuery(true)->select('COUNT(*)')->from('#__xdecaropeople_people')->where($db->quoteName('tax_identifier').'='.$db->quote('CIIMPORT00000001'))->where($db->quoteName('source_component').'='.$db->quote('com_xdecaropeople.import'));
+          if ((int)$db->setQuery($q)->loadResult()!==1) exit(1);
+          $q=$db->getQuery(true)->select('COUNT(*)')->from('#__xdecaropeople_history','h')->join('INNER','#__xdecaropeople_people AS p ON p.id=h.person_id')->where($db->quoteName('p.tax_identifier').'='.$db->quote('CIIMPORT00000001'))->where($db->quoteName('h.action').'='.$db->quote('import'));
+          if ((int)$db->setQuery($q)->loadResult()!==1) exit(1);
+          echo "People runtime and CSV import OK\n";
           PHP
           php people-runtime-probe.php
