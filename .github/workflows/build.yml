@@ -235,7 +235,7 @@ jobs:
           if (($second['existing'] ?? 0)!==1 || ($second['inserted'] ?? 0)!==0) { var_export($second); exit(1); }
           $q=$db->getQuery(true)->select('COUNT(*)')->from('#__xdecaropeople_people')->where($db->quoteName('tax_identifier').'='.$db->quote('CIIMPORT00000001'))->where($db->quoteName('source_component').'='.$db->quote('com_xdecaropeople.import'));
           if ((int)$db->setQuery($q)->loadResult()!==1) exit(1);
-          $q=$db->getQuery(true)->select('COUNT(*)')->from('#__xdecaropeople_history','h')->join('INNER','#__xdecaropeople_people AS p ON p.id=h.person_id')->where($db->quoteName('p.tax_identifier').'='.$db->quote('CIIMPORT00000001'))->where($db->quoteName('h.action').'='.$db->quote('import'));
+          $q=$db->getQuery(true)->select('COUNT(*)')->from($db->quoteName('#__xdecaropeople_history','h'))->join('INNER',$db->quoteName('#__xdecaropeople_people','p').' ON '.$db->quoteName('p.id').'='.$db->quoteName('h.person_id'))->where($db->quoteName('p.tax_identifier').'='.$db->quote('CIIMPORT00000001'))->where($db->quoteName('h.action').'='.$db->quote('import'));
           if ((int)$db->setQuery($q)->loadResult()!==1) exit(1);
           echo "People runtime and CSV import OK\n";
           PHP
