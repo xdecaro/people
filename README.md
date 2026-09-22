@@ -6,7 +6,7 @@ Stable reusable person master data for the xdecaro ecosystem.
 - Package: `pkg_people` (`pkg_xdecaropeople` is retained only as a legacy update/migration identity)
 - Namespace: `xdecaro\Component\People`
 - Tables: `#__xdecaropeople_*`
-- Stable candidate version: `1.7.5`
+- Stable candidate version: `1.7.6`
 - Joomla: `6.1.3` only
 - PHP: `8.3+`
 - Requires xdecaro Core `2.0.1+`
@@ -82,3 +82,6 @@ People 1.7.4 groups all source rows involved in the same CSV duplicate into a co
 
 
 People 1.7.5 compacts the grouped CSV duplicate review by reducing closed-accordion height, vertical gaps and internal padding while keeping the 1.7.4 logic and correction workflow unchanged.
+
+
+People 1.7.6 adds a compact dashboard to Duplicate review with totals for all groups, conflicts, strong matches, possible matches and unique involved records. The first four cards are quick server-side filters and preserve the existing safe duplicate-resolution workflow.

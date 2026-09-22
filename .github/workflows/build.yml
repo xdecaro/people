@@ -44,6 +44,7 @@ jobs:
           php tests/people-1.7.0-duplicate-resolution-contract.php
           php tests/people-1.7.1-duplicate-accordion-contract.php
           php tests/people-1.7.3-import-duplicate-rows-contract.php
+          php tests/people-1.7.6-duplicate-dashboard-contract.php
       - name: Validate source metadata
         shell: bash
         run: |
@@ -103,6 +104,7 @@ jobs:
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.1.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.2.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.3.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.6.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/import.js'
 
   joomla-runtime:
