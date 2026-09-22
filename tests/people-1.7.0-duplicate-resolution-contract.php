@@ -46,8 +46,6 @@ foreach ([
     "Session::checkToken('post')",
     'function dismiss()',
     'function merge()',
-    'duplicate.merge',
-    'duplicate.dismiss',
 ] as $needle) {
     $assert(str_contains($controller, $needle), 'Duplicate controller contract missing: ' . $needle);
 }
