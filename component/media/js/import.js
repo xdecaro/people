@@ -14,6 +14,9 @@
   const analyzeButton = document.getElementById('xdecaro-people-import-analyze');
   const summaryCard = document.getElementById('xdecaro-people-import-summary-card');
   const summary = document.getElementById('xdecaro-people-import-summary');
+  const invalidPanel = document.getElementById('xdecaro-people-import-invalid-panel');
+  const invalidTitle = document.getElementById('xdecaro-people-import-invalid-title');
+  const invalidBody = document.getElementById('xdecaro-people-import-invalid-body');
   const startButton = document.getElementById('xdecaro-people-import-start');
   const progressCard = document.getElementById('xdecaro-people-import-progress-card');
   const progressBar = document.getElementById('xdecaro-people-import-progress');
@@ -322,9 +325,13 @@
 
       if (conflictingFields.length) {
         const rowNumbers = group.map((row) => row._row).sort((a, b) => a - b);
+        const reference = group[0];
         conflicts.push({
           row: rowNumbers[0],
           status: 'invalid',
+          first_name: clean(reference.first_name),
+          last_name: clean(reference.last_name),
+          tax_identifier: clean(reference.tax_identifier),
           message: 'duplicate_conflict',
           warnings: [],
           details: `${strings.conflictRows || 'Rows'}: ${rowNumbers.join(', ')} — ${strings.conflictFields || 'Fields'}: ${conflictingFields.join(', ')}`,
@@ -401,6 +408,46 @@
     });
   };
 
+  const renderInvalidDetails = () => {
+    if (!invalidPanel || !invalidBody || !invalidTitle) return;
+
+    invalidBody.replaceChildren();
+
+    if (!state.invalid.length) {
+      invalidPanel.hidden = true;
+      invalidPanel.open = false;
+      return;
+    }
+
+    invalidTitle.textContent = `${state.invalid.length} ${strings.invalidDetailsTitle || 'rows to review before import'}`;
+
+    [...state.invalid]
+      .sort((a, b) => Number(a.row || 0) - Number(b.row || 0))
+      .forEach((item) => {
+        const tr = document.createElement('tr');
+        const rowCell = document.createElement('td');
+        const personCell = document.createElement('td');
+        const taxCell = document.createElement('td');
+        const issueCell = document.createElement('td');
+
+        rowCell.textContent = String(item.row || '—');
+        personCell.textContent = [clean(item.first_name), clean(item.last_name)].filter(Boolean).join(' ') || '—';
+        taxCell.textContent = clean(item.tax_identifier) || '—';
+
+        const messages = [];
+        if (item.message) messages.push(translateCode(item.message));
+        (item.warnings || []).forEach((warning) => messages.push(translateCode(warning)));
+        if (item.details) messages.push(String(item.details));
+        issueCell.textContent = messages.filter(Boolean).join('; ') || '—';
+
+        tr.append(rowCell, personCell, taxCell, issueCell);
+        invalidBody.appendChild(tr);
+      });
+
+    invalidPanel.hidden = false;
+    invalidPanel.open = true;
+  };
+
   const resetAnalysis = () => {
     state.prepared = [];
     state.invalid = [];
@@ -409,6 +456,11 @@
     state.report = [];
     state.fileDuplicateCount = 0;
     summaryCard.hidden = true;
+    if (invalidPanel) {
+      invalidPanel.hidden = true;
+      invalidPanel.open = false;
+    }
+    invalidBody?.replaceChildren();
     progressCard.hidden = true;
     reportCard.hidden = true;
     startButton.disabled = true;
@@ -493,8 +545,11 @@
           invalid.push({
             row: row._row,
             status: 'invalid',
-            message: errors.join(', '),
-            warnings: [],
+            first_name: clean(row.first_name),
+            last_name: clean(row.last_name),
+            tax_identifier: clean(row.tax_identifier),
+            message: errors[0],
+            warnings: errors.slice(1),
           });
         } else {
           valid.push(row);
@@ -539,6 +594,7 @@
       });
 
       summaryCard.hidden = false;
+      renderInvalidDetails();
       startButton.disabled = state.candidates.length === 0;
       analyzeButton.textContent = strings.ready || 'Ready';
     } catch (error) {
