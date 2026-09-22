@@ -10,7 +10,7 @@ $assert = static function (bool $condition, string $message): void {
     }
 };
 
-$assert($version === '1.7.3', 'People 1.7.3 version expected.');
+$assert(version_compare($version, '1.7.3', '>='), 'People 1.7.3 or newer expected.');
 
 $js = (string) file_get_contents($root . '/component/media/js/import.js');
 $template = (string) file_get_contents($root . '/component/admin/tmpl/import/default.php');
@@ -69,4 +69,4 @@ foreach ([$it, $en] as $language) {
     }
 }
 
-echo "People 1.7.3 CSV duplicate-row review contract OK\n";
+echo "People 1.7.3+ CSV duplicate-row review compatibility contract OK\n";
