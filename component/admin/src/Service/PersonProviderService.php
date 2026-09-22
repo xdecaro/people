@@ -17,17 +17,27 @@ final class PersonProviderService
     {
         $this->authorise($sensitive);
         $query = $this->db->getQuery(true)->select($this->columns($sensitive))->from($this->db->quoteName('#__xdecaropeople_people', 'p'))->where($this->db->quoteName('p.state') . ' >= 0');
+        $requestedUuid = null;
+
         if (is_int($id) || ctype_digit((string) $id)) {
-            $numericId = (int) $id;
+            $numericId = $this->resolveCanonicalId((int) $id);
             $query->where($this->db->quoteName('p.id') . ' = :id')->bind(':id', $numericId, ParameterType::INTEGER);
         } else {
-            $uuid = trim((string) $id);
+            $requestedUuid = strtolower(trim((string) $id));
+            $uuid = $this->resolveCanonicalUuid($requestedUuid);
             $query->where($this->db->quoteName('p.uuid') . ' = :uuid')->bind(':uuid', $uuid);
         }
+
         $row = $this->db->setQuery($query, 0, 1)->loadAssoc();
         if (!$row) return null;
+
         $row = $this->normalizeStructuredFields($row, $sensitive);
         $row['entity_reference'] = $this->core->createEntityReference((int) $row['id'])->toArray();
+
+        if ($requestedUuid !== null && $requestedUuid !== strtolower((string) ($row['uuid'] ?? ''))) {
+            $row['merged_from_uuid'] = $requestedUuid;
+        }
+
         return $row;
     }
 
@@ -35,28 +45,59 @@ final class PersonProviderService
     {
         $this->authorise($sensitive);
         $normalized = [];
+
         foreach ($uuids as $uuid) {
             $uuid = strtolower(trim((string) $uuid));
-            if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid)) $normalized[$uuid] = $uuid;
+            if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid)) {
+                $normalized[$uuid] = $uuid;
+            }
         }
+
         if ($normalized === []) return [];
-        $query = $this->db->getQuery(true)->select($this->columns($sensitive))->from($this->db->quoteName('#__xdecaropeople_people', 'p'))->where($this->db->quoteName('p.state') . ' >= 0');
+
+        $resolved = [];
+        foreach ($normalized as $requestedUuid) {
+            $resolved[$requestedUuid] = $this->resolveCanonicalUuid($requestedUuid);
+        }
+
+        $canonicalUuids = array_values(array_unique(array_values($resolved)));
+        $query = $this->db->getQuery(true)
+            ->select($this->columns($sensitive))
+            ->from($this->db->quoteName('#__xdecaropeople_people', 'p'))
+            ->where($this->db->quoteName('p.state') . ' >= 0');
+
         $placeholders = [];
-        foreach (array_values($normalized) as $index => $uuid) {
+        foreach ($canonicalUuids as $index => $uuid) {
             $placeholder = ':uuid' . $index;
             $placeholders[] = $placeholder;
             $query->bind($placeholder, $uuid);
         }
+
         $query->where($this->db->quoteName('p.uuid') . ' IN (' . implode(',', $placeholders) . ')');
+
         $found = [];
         foreach ((array) $this->db->setQuery($query)->loadAssocList() as $row) {
             $row = $this->normalizeStructuredFields($row, $sensitive);
             $row['entity_reference'] = $this->core->createEntityReference((int) $row['id'])->toArray();
             $key = strtolower((string) ($row['uuid'] ?? ''));
-            if ($key !== '') $found[$key] = $row;
+            if ($key !== '') {
+                $found[$key] = $row;
+            }
         }
+
         $result = [];
-        foreach ($normalized as $uuid) if (isset($found[$uuid])) $result[$uuid] = $found[$uuid];
+        foreach ($resolved as $requestedUuid => $canonicalUuid) {
+            if (!isset($found[$canonicalUuid])) {
+                continue;
+            }
+
+            $row = $found[$canonicalUuid];
+            if ($requestedUuid !== $canonicalUuid) {
+                $row['merged_from_uuid'] = $requestedUuid;
+            }
+            $result[$requestedUuid] = $row;
+        }
+
         return $result;
     }
 
@@ -219,6 +260,79 @@ final class PersonProviderService
             try { $row['profile_document_reference'] = $this->core->createDocumentReference((string) $row['profile_document_uuid'])->toArray(); } catch (Throwable) {}
         }
         return $row;
+    }
+
+    private function resolveCanonicalId(int $id): int
+    {
+        if ($id < 1) {
+            return $id;
+        }
+
+        $seen = [];
+        $current = $id;
+
+        for ($depth = 0; $depth < 10; $depth++) {
+            if (isset($seen[$current])) {
+                break;
+            }
+            $seen[$current] = true;
+
+            try {
+                $query = $this->db->getQuery(true)
+                    ->select($this->db->quoteName('target_person_id'))
+                    ->from($this->db->quoteName('#__xdecaropeople_merges'))
+                    ->where($this->db->quoteName('source_person_id') . ' = :sourceId')
+                    ->bind(':sourceId', $current, ParameterType::INTEGER);
+
+                $next = (int) $this->db->setQuery($query, 0, 1)->loadResult();
+            } catch (Throwable) {
+                return $current;
+            }
+
+            if ($next < 1 || $next === $current) {
+                break;
+            }
+            $current = $next;
+        }
+
+        return $current;
+    }
+
+    private function resolveCanonicalUuid(string $uuid): string
+    {
+        $uuid = strtolower(trim($uuid));
+        if ($uuid === '') {
+            return $uuid;
+        }
+
+        $seen = [];
+        $current = $uuid;
+
+        for ($depth = 0; $depth < 10; $depth++) {
+            if (isset($seen[$current])) {
+                break;
+            }
+            $seen[$current] = true;
+
+            try {
+                $query = $this->db->getQuery(true)
+                    ->select($this->db->quoteName('target_uuid'))
+                    ->from($this->db->quoteName('#__xdecaropeople_merges'))
+                    ->where($this->db->quoteName('source_uuid') . ' = :sourceUuid')
+                    ->bind(':sourceUuid', $current);
+
+                $next = strtolower(trim((string) $this->db->setQuery($query, 0, 1)->loadResult()));
+            } catch (Throwable) {
+                return $current;
+            }
+
+            if ($next === '' || $next === $current) {
+                break;
+            }
+            $current = $next;
+        }
+
+        return $current;
     }
 
     private function authorise(bool $sensitive): void
