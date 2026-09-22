@@ -87,7 +87,7 @@ jobs:
           V="$(tr -d '\r\n' < VERSION)"
           gh release create "v${V}" "dist/com_xdecaropeople_${V}.zip" "dist/pkg_people_${V}.zip" dist/SHA256SUMS.txt \
             --title "People ${V}" \
-            --notes "People ${V}: improves CSV review by showing each row that needs correction before import, with source row, person, tax identifier and the validation/conflict reason. Invalid rows remain excluded from import. Joomla 6.1.3 only."
+            --notes "People ${V}: redesigns duplicate review with side-by-side person data, safe manual merge for strong matches, dismissal of false positives, archived source records and UUID alias resolution for integrations. Joomla 6.1.3 only."
       - name: Publish canonical and legacy-bridge Joomla update feeds
         shell: bash
         run: |
