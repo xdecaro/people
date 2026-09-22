@@ -44,6 +44,10 @@ final class HtmlView extends BaseHtmlView
 
         if ($user->authorise('core.create', 'com_xdecaropeople')) {
             ToolbarHelper::addNew('person.add');
+
+            if ($user->authorise('people.view_sensitive', 'com_xdecaropeople') || $user->authorise('core.admin', 'com_xdecaropeople')) {
+                ToolbarHelper::custom('import.open', 'upload', '', Text::_('COM_XDECAROPEOPLE_IMPORT'), false);
+            }
         }
 
         if ($user->authorise('core.edit', 'com_xdecaropeople')) {
