@@ -37,10 +37,17 @@ foreach ([
     'xdecaro-people-import-duplicate-panel',
     'xdecaro-people-import-duplicate-title',
     'xdecaro-people-import-duplicate-body',
-    'COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP',
-    'COM_XDECAROPEOPLE_IMPORT_DUPLICATE_OUTCOME',
 ] as $needle) {
     $assert(str_contains($template, $needle), 'Import duplicate-row template missing: ' . $needle);
+}
+
+if (version_compare($version, '1.7.4', '<')) {
+    foreach ([
+        'COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP',
+        'COM_XDECAROPEOPLE_IMPORT_DUPLICATE_OUTCOME',
+    ] as $needle) {
+        $assert(str_contains($template, $needle), 'Import duplicate-row template missing: ' . $needle);
+    }
 }
 
 foreach ([
