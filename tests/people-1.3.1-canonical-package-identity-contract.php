@@ -33,6 +33,16 @@ $componentManifest = (string) file_get_contents($root . '/component/xdecaropeopl
 $manifest = (string) file_get_contents($root . '/package/pkg_people.xml');
 $installer = (string) file_get_contents($root . '/package/script.php');
 $feed = (string) file_get_contents($root . '/updates/pkg_people.xml');
+$feedXml = simplexml_load_string($feed);
+if ($feedXml === false || !isset($feedXml->update)) {
+    fwrite(STDERR, "People canonical update feed is not valid XML.\n");
+    exit(1);
+}
+$feedVersion = trim((string) $feedXml->update->version);
+if (version_compare($feedVersion, '1.3.2', '<') || version_compare($feedVersion, $version, '>')) {
+    fwrite(STDERR, "People update feed version must be released and not newer than source VERSION.\n");
+    exit(1);
+}
 $build = (string) file_get_contents($root . '/build/build.sh');
 $access = (string) file_get_contents($root . '/component/admin/access.xml');
 $provider = (string) file_get_contents($root . '/component/admin/src/Service/PersonProviderService.php');
@@ -44,7 +54,7 @@ $checks = [
     [$manifest, '<version>' . $version . '</version>', 'People package manifest must use version ' . $version . '.'],
     [$manifest, 'updates/pkg_people.xml', 'People package must register the canonical update feed.'],
     [$feed, '<element>pkg_people</element>', 'People update feed must identify pkg_people.'],
-    [$feed, 'pkg_people_' . $version . '.zip', 'People update feed must publish pkg_people_1.3.2.zip.'],
+    [$feed, 'pkg_people_' . $feedVersion . '.zip', 'People update feed download URL must match its published feed version.'],
     [$build, 'pkg_people_${VERSION}.zip', 'People build must create the canonical package ZIP.'],
     [$installer, 'pkg_peopleInstallerScript', 'People installer class must follow the canonical package identity.'],
     [$installer, 'pkg_xdecaropeople', 'People installer must recognize the legacy package during migration.'],
