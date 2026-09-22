@@ -94,6 +94,10 @@ jobs:
           unzip -Z1 "dist/pkg_people_${VERSION}.zip" | grep -Fxq 'com_xdecaropeople.zip'
           unzip -p "dist/pkg_people_${VERSION}.zip" com_xdecaropeople.zip > /tmp/component.zip
           unzip -p /tmp/component.zip admin/src/Service/ImportService.php | grep -Fq 'function importBatch'
+          unzip -p /tmp/component.zip admin/src/Service/DuplicateService.php | grep -Fq 'function mergeGroup'
+          unzip -p /tmp/component.zip admin/src/Controller/DuplicateController.php | grep -Fq 'function dismiss'
+          unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'resolveCanonicalUuid'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.0.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/import.js'
 
   joomla-runtime:
