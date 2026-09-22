@@ -12,6 +12,10 @@ use xdecaro\Core\Integration\CapabilityRegistry;
 /** Optional read-only bridge to the public Membership person-memberships API. */
 final class MembershipIntegrationService
 {
+    public function __construct(private PersonProviderService $people)
+    {
+    }
+
     private const COMPONENT = 'com_decaromembership';
     private const CAPABILITY = 'membership.person_memberships';
     private const CAPABILITY_VERSION = '1';
