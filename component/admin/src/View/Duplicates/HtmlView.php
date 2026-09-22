@@ -13,6 +13,14 @@ use xdecaro\Component\People\Administrator\Extension\PeopleComponent;
 final class HtmlView extends BaseHtmlView
 {
     public array $groups = [];
+    public array $summary = [
+        'total' => 0,
+        'conflict' => 0,
+        'strong' => 0,
+        'possible' => 0,
+        'records' => 0,
+    ];
+    public string $filter = 'all';
     public bool $canMerge = false;
     public bool $canSensitive = false;
 
@@ -45,7 +53,38 @@ final class HtmlView extends BaseHtmlView
         }
 
         $this->document->getWebAssetManager()->useStyle('com_xdecaropeople.admin');
-        $this->groups = (array) $this->get('Groups');
+
+        $allGroups = array_values((array) $this->get('Groups'));
+        $recordIds = [];
+
+        foreach ($allGroups as $group) {
+            $strength = (string) ($group['strength'] ?? 'possible');
+            if (isset($this->summary[$strength])) {
+                $this->summary[$strength]++;
+            }
+
+            foreach ((array) ($group['records'] ?? []) as $record) {
+                $recordId = (int) ($record['id'] ?? 0);
+                if ($recordId > 0) {
+                    $recordIds[$recordId] = true;
+                }
+            }
+        }
+
+        $this->summary['total'] = count($allGroups);
+        $this->summary['records'] = count($recordIds);
+
+        $requestedFilter = $app->input->getCmd('duplicate_filter', 'all');
+        $this->filter = in_array($requestedFilter, ['all', 'conflict', 'strong', 'possible'], true)
+            ? $requestedFilter
+            : 'all';
+
+        $this->groups = $this->filter === 'all'
+            ? $allGroups
+            : array_values(array_filter(
+                $allGroups,
+                fn(array $group): bool => (string) ($group['strength'] ?? 'possible') === $this->filter
+            ));
 
         ToolbarHelper::title(Text::_('COM_XDECAROPEOPLE_DUPLICATES'), 'search');
 
