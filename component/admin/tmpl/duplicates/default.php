@@ -171,7 +171,7 @@ $statusBadge = static function (string $status): array {
                     }
                 }
                 ?>
-                <details class="card xdecaro-duplicate-group">
+                <details class="card xdecaro-duplicate-group" name="xdecaro-duplicate-review">
                     <summary class="card-header xdecaro-duplicate-accordion-summary">
                         <div class="xdecaro-duplicate-summary-main">
                             <div class="d-flex flex-wrap align-items-center gap-2">
