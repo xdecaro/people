@@ -36,6 +36,10 @@ jobs:
           php tests/people-1.2.16-contract.php
           php tests/competitions-history-tab-contract.php
           php tests/people-1.3.1-canonical-package-identity-contract.php
+          php tests/organizations-history-tab-contract.php
+          php tests/people-1.4.0-contract.php
+          php tests/people-1.5.0-membership-contract.php
+          php tests/people-1.6.0-import-contract.php
       - name: Validate source metadata
         shell: bash
         run: |
@@ -72,6 +76,7 @@ jobs:
         run: |
           node --check component/media/js/person-form.js
           node --check component/media/js/person-cancel-fix.js
+          node --check component/media/js/import.js
       - name: Deterministic build
         shell: bash
         run: |
@@ -85,6 +90,9 @@ jobs:
           VERSION="$(tr -d '\r\n' < VERSION)"
           unzip -Z1 "dist/pkg_people_${VERSION}.zip" | grep -Fxq 'pkg_people.xml'
           unzip -Z1 "dist/pkg_people_${VERSION}.zip" | grep -Fxq 'com_xdecaropeople.zip'
+          unzip -p "dist/pkg_people_${VERSION}.zip" com_xdecaropeople.zip > /tmp/component.zip
+          unzip -p /tmp/component.zip admin/src/Service/ImportService.php | grep -Fq 'function importBatch'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/import.js'
 
   joomla-runtime:
     runs-on: ubuntu-latest
