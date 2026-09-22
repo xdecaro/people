@@ -248,3 +248,9 @@ jobs:
           echo "People runtime and CSV import OK\n";
           PHP
           php people-runtime-probe.php
+      - name: Probe duplicate merge runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          php ../tests/people-1.7.0-duplicate-runtime.php
