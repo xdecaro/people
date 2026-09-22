@@ -70,6 +70,7 @@ final class HtmlView extends BaseHtmlView
                 'encodingUtf8' => Text::_('COM_XDECAROPEOPLE_IMPORT_ENCODING_UTF8'),
                 'conflictRows' => Text::_('COM_XDECAROPEOPLE_IMPORT_CONFLICT_ROWS'),
                 'conflictFields' => Text::_('COM_XDECAROPEOPLE_IMPORT_CONFLICT_FIELDS'),
+                'invalidDetailsTitle' => Text::_('COM_XDECAROPEOPLE_IMPORT_INVALID_DETAILS_JS'),
             ],
             'codes' => [
                 'missing_first_name' => Text::_('COM_XDECAROPEOPLE_IMPORT_CODE_MISSING_FIRST_NAME'),

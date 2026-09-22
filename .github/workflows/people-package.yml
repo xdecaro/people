@@ -42,6 +42,7 @@ jobs:
           php tests/people-1.4.0-contract.php
           php tests/people-1.5.0-membership-contract.php
           php tests/people-1.6.0-import-contract.php
+          php tests/people-1.6.1-import-review-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           version = sys.argv[1]

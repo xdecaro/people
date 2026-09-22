@@ -46,6 +46,27 @@ use Joomla\CMS\Language\Text;
         <div class="card-body">
             <h2 class="h5 mb-3"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_STEP_REVIEW'); ?></h2>
             <div class="xdecaro-import-summary" id="xdecaro-people-import-summary" aria-live="polite"></div>
+
+            <details class="xdecaro-import-review mt-3" id="xdecaro-people-import-invalid-panel" hidden>
+                <summary>
+                    <span id="xdecaro-people-import-invalid-title"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_INVALID_DETAILS_TITLE'); ?></span>
+                </summary>
+                <p class="text-body-secondary mt-2 mb-2"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_INVALID_DETAILS_HELP'); ?></p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_REPORT_ROW'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_PERSON'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_TAX_IDENTIFIER'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_PROBLEM'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody id="xdecaro-people-import-invalid-body"></tbody>
+                    </table>
+                </div>
+            </details>
+
             <div class="alert alert-warning mt-3 mb-3">
                 <?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_EXISTING_HELP'); ?>
             </div>
