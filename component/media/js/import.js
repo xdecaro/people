@@ -14,6 +14,9 @@
   const analyzeButton = document.getElementById('xdecaro-people-import-analyze');
   const summaryCard = document.getElementById('xdecaro-people-import-summary-card');
   const summary = document.getElementById('xdecaro-people-import-summary');
+  const duplicatePanel = document.getElementById('xdecaro-people-import-duplicate-panel');
+  const duplicateTitle = document.getElementById('xdecaro-people-import-duplicate-title');
+  const duplicateBody = document.getElementById('xdecaro-people-import-duplicate-body');
   const invalidPanel = document.getElementById('xdecaro-people-import-invalid-panel');
   const invalidTitle = document.getElementById('xdecaro-people-import-invalid-title');
   const invalidBody = document.getElementById('xdecaro-people-import-invalid-body');
@@ -36,6 +39,9 @@
     delimiter: ';',
     prepared: [],
     invalid: [],
+    duplicateRows: [],
+    duplicateGroups: 0,
+    duplicateExtraRows: 0,
     existing: [],
     candidates: [],
     report: [],
@@ -278,13 +284,30 @@
     return errors;
   };
 
+  const normalizeIdentityName = (value) => clean(value)
+    .normalize('NFKC')
+    .replace(/\s+/g, ' ')
+    .toLocaleUpperCase();
+
   const identityKey = (row) => {
     if (row.tax_identifier) return `tax:${row.tax_identifier}`;
-    if (row.first_name && row.last_name && row.birth_date && row.birth_date !== '0000-00-00') {
-      return `person:${clean(row.first_name).toUpperCase()}|${clean(row.last_name).toUpperCase()}|${clean(row.birth_date)}`;
+
+    const firstName = normalizeIdentityName(row.first_name);
+    const lastName = normalizeIdentityName(row.last_name);
+    const birthDate = clean(row.birth_date);
+
+    if (firstName && lastName && birthDate && birthDate !== '0000-00-00') {
+      return `person:${firstName}|${lastName}|${birthDate}`;
     }
+
+    if (firstName && lastName) {
+      return `name:${firstName}|${lastName}`;
+    }
+
     return `row:${row._row}`;
   };
+
+  const targetLabel = (key) => targets.find((target) => target.key === key)?.label || key;
 
   const completenessScore = (row) => targets.reduce(
     (score, target) => score + (clean(row[target.key]) !== '' ? 1 : 0),
@@ -300,7 +323,9 @@
       groups.get(key).push(row);
     });
 
-    let duplicates = 0;
+    let duplicateGroups = 0;
+    let duplicateExtraRows = 0;
+    const duplicateRows = [];
     const consolidated = [];
     const conflicts = [];
 
@@ -310,8 +335,10 @@
         return;
       }
 
-      duplicates += group.length - 1;
+      duplicateGroups++;
+      duplicateExtraRows += group.length - 1;
 
+      const rowNumbers = group.map((row) => row._row).sort((a, b) => a - b);
       const conflictingFields = targets
         .map((target) => target.key)
         .filter((key) => {
@@ -323,24 +350,30 @@
           return values.size > 1;
         });
 
+      const conflictLabels = conflictingFields.map(targetLabel);
+      const sorted = [...group].sort((a, b) => completenessScore(b) - completenessScore(a) || a._row - b._row);
+      const winner = { ...sorted[0] };
+      const winnerRow = Number(winner._row || 0);
+
       if (conflictingFields.length) {
-        const rowNumbers = group.map((row) => row._row).sort((a, b) => a - b);
-        const reference = group[0];
-        conflicts.push({
-          row: rowNumbers[0],
-          status: 'invalid',
-          first_name: clean(reference.first_name),
-          last_name: clean(reference.last_name),
-          tax_identifier: clean(reference.tax_identifier),
-          message: 'duplicate_conflict',
-          warnings: [],
-          details: `${strings.conflictRows || 'Rows'}: ${rowNumbers.join(', ')} — ${strings.conflictFields || 'Fields'}: ${conflictingFields.join(', ')}`,
+        group.forEach((sourceRow) => {
+          const item = {
+            row: Number(sourceRow._row || 0),
+            status: 'invalid',
+            first_name: clean(sourceRow.first_name),
+            last_name: clean(sourceRow.last_name),
+            tax_identifier: clean(sourceRow.tax_identifier),
+            message: 'duplicate_conflict',
+            warnings: [],
+            group_rows: rowNumbers,
+            conflict_fields: conflictingFields,
+            details: `${strings.conflictRows || 'Rows'}: ${rowNumbers.join(', ')} — ${strings.conflictFields || 'Fields'}: ${conflictLabels.join(', ')}`,
+          };
+          conflicts.push(item);
+          duplicateRows.push({ ...item, duplicate_status: 'conflict' });
         });
         return;
       }
-
-      const sorted = [...group].sort((a, b) => completenessScore(b) - completenessScore(a) || a._row - b._row);
-      const winner = { ...sorted[0] };
 
       sorted.slice(1).forEach((candidate) => {
         targets.forEach((target) => {
@@ -350,13 +383,27 @@
         });
       });
 
+      group.forEach((sourceRow) => {
+        duplicateRows.push({
+          row: Number(sourceRow._row || 0),
+          first_name: clean(sourceRow.first_name),
+          last_name: clean(sourceRow.last_name),
+          tax_identifier: clean(sourceRow.tax_identifier),
+          group_rows: rowNumbers,
+          conflict_fields: [],
+          duplicate_status: Number(sourceRow._row || 0) === winnerRow ? 'primary' : 'consolidated',
+        });
+      });
+
       consolidated.push(winner);
     });
 
     return {
       rows: consolidated.sort((a, b) => a._row - b._row),
-      duplicates,
-      conflicts,
+      duplicateGroups,
+      duplicateExtraRows,
+      duplicateRows: duplicateRows.sort((a, b) => Number(a.row || 0) - Number(b.row || 0)),
+      conflicts: conflicts.sort((a, b) => Number(a.row || 0) - Number(b.row || 0)),
     };
   };
 
@@ -408,6 +455,62 @@
     });
   };
 
+  const renderDuplicateDetails = () => {
+    if (!duplicatePanel || !duplicateBody || !duplicateTitle) return;
+
+    duplicateBody.replaceChildren();
+
+    if (!state.duplicateRows.length) {
+      duplicatePanel.hidden = true;
+      duplicatePanel.open = false;
+      return;
+    }
+
+    duplicateTitle.textContent = `${state.duplicateRows.length} ${strings.duplicateRowsTitle || 'rows involved in duplicate groups'} — ${state.duplicateGroups} ${strings.duplicateGroupsTitle || 'groups'}`;
+
+    [...state.duplicateRows]
+      .sort((a, b) => Number(a.row || 0) - Number(b.row || 0))
+      .forEach((item) => {
+        const tr = document.createElement('tr');
+        const rowCell = document.createElement('td');
+        const personCell = document.createElement('td');
+        const taxCell = document.createElement('td');
+        const groupCell = document.createElement('td');
+        const outcomeCell = document.createElement('td');
+        const badge = document.createElement('span');
+
+        rowCell.textContent = String(item.row || '—');
+        personCell.textContent = [clean(item.first_name), clean(item.last_name)].filter(Boolean).join(' ') || '—';
+        taxCell.textContent = clean(item.tax_identifier) || '—';
+        groupCell.textContent = (item.group_rows || []).join(', ') || '—';
+
+        if (item.duplicate_status === 'conflict') {
+          badge.className = 'badge bg-danger';
+          badge.textContent = strings.duplicateConflict || 'Conflict';
+          outcomeCell.appendChild(badge);
+          const detail = document.createElement('div');
+          detail.className = 'small text-body-secondary mt-1';
+          const fields = Array.isArray(item.conflict_fields) ? item.conflict_fields.map(targetLabel).join(', ') : '';
+          detail.textContent = fields ? `${strings.conflictFields || 'Fields'}: ${fields}` : '';
+          outcomeCell.appendChild(detail);
+        } else if (item.duplicate_status === 'primary') {
+          badge.className = 'badge bg-success';
+          badge.textContent = strings.duplicatePrimary || 'Primary row';
+          outcomeCell.appendChild(badge);
+        } else {
+          badge.className = 'badge bg-warning text-dark';
+          badge.textContent = strings.duplicateConsolidated || 'Duplicate row';
+          outcomeCell.appendChild(badge);
+        }
+
+        tr.append(rowCell, personCell, taxCell, groupCell, outcomeCell);
+        duplicateBody.appendChild(tr);
+      });
+
+    duplicatePanel.hidden = false;
+    duplicatePanel.open = true;
+  };
+
   const renderInvalidDetails = () => {
     if (!invalidPanel || !invalidBody || !invalidTitle) return;
 
@@ -451,11 +554,19 @@
   const resetAnalysis = () => {
     state.prepared = [];
     state.invalid = [];
+    state.duplicateRows = [];
+    state.duplicateGroups = 0;
+    state.duplicateExtraRows = 0;
     state.existing = [];
     state.candidates = [];
     state.report = [];
     state.fileDuplicateCount = 0;
     summaryCard.hidden = true;
+    if (duplicatePanel) {
+      duplicatePanel.hidden = true;
+      duplicatePanel.open = false;
+    }
+    duplicateBody?.replaceChildren();
     if (invalidPanel) {
       invalidPanel.hidden = true;
       invalidPanel.open = false;
@@ -557,7 +668,10 @@
       });
 
       const consolidated = consolidateDuplicates(valid);
-      state.fileDuplicateCount = consolidated.duplicates;
+      state.fileDuplicateCount = consolidated.duplicateGroups;
+      state.duplicateGroups = consolidated.duplicateGroups;
+      state.duplicateExtraRows = consolidated.duplicateExtraRows;
+      state.duplicateRows = consolidated.duplicateRows;
       state.prepared = consolidated.rows;
       state.invalid = [...invalid, ...consolidated.conflicts];
 
@@ -587,13 +701,14 @@
       renderSummary({
         total: normalized.length,
         valid: state.prepared.length,
-        duplicates: state.fileDuplicateCount,
+        duplicates: state.duplicateGroups,
         invalid: state.invalid.length,
         existing: state.existing.length,
         newPeople: state.candidates.length,
       });
 
       summaryCard.hidden = false;
+      renderDuplicateDetails();
       renderInvalidDetails();
       startButton.disabled = state.candidates.length === 0;
       analyzeButton.textContent = strings.ready || 'Ready';

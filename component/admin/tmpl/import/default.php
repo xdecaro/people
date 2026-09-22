@@ -47,6 +47,27 @@ use Joomla\CMS\Language\Text;
             <h2 class="h5 mb-3"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_STEP_REVIEW'); ?></h2>
             <div class="xdecaro-import-summary" id="xdecaro-people-import-summary" aria-live="polite"></div>
 
+            <details class="xdecaro-import-review mt-3" id="xdecaro-people-import-duplicate-panel" hidden>
+                <summary>
+                    <span id="xdecaro-people-import-duplicate-title"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_DETAILS_TITLE'); ?></span>
+                </summary>
+                <p class="text-body-secondary mt-2 mb-2"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_DETAILS_HELP'); ?></p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_REPORT_ROW'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_PERSON'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_TAX_IDENTIFIER'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_OUTCOME'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody id="xdecaro-people-import-duplicate-body"></tbody>
+                    </table>
+                </div>
+            </details>
+
             <details class="xdecaro-import-review mt-3" id="xdecaro-people-import-invalid-panel" hidden>
                 <summary>
                     <span id="xdecaro-people-import-invalid-title"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_INVALID_DETAILS_TITLE'); ?></span>

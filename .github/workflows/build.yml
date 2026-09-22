@@ -43,6 +43,7 @@ jobs:
           php tests/people-1.6.1-import-review-contract.php
           php tests/people-1.7.0-duplicate-resolution-contract.php
           php tests/people-1.7.1-duplicate-accordion-contract.php
+          php tests/people-1.7.3-import-duplicate-rows-contract.php
       - name: Validate source metadata
         shell: bash
         run: |
@@ -100,6 +101,8 @@ jobs:
           unzip -p /tmp/component.zip admin/src/Service/PersonProviderService.php | grep -Fq 'resolveCanonicalUuid'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.0.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.1.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.2.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.3.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/import.js'
 
   joomla-runtime:

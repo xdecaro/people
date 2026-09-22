@@ -10,7 +10,7 @@ $assert = static function (bool $condition, string $message): void {
     }
 };
 
-$assert($version === '1.7.1', 'People 1.7.1 version expected.');
+$assert(version_compare($version, '1.7.1', '>='), 'People 1.7.1 or newer expected.');
 
 $service = (string) file_get_contents($root . '/component/admin/src/Service/DuplicateService.php');
 $template = (string) file_get_contents($root . '/component/admin/tmpl/duplicates/default.php');
@@ -71,4 +71,4 @@ foreach ([$it, $en] as $language) {
     $assert(substr_count($language, 'COM_XDECAROPEOPLE_DUPLICATE_POSSIBLE_HELP=') === 1, 'Possible help translation must be unique.');
 }
 
-echo "People 1.7.1 duplicate accordion and conflict safety contract OK\n";
+echo "People 1.7.1+ duplicate accordion and conflict safety compatibility contract OK\n";
