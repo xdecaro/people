@@ -36,7 +36,7 @@ foreach ([
     'xdecaro-duplicate-summary-counts',
     'xdecaro-duplicate-difference-summary',
     'xdecaro-duplicate-field--',
-    "($group['merge_allowed'] ?? false)",
+    "merge_allowed",
     'COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_CONFLICT',
     'COM_XDECAROPEOPLE_DUPLICATE_FIELD_SAME',
     'COM_XDECAROPEOPLE_DUPLICATE_FIELD_DIFFERENT',
