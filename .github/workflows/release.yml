@@ -92,7 +92,7 @@ jobs:
           V="$(tr -d '\r\n' < VERSION)"
           gh release create "v${V}" "dist/com_xdecaropeople_${V}.zip" "dist/pkg_people_${V}.zip" dist/SHA256SUMS.txt \
             --title "People ${V}" \
-            --notes "People ${V}: shows every CSV row involved in duplicate groups before import, lists conflicting duplicate rows individually for correction, and reports only import-ready consolidated people as valid. Joomla 6.1.3 only."
+            --notes "People ${V}: compacts the grouped CSV duplicate accordions by reducing closed-row height, vertical spacing and padding without changing import counts, duplicate logic or correction rules. Joomla 6.1.3 only."
       - name: Publish canonical and legacy-bridge Joomla update feeds
         shell: bash
         run: |
