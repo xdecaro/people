@@ -468,43 +468,140 @@
 
     duplicateTitle.textContent = `${state.duplicateRows.length} ${strings.duplicateRowsTitle || 'rows involved in duplicate groups'} — ${state.duplicateGroups} ${strings.duplicateGroupsTitle || 'groups'}`;
 
+    const groups = new Map();
+
     [...state.duplicateRows]
       .sort((a, b) => Number(a.row || 0) - Number(b.row || 0))
       .forEach((item) => {
-        const tr = document.createElement('tr');
-        const rowCell = document.createElement('td');
-        const personCell = document.createElement('td');
-        const taxCell = document.createElement('td');
-        const groupCell = document.createElement('td');
-        const outcomeCell = document.createElement('td');
-        const badge = document.createElement('span');
+        const groupRows = Array.isArray(item.group_rows)
+          ? item.group_rows.map(Number).filter(Number.isFinite).sort((a, b) => a - b)
+          : [Number(item.row || 0)].filter(Number.isFinite);
+        const groupKey = groupRows.join('|') || String(item.row || '');
 
-        rowCell.textContent = String(item.row || '—');
-        personCell.textContent = [clean(item.first_name), clean(item.last_name)].filter(Boolean).join(' ') || '—';
-        taxCell.textContent = clean(item.tax_identifier) || '—';
-        groupCell.textContent = (item.group_rows || []).join(', ') || '—';
-
-        if (item.duplicate_status === 'conflict') {
-          badge.className = 'badge bg-danger';
-          badge.textContent = strings.duplicateConflict || 'Conflict';
-          outcomeCell.appendChild(badge);
-          const detail = document.createElement('div');
-          detail.className = 'small text-body-secondary mt-1';
-          const fields = Array.isArray(item.conflict_fields) ? item.conflict_fields.map(targetLabel).join(', ') : '';
-          detail.textContent = fields ? `${strings.conflictFields || 'Fields'}: ${fields}` : '';
-          outcomeCell.appendChild(detail);
-        } else if (item.duplicate_status === 'primary') {
-          badge.className = 'badge bg-success';
-          badge.textContent = strings.duplicatePrimary || 'Primary row';
-          outcomeCell.appendChild(badge);
-        } else {
-          badge.className = 'badge bg-warning text-dark';
-          badge.textContent = strings.duplicateConsolidated || 'Duplicate row';
-          outcomeCell.appendChild(badge);
+        if (!groups.has(groupKey)) {
+          groups.set(groupKey, {
+            rows: groupRows,
+            items: [],
+          });
         }
 
-        tr.append(rowCell, personCell, taxCell, groupCell, outcomeCell);
-        duplicateBody.appendChild(tr);
+        groups.get(groupKey).items.push(item);
+      });
+
+    [...groups.values()]
+      .sort((a, b) => Number(a.rows[0] || 0) - Number(b.rows[0] || 0))
+      .forEach((group, groupIndex) => {
+        const items = [...group.items].sort((a, b) => Number(a.row || 0) - Number(b.row || 0));
+        const representative = items[0] || {};
+        const personName = [clean(representative.first_name), clean(representative.last_name)].filter(Boolean).join(' ') || '—';
+        const hasConflict = items.some((item) => item.duplicate_status === 'conflict');
+
+        const details = document.createElement('details');
+        details.className = 'xdecaro-import-duplicate-group';
+        details.name = 'xdecaro-import-duplicate-review';
+
+        const summaryEl = document.createElement('summary');
+        summaryEl.className = 'xdecaro-import-duplicate-group-summary';
+
+        const summaryMain = document.createElement('div');
+        summaryMain.className = 'xdecaro-import-duplicate-group-main';
+
+        const nameEl = document.createElement('strong');
+        nameEl.textContent = personName;
+
+        const rowsEl = document.createElement('span');
+        rowsEl.className = 'small text-body-secondary';
+        rowsEl.textContent = `${strings.duplicateGroupRows || 'Rows'}: ${group.rows.join(', ')}`;
+
+        summaryMain.append(nameEl, rowsEl);
+
+        const summaryMeta = document.createElement('div');
+        summaryMeta.className = 'xdecaro-import-duplicate-group-meta';
+
+        const countBadge = document.createElement('span');
+        countBadge.className = 'badge bg-secondary';
+        countBadge.textContent = `${items.length} ${strings.duplicateGroupRecords || 'rows'}`;
+
+        const outcomeBadge = document.createElement('span');
+        outcomeBadge.className = hasConflict ? 'badge bg-danger' : 'badge bg-success';
+        outcomeBadge.textContent = hasConflict
+          ? (strings.duplicateGroupConflict || 'Needs correction')
+          : (strings.duplicateGroupConsolidated || 'Can be consolidated');
+
+        const chevron = document.createElement('span');
+        chevron.className = 'xdecaro-import-duplicate-chevron';
+        chevron.setAttribute('aria-hidden', 'true');
+
+        summaryMeta.append(countBadge, outcomeBadge, chevron);
+        summaryEl.append(summaryMain, summaryMeta);
+        details.appendChild(summaryEl);
+
+        const tableWrap = document.createElement('div');
+        tableWrap.className = 'table-responsive mt-2';
+
+        const table = document.createElement('table');
+        table.className = 'table table-sm table-striped align-middle mb-0';
+
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+
+        [
+          strings.reportRow || 'Row',
+          strings.person || 'Person',
+          strings.taxIdentifier || 'TIN',
+          strings.duplicateOutcome || 'Outcome',
+        ].forEach((label) => {
+          const th = document.createElement('th');
+          th.scope = 'col';
+          th.textContent = label;
+          headRow.appendChild(th);
+        });
+
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        items.forEach((item) => {
+          const tr = document.createElement('tr');
+          const rowCell = document.createElement('td');
+          const personCell = document.createElement('td');
+          const taxCell = document.createElement('td');
+          const outcomeCell = document.createElement('td');
+          const badge = document.createElement('span');
+
+          rowCell.textContent = String(item.row || '—');
+          personCell.textContent = [clean(item.first_name), clean(item.last_name)].filter(Boolean).join(' ') || '—';
+          taxCell.textContent = clean(item.tax_identifier) || '—';
+
+          if (item.duplicate_status === 'conflict') {
+            badge.className = 'badge bg-danger';
+            badge.textContent = strings.duplicateConflict || 'Conflict';
+            outcomeCell.appendChild(badge);
+
+            const detail = document.createElement('div');
+            detail.className = 'small text-body-secondary mt-1';
+            const fields = Array.isArray(item.conflict_fields) ? item.conflict_fields.map(targetLabel).join(', ') : '';
+            detail.textContent = fields ? `${strings.conflictFields || 'Fields'}: ${fields}` : '';
+            outcomeCell.appendChild(detail);
+          } else if (item.duplicate_status === 'primary') {
+            badge.className = 'badge bg-success';
+            badge.textContent = strings.duplicatePrimary || 'Primary row';
+            outcomeCell.appendChild(badge);
+          } else {
+            badge.className = 'badge bg-warning text-dark';
+            badge.textContent = strings.duplicateConsolidated || 'Duplicate row';
+            outcomeCell.appendChild(badge);
+          }
+
+          tr.append(rowCell, personCell, taxCell, outcomeCell);
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        tableWrap.appendChild(table);
+        details.appendChild(tableWrap);
+        duplicateBody.appendChild(details);
       });
 
     duplicatePanel.hidden = false;

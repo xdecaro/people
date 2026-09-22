@@ -6,7 +6,7 @@ Stable reusable person master data for the xdecaro ecosystem.
 - Package: `pkg_people` (`pkg_xdecaropeople` is retained only as a legacy update/migration identity)
 - Namespace: `xdecaro\Component\People`
 - Tables: `#__xdecaropeople_*`
-- Stable candidate version: `1.7.3`
+- Stable candidate version: `1.7.4`
 - Joomla: `6.1.3` only
 - PHP: `8.3+`
 - Requires xdecaro Core `2.0.1+`
@@ -76,3 +76,6 @@ People 1.7.2 makes CSV duplicate detection safer for generic files by normalizin
 
 
 People 1.7.3 shows every source row involved in CSV duplicates before import, reports duplicate groups separately, counts only import-ready people as valid, and lists every conflicting duplicate row individually among rows that need correction.
+
+
+People 1.7.4 groups all source rows involved in the same CSV duplicate into a compact nested accordion, keeping related rows adjacent while preserving the complete per-row review and the separate correction list.

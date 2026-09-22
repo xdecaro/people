@@ -76,6 +76,13 @@ final class HtmlView extends BaseHtmlView
                 'duplicatePrimary' => Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_PRIMARY'),
                 'duplicateConsolidated' => Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_CONSOLIDATED'),
                 'duplicateConflict' => Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_CONFLICT'),
+                'duplicateGroupRows' => Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP_ROWS'),
+                'duplicateGroupRecords' => Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP_RECORDS'),
+                'duplicateGroupConflict' => Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP_CONFLICT'),
+                'duplicateGroupConsolidated' => Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP_CONSOLIDATED'),
+                'person' => Text::_('COM_XDECAROPEOPLE_IMPORT_PERSON'),
+                'taxIdentifier' => Text::_('COM_XDECAROPEOPLE_FIELD_TAX_IDENTIFIER'),
+                'duplicateOutcome' => Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_OUTCOME'),
             ],
             'codes' => [
                 'missing_first_name' => Text::_('COM_XDECAROPEOPLE_IMPORT_CODE_MISSING_FIRST_NAME'),

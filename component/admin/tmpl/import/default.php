@@ -52,20 +52,7 @@ use Joomla\CMS\Language\Text;
                     <span id="xdecaro-people-import-duplicate-title"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_DETAILS_TITLE'); ?></span>
                 </summary>
                 <p class="text-body-secondary mt-2 mb-2"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_DETAILS_HELP'); ?></p>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_REPORT_ROW'); ?></th>
-                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_PERSON'); ?></th>
-                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_TAX_IDENTIFIER'); ?></th>
-                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP'); ?></th>
-                                <th scope="col"><?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_DUPLICATE_OUTCOME'); ?></th>
-                            </tr>
-                        </thead>
-                        <tbody id="xdecaro-people-import-duplicate-body"></tbody>
-                    </table>
-                </div>
+                <div id="xdecaro-people-import-duplicate-body" class="xdecaro-import-duplicate-groups"></div>
             </details>
 
             <details class="xdecaro-import-review mt-3" id="xdecaro-people-import-invalid-panel" hidden>

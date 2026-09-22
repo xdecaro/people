@@ -10,7 +10,7 @@ $assert = static function (bool $condition, string $message): void {
     }
 };
 
-$assert($version === '1.7.3', 'People 1.7.3 version expected.');
+$assert(version_compare($version, '1.7.3', '>='), 'People 1.7.3 or newer expected.');
 
 $js = (string) file_get_contents($root . '/component/media/js/import.js');
 $template = (string) file_get_contents($root . '/component/admin/tmpl/import/default.php');
@@ -37,10 +37,17 @@ foreach ([
     'xdecaro-people-import-duplicate-panel',
     'xdecaro-people-import-duplicate-title',
     'xdecaro-people-import-duplicate-body',
-    'COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP',
-    'COM_XDECAROPEOPLE_IMPORT_DUPLICATE_OUTCOME',
 ] as $needle) {
     $assert(str_contains($template, $needle), 'Import duplicate-row template missing: ' . $needle);
+}
+
+if (version_compare($version, '1.7.4', '<')) {
+    foreach ([
+        'COM_XDECAROPEOPLE_IMPORT_DUPLICATE_GROUP',
+        'COM_XDECAROPEOPLE_IMPORT_DUPLICATE_OUTCOME',
+    ] as $needle) {
+        $assert(str_contains($template, $needle), 'Import duplicate-row template missing: ' . $needle);
+    }
 }
 
 foreach ([
@@ -69,4 +76,33 @@ foreach ([$it, $en] as $language) {
     }
 }
 
-echo "People 1.7.3 CSV duplicate-row review contract OK\n";
+
+if (version_compare($version, '1.7.4', '>=')) {
+    $css = (string) file_get_contents($root . '/component/media/css/admin.css');
+
+    foreach ([
+        'const groups = new Map()',
+        "details.className = 'xdecaro-import-duplicate-group'",
+        "details.name = 'xdecaro-import-duplicate-review'",
+        'duplicateGroupRows',
+        'duplicateGroupRecords',
+        'duplicateGroupConflict',
+        'duplicateGroupConsolidated',
+        'groups.get(groupKey).items.push(item)',
+    ] as $needle) {
+        $assert(str_contains($js, $needle), 'Grouped duplicate review JavaScript missing: ' . $needle);
+    }
+
+    $assert(str_contains($template, 'xdecaro-import-duplicate-groups'), 'Grouped duplicate review container missing.');
+    $assert(!str_contains($template, '<tbody id="xdecaro-people-import-duplicate-body"></tbody>'), 'Old flat duplicate table must be removed.');
+
+    foreach ([
+        '.xdecaro-import-duplicate-groups',
+        '.xdecaro-import-duplicate-group-summary',
+        '.xdecaro-import-duplicate-group[open] .xdecaro-import-duplicate-chevron',
+    ] as $needle) {
+        $assert(str_contains($css, $needle), 'Grouped duplicate review styling missing: ' . $needle);
+    }
+}
+
+echo "People 1.7.3+ CSV duplicate-row review compatibility contract OK\n";
