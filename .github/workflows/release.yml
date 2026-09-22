@@ -42,6 +42,7 @@ jobs:
           php tests/people-1.7.0-duplicate-resolution-contract.php
           php tests/people-1.7.1-duplicate-accordion-contract.php
           php tests/people-1.7.3-import-duplicate-rows-contract.php
+          php tests/people-1.7.6-duplicate-dashboard-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           v=sys.argv[1]
@@ -77,6 +78,7 @@ jobs:
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.1.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.2.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.3.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.6.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/import.js'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/language/it-IT/com_xdecaropeople_organizations.ini'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/language/en-GB/com_xdecaropeople_organizations.ini'
