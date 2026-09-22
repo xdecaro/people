@@ -10,7 +10,7 @@ $assert = static function (bool $condition, string $message): void {
     }
 };
 
-$assert($version === '1.6.1', 'People 1.6.1 version expected.');
+$assert(version_compare($version, '1.6.1', '>='), 'People 1.6.1 or newer expected.');
 
 $template = (string) file_get_contents($root . '/component/admin/tmpl/import/default.php');
 $view = (string) file_get_contents($root . '/component/admin/src/View/Import/HtmlView.php');
@@ -61,4 +61,4 @@ foreach ([$italian, $english] as $language) {
     }
 }
 
-echo "People 1.6.1 pre-import correction review contract OK\n";
+echo "People 1.6.1+ pre-import correction review compatibility contract OK\n";
