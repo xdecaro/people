@@ -6,7 +6,7 @@ Stable reusable person master data for the xdecaro ecosystem.
 - Package: `pkg_people` (`pkg_xdecaropeople` is retained only as a legacy update/migration identity)
 - Namespace: `xdecaro\Component\People`
 - Tables: `#__xdecaropeople_*`
-- Stable candidate version: `1.7.1`
+- Stable candidate version: `1.7.3`
 - Joomla: `6.1.3` only
 - PHP: `8.3+`
 - Requires xdecaro Core `2.0.1+`
@@ -70,3 +70,9 @@ People 1.7.0 replaces the old duplicate warning table with a side-by-side review
 
 
 People 1.7.1 makes duplicate review compact with collapsed comparison groups, highlights same/different/missing identity fields, and blocks merge when matching name/birth records carry different tax identifiers.
+
+
+People 1.7.2 makes CSV duplicate detection safer for generic files by normalizing names and refusing consolidation when mapped People fields conflict; import mapping labels distinguish birth and residence regions.
+
+
+People 1.7.3 shows every source row involved in CSV duplicates before import, reports duplicate groups separately, counts only import-ready people as valid, and lists every conflicting duplicate row individually among rows that need correction.
