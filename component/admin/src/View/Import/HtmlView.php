@@ -68,6 +68,8 @@ final class HtmlView extends BaseHtmlView
                 'notMapped' => Text::_('COM_XDECAROPEOPLE_IMPORT_NOT_MAPPED'),
                 'encodingCp1252' => Text::_('COM_XDECAROPEOPLE_IMPORT_ENCODING_CP1252'),
                 'encodingUtf8' => Text::_('COM_XDECAROPEOPLE_IMPORT_ENCODING_UTF8'),
+                'conflictRows' => Text::_('COM_XDECAROPEOPLE_IMPORT_CONFLICT_ROWS'),
+                'conflictFields' => Text::_('COM_XDECAROPEOPLE_IMPORT_CONFLICT_FIELDS'),
             ],
             'codes' => [
                 'missing_first_name' => Text::_('COM_XDECAROPEOPLE_IMPORT_CODE_MISSING_FIRST_NAME'),
@@ -81,6 +83,7 @@ final class HtmlView extends BaseHtmlView
                 'existing_person' => Text::_('COM_XDECAROPEOPLE_IMPORT_CODE_EXISTING'),
                 'imported' => Text::_('COM_XDECAROPEOPLE_IMPORT_CODE_IMPORTED'),
                 'database_error' => Text::_('COM_XDECAROPEOPLE_IMPORT_CODE_DATABASE_ERROR'),
+                'duplicate_conflict' => Text::_('COM_XDECAROPEOPLE_IMPORT_CODE_DUPLICATE_CONFLICT'),
             ],
             'targets' => [
                 ['key' => 'first_name', 'label' => Text::_('COM_XDECAROPEOPLE_FIELD_FIRST_NAME'), 'required' => true],
