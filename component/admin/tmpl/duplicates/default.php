@@ -200,9 +200,17 @@ $addressFor = static function (array $record): string {
                                                 <input type="hidden" name="record_ids[]" value="<?php echo (int) $recordId; ?>">
                                             <?php endforeach; ?>
                                             <?php echo HTMLHelper::_('form.token'); ?>
-                                            <button type="submit" class="btn btn-sm btn-success w-100">
-                                                <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_KEEP_AND_MERGE'); ?>
-                                            </button>
+                                            <details class="xdecaro-duplicate-merge-confirm">
+                                                <summary class="btn btn-sm btn-success w-100">
+                                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_KEEP_AND_MERGE'); ?>
+                                                </summary>
+                                                <div class="alert alert-warning mt-2 mb-2">
+                                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MERGE_CONFIRM'); ?>
+                                                </div>
+                                                <button type="submit" class="btn btn-sm btn-danger w-100">
+                                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MERGE_CONFIRM_BUTTON'); ?>
+                                                </button>
+                                            </details>
                                             <div class="form-text">
                                                 <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MERGE_HINT'); ?>
                                             </div>
