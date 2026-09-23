@@ -69,8 +69,9 @@ foreach ([
     'selectedIds',
     'restorePageSelection',
     'clearSelectionButton',
-    "appendHidden('cid[]'",
+    "Array.from(selectedIds).join(',')",
     "appendHidden('export_columns[]'",
+    "export_selected_ids",
     "setColumns('visible')",
     "setColumns('all')",
     "setColumns('none')",
@@ -80,6 +81,7 @@ foreach ([
 
 foreach ([
     "get('export_columns'",
+    "getString('export_selected_ids'",
     'resolveColumns($requestedColumns',
     'toXlsx($rows, $columns)',
     'toPdf($rows, $columns)',
