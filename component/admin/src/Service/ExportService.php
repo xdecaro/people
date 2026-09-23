@@ -14,8 +14,41 @@ use ZipArchive;
 
 final class ExportService
 {
+    private const PDF_COLUMNS_PER_PAGE = 8;
+    private const PDF_ROWS_PER_PAGE = 28;
+    private const PDF_TABLE_WIDTH = 770.0;
+
     public function __construct(private DatabaseInterface $db)
     {
+    }
+
+    public function resolveColumns(array $requested, bool $canIdentityDetails, bool $canSensitive): array
+    {
+        $allowed = $this->allowedColumns($canIdentityDetails, $canSensitive);
+        $requested = array_values(array_unique(array_filter(
+            array_map(static fn ($value): string => trim((string) $value), $requested),
+            static fn (string $value): bool => $value !== ''
+        )));
+
+        if ($requested === []) {
+            $requested = $canIdentityDetails
+                ? ['display_name', 'birth_date', 'birth_place', 'email', 'phone', 'state']
+                : ['display_name', 'email', 'phone', 'state'];
+        }
+
+        $columns = [];
+
+        foreach ($requested as $key) {
+            if (isset($allowed[$key])) {
+                $columns[] = $allowed[$key];
+            }
+        }
+
+        if ($columns === []) {
+            throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_EXPORT_NO_COLUMNS'), 400);
+        }
+
+        return $columns;
     }
 
     public function loadRows(
@@ -60,10 +93,15 @@ final class ExportService
             ->from($this->db->quoteName('#__xdecaropeople_people', 'a'));
 
         if ($scope === 'selected') {
-            $ids = array_values(array_unique(array_filter(array_map('intval', $ids), static fn (int $id): bool => $id > 0)));
+            $ids = array_values(array_unique(array_filter(
+                array_map('intval', $ids),
+                static fn (int $id): bool => $id > 0
+            )));
+
             if ($ids === []) {
                 return [];
             }
+
             $query->where($this->db->quoteName('a.id') . ' IN (' . implode(',', $ids) . ')');
         } elseif ($scope === 'filtered') {
             if ($state !== '') {
@@ -75,6 +113,7 @@ final class ExportService
             }
 
             $search = trim($search);
+
             if ($search !== '') {
                 $like = '%' . str_replace(' ', '%', $search) . '%';
                 $conditions = [
@@ -111,9 +150,8 @@ final class ExportService
         return (array) $this->db->setQuery($query)->loadAssocList();
     }
 
-    public function toCsv(array $rows, bool $canIdentityDetails, bool $canSensitive): string
+    public function toCsv(array $rows, array $columns): string
     {
-        $columns = $this->spreadsheetColumns($canIdentityDetails, $canSensitive);
         $stream = fopen('php://temp', 'w+b');
 
         if ($stream === false) {
@@ -124,7 +162,7 @@ final class ExportService
         fputcsv($stream, array_column($columns, 'label'), ';', '"', '\\');
 
         foreach ($rows as $row) {
-            fputcsv($stream, $this->spreadsheetRow($row, $columns), ';', '"', '\\');
+            fputcsv($stream, $this->exportRow($row, $columns), ';', '"', '\\');
         }
 
         rewind($stream);
@@ -138,25 +176,26 @@ final class ExportService
         return $result;
     }
 
-    public function toXlsx(array $rows, bool $canIdentityDetails, bool $canSensitive): string
+    public function toXlsx(array $rows, array $columns): string
     {
         if (!class_exists(ZipArchive::class)) {
             throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_EXPORT_ERROR_XLSX'));
         }
 
-        $columns = $this->spreadsheetColumns($canIdentityDetails, $canSensitive);
         $table = [array_column($columns, 'label')];
 
         foreach ($rows as $row) {
-            $table[] = $this->spreadsheetRow($row, $columns);
+            $table[] = $this->exportRow($row, $columns);
         }
 
         $temporary = tempnam(sys_get_temp_dir(), 'xdecaro-people-xlsx-');
+
         if ($temporary === false) {
             throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_EXPORT_ERROR_CREATE'));
         }
 
         $zip = new ZipArchive();
+
         if ($zip->open($temporary, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             @unlink($temporary);
             throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_EXPORT_ERROR_CREATE'));
@@ -182,42 +221,42 @@ final class ExportService
         return $result;
     }
 
-    public function toPdf(array $rows, bool $canIdentityDetails): string
+    public function toPdf(array $rows, array $columns): string
     {
-        $columns = $canIdentityDetails
-            ? [
-                ['key' => 'display_name', 'label' => Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME'), 'width' => 150.0],
-                ['key' => 'birth_date', 'label' => Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE'), 'width' => 72.0],
-                ['key' => 'birth_place', 'label' => Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE'), 'width' => 115.0],
-                ['key' => 'email', 'label' => Text::_('JGLOBAL_EMAIL'), 'width' => 190.0],
-                ['key' => 'phone', 'label' => Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'), 'width' => 105.0],
-                ['key' => 'state', 'label' => Text::_('JSTATUS'), 'width' => 70.0],
-            ]
-            : [
-                ['key' => 'display_name', 'label' => Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME'), 'width' => 235.0],
-                ['key' => 'email', 'label' => Text::_('JGLOBAL_EMAIL'), 'width' => 260.0],
-                ['key' => 'phone', 'label' => Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'), 'width' => 160.0],
-                ['key' => 'state', 'label' => Text::_('JSTATUS'), 'width' => 95.0],
-            ];
+        $pageSpecs = [];
 
-        $prepared = [];
-        foreach ($rows as $row) {
-            $preparedRow = [];
-            foreach ($columns as $column) {
-                $value = $row[$column['key']] ?? '';
-                if ($column['key'] === 'birth_date') {
-                    $value = $this->formatDate((string) $value);
-                } elseif ($column['key'] === 'state') {
-                    $value = $this->stateLabel((int) $value);
-                }
-                $preparedRow[] = $this->fitPdfText((string) $value, (float) $column['width']);
+        foreach (array_chunk($columns, self::PDF_COLUMNS_PER_PAGE) as $columnGroup) {
+            $pdfColumns = $this->withPdfWidths($columnGroup);
+            $prepared = [];
+
+            foreach ($rows as $row) {
+                $values = $this->exportRow($row, $pdfColumns);
+                $prepared[] = array_map(
+                    fn (string $value, int $index): string => $this->fitPdfText(
+                        $value,
+                        (float) $pdfColumns[$index]['width']
+                    ),
+                    $values,
+                    array_keys($values)
+                );
             }
-            $prepared[] = $preparedRow;
+
+            $rowPages = array_chunk($prepared, self::PDF_ROWS_PER_PAGE);
+
+            if ($rowPages === []) {
+                $rowPages = [[]];
+            }
+
+            foreach ($rowPages as $pageRows) {
+                $pageSpecs[] = [
+                    'columns' => $pdfColumns,
+                    'rows' => $pageRows,
+                ];
+            }
         }
 
-        $pages = array_chunk($prepared, 28);
-        if ($pages === []) {
-            $pages = [[]];
+        if ($pageSpecs === []) {
+            throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_EXPORT_NO_COLUMNS'), 400);
         }
 
         $objects = [];
@@ -227,18 +266,26 @@ final class ExportService
 
         $pageObjectIds = [];
         $nextObject = 5;
-        $pageCount = count($pages);
+        $pageCount = count($pageSpecs);
         $exportedAt = Factory::getDate()->format('d/m/Y H:i');
 
-        foreach ($pages as $pageIndex => $pageRows) {
+        foreach ($pageSpecs as $pageIndex => $pageSpec) {
             $pageObjectId = $nextObject++;
             $contentObjectId = $nextObject++;
             $pageObjectIds[] = $pageObjectId;
 
-            $pageContent = $this->pdfPageContent($pageRows, $columns, $pageIndex + 1, $pageCount, $exportedAt);
+            $pageContent = $this->pdfPageContent(
+                $pageSpec['rows'],
+                $pageSpec['columns'],
+                $pageIndex + 1,
+                $pageCount,
+                $exportedAt
+            );
+
             $objects[$pageObjectId] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 841.89 595.28] '
                 . '/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ' . $contentObjectId . ' 0 R >>';
-            $objects[$contentObjectId] = '<< /Length ' . strlen($pageContent) . " >>\nstream\n" . $pageContent . "\nendstream";
+            $objects[$contentObjectId] = '<< /Length ' . strlen($pageContent) . " >>\nstream\n"
+                . $pageContent . "\nendstream";
         }
 
         $objects[2] = '<< /Type /Pages /Kids ['
@@ -246,6 +293,7 @@ final class ExportService
             . '] /Count ' . count($pageObjectIds) . ' >>';
 
         ksort($objects);
+
         $pdf = "%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
         $offsets = [0];
         $maxObject = max(array_keys($objects));
@@ -258,6 +306,7 @@ final class ExportService
         $xrefOffset = strlen($pdf);
         $pdf .= "xref\n0 " . ($maxObject + 1) . "\n";
         $pdf .= "0000000000 65535 f \n";
+
         for ($id = 1; $id <= $maxObject; $id++) {
             $pdf .= sprintf("%010d 00000 n \n", $offsets[$id]);
         }
@@ -268,67 +317,138 @@ final class ExportService
         return $pdf;
     }
 
-    private function spreadsheetColumns(bool $canIdentityDetails, bool $canSensitive): array
+    private function allowedColumns(bool $canIdentityDetails, bool $canSensitive): array
     {
         $columns = [
-            ['key' => 'first_name', 'label' => 'Nome'],
-            ['key' => 'last_name', 'label' => 'Cognome'],
+            'display_name' => [
+                'key' => 'display_name',
+                'label' => Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME'),
+                'pdf_weight' => 1.6,
+            ],
+            'first_name' => [
+                'key' => 'first_name',
+                'label' => Text::_('COM_XDECAROPEOPLE_FIELD_FIRST_NAME'),
+                'pdf_weight' => 1.2,
+            ],
+            'last_name' => [
+                'key' => 'last_name',
+                'label' => Text::_('COM_XDECAROPEOPLE_FIELD_LAST_NAME'),
+                'pdf_weight' => 1.2,
+            ],
         ];
 
         if ($canSensitive) {
-            $columns[] = ['key' => 'tax_identifier', 'label' => 'Codice fiscale'];
+            $columns['tax_identifier'] = [
+                'key' => 'tax_identifier',
+                'label' => Text::_('COM_XDECAROPEOPLE_EXPORT_COLUMN_TAX_IDENTIFIER'),
+                'pdf_weight' => 1.25,
+            ];
         }
 
         if ($canIdentityDetails) {
-            array_push(
-                $columns,
-                ['key' => 'birth_date', 'label' => 'Data di nascita'],
-                ['key' => 'sex', 'label' => 'Sesso'],
-                ['key' => 'birth_place', 'label' => 'Luogo di nascita'],
-                ['key' => 'birth_region', 'label' => 'Provincia di nascita'],
-                ['key' => 'address_line', 'label' => 'Indirizzo'],
-                ['key' => 'address_number', 'label' => 'Numero civico'],
-                ['key' => 'postal_code', 'label' => 'CAP'],
-                ['key' => 'city', 'label' => 'Comune di residenza'],
-                ['key' => 'region', 'label' => 'Provincia di residenza'],
-                ['key' => 'country_code', 'label' => 'country_code']
-            );
+            $columns += [
+                'birth_date' => [
+                    'key' => 'birth_date',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE'),
+                    'pdf_weight' => 0.9,
+                ],
+                'sex' => [
+                    'key' => 'sex',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_SEX'),
+                    'pdf_weight' => 0.55,
+                ],
+                'birth_place' => [
+                    'key' => 'birth_place',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE'),
+                    'pdf_weight' => 1.25,
+                ],
+                'birth_region' => [
+                    'key' => 'birth_region',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_REGION'),
+                    'pdf_weight' => 1.1,
+                ],
+                'address_line' => [
+                    'key' => 'address_line',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_ADDRESS'),
+                    'pdf_weight' => 1.55,
+                ],
+                'address_number' => [
+                    'key' => 'address_number',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_ADDRESS_NUMBER'),
+                    'pdf_weight' => 0.75,
+                ],
+                'postal_code' => [
+                    'key' => 'postal_code',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_POSTAL_CODE'),
+                    'pdf_weight' => 0.7,
+                ],
+                'city' => [
+                    'key' => 'city',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_CITY'),
+                    'pdf_weight' => 1.15,
+                ],
+                'region' => [
+                    'key' => 'region',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_REGION'),
+                    'pdf_weight' => 1.15,
+                ],
+                'country_code' => [
+                    'key' => 'country_code',
+                    'label' => Text::_('COM_XDECAROPEOPLE_FIELD_COUNTRY'),
+                    'pdf_weight' => 0.8,
+                ],
+            ];
         }
 
-        array_push(
-            $columns,
-            ['key' => 'phone', 'label' => 'Telefono'],
-            ['key' => 'email', 'label' => 'Email'],
-            ['key' => 'display_name', 'label' => 'Nome visualizzato'],
-            ['key' => 'state', 'label' => 'Stato']
-        );
+        $columns += [
+            'email' => [
+                'key' => 'email',
+                'label' => Text::_('JGLOBAL_EMAIL'),
+                'pdf_weight' => 1.8,
+            ],
+            'phone' => [
+                'key' => 'phone',
+                'label' => Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'),
+                'pdf_weight' => 1.05,
+            ],
+            'state' => [
+                'key' => 'state',
+                'label' => Text::_('JSTATUS'),
+                'pdf_weight' => 0.85,
+            ],
+        ];
 
         return $columns;
     }
 
-    private function spreadsheetRow(array $row, array $columns): array
+    private function exportRow(array $row, array $columns): array
     {
         $values = [];
 
         foreach ($columns as $column) {
-            $key = $column['key'];
-            $value = $row[$key] ?? '';
-
-            if ($key === 'birth_date') {
-                $value = $this->formatDate((string) $value);
-            } elseif ($key === 'state') {
-                $value = $this->stateLabel((int) $value);
-            }
-
-            $values[] = (string) $value;
+            $values[] = $this->formatValue((string) $column['key'], $row[$column['key']] ?? '');
         }
 
         return $values;
     }
 
+    private function formatValue(string $key, mixed $value): string
+    {
+        if ($key === 'birth_date') {
+            return $this->formatDate((string) $value);
+        }
+
+        if ($key === 'state') {
+            return $this->stateLabel((int) $value);
+        }
+
+        return trim((string) $value);
+    }
+
     private function formatDate(string $value): string
     {
         $value = trim($value);
+
         if ($value === '' || $value === '0000-00-00') {
             return '';
         }
@@ -347,6 +467,28 @@ final class ExportService
         };
     }
 
+    private function withPdfWidths(array $columns): array
+    {
+        $totalWeight = array_sum(array_map(
+            static fn (array $column): float => (float) ($column['pdf_weight'] ?? 1.0),
+            $columns
+        ));
+
+        if ($totalWeight <= 0) {
+            $totalWeight = (float) max(1, count($columns));
+        }
+
+        return array_map(
+            static function (array $column) use ($totalWeight): array {
+                $column['width'] = self::PDF_TABLE_WIDTH
+                    * ((float) ($column['pdf_weight'] ?? 1.0) / $totalWeight);
+
+                return $column;
+            },
+            $columns
+        );
+    }
+
     private function xlsxWorksheet(array $rows, array $columns): string
     {
         $lastColumn = $this->xlsxColumnName(max(1, count($columns)));
@@ -355,23 +497,29 @@ final class ExportService
 
         foreach ($rows as $rowIndex => $row) {
             $cells = [];
+
             foreach (array_values($row) as $columnIndex => $value) {
                 $reference = $this->xlsxColumnName($columnIndex + 1) . ($rowIndex + 1);
                 $style = $rowIndex === 0 ? ' s="1"' : '';
                 $cells[] = '<c r="' . $reference . '" t="inlineStr"' . $style . '><is><t xml:space="preserve">'
                     . $this->xml((string) $value) . '</t></is></c>';
             }
+
             $sheetRows[] = '<row r="' . ($rowIndex + 1) . '">' . implode('', $cells) . '</row>';
         }
 
         $columnXml = [];
+
         foreach ($columns as $index => $column) {
             $maxLength = mb_strlen((string) $column['label'], 'UTF-8');
+
             foreach ($rows as $row) {
                 $maxLength = max($maxLength, mb_strlen((string) ($row[$index] ?? ''), 'UTF-8'));
             }
+
             $width = min(45, max(12, $maxLength + 2));
-            $columnXml[] = '<col min="' . ($index + 1) . '" max="' . ($index + 1) . '" width="' . $width . '" customWidth="1"/>';
+            $columnXml[] = '<col min="' . ($index + 1) . '" max="' . ($index + 1)
+                . '" width="' . $width . '" customWidth="1"/>';
         }
 
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
@@ -424,7 +572,8 @@ final class ExportService
     private function xlsxWorkbook(): string
     {
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-            . '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            . '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+            . 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
             . '<sheets><sheet name="People" sheetId="1" r:id="rId1"/></sheets></workbook>';
     }
 
@@ -445,7 +594,8 @@ final class ExportService
             . '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>'
             . '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
             . '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-            . '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>'
+            . '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+            . '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>'
             . '</styleSheet>';
     }
 
@@ -458,7 +608,8 @@ final class ExportService
             . 'xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" '
             . 'xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
             . '<dc:title>People export</dc:title><dc:creator>Xdecaro People</dc:creator>'
-            . '<dcterms:created xsi:type="dcterms:W3CDTF">' . $created . '</dcterms:created></cp:coreProperties>';
+            . '<dcterms:created xsi:type="dcterms:W3CDTF">' . $created
+            . '</dcterms:created></cp:coreProperties>';
     }
 
     private function xlsxAppProperties(): string
@@ -474,18 +625,28 @@ final class ExportService
         return htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8');
     }
 
-    private function pdfPageContent(array $rows, array $columns, int $page, int $pageCount, string $exportedAt): string
-    {
+    private function pdfPageContent(
+        array $rows,
+        array $columns,
+        int $page,
+        int $pageCount,
+        string $exportedAt
+    ): string {
         $commands = [];
-        $commands[] = 'BT /F2 15 Tf 36 557 Td (' . $this->pdfText(Text::_('COM_XDECAROPEOPLE_EXPORT_PDF_TITLE')) . ') Tj ET';
-        $commands[] = 'BT /F1 8 Tf 36 540 Td (' . $this->pdfText(Text::sprintf('COM_XDECAROPEOPLE_EXPORT_PDF_EXPORTED_AT', $exportedAt)) . ') Tj ET';
+        $commands[] = 'BT /F2 15 Tf 36 557 Td ('
+            . $this->pdfText(Text::_('COM_XDECAROPEOPLE_EXPORT_PDF_TITLE')) . ') Tj ET';
+        $commands[] = 'BT /F1 8 Tf 36 540 Td ('
+            . $this->pdfText(Text::sprintf('COM_XDECAROPEOPLE_EXPORT_PDF_EXPORTED_AT', $exportedAt))
+            . ') Tj ET';
 
         $x = 36.0;
         $headerY = 516.0;
 
         foreach ($columns as $column) {
-            $commands[] = 'BT /F2 8 Tf ' . $this->pdfNumber($x) . ' ' . $this->pdfNumber($headerY) . ' Td ('
-                . $this->pdfText($this->fitPdfText((string) $column['label'], (float) $column['width'])) . ') Tj ET';
+            $commands[] = 'BT /F2 8 Tf ' . $this->pdfNumber($x) . ' '
+                . $this->pdfNumber($headerY) . ' Td ('
+                . $this->pdfText($this->fitPdfText((string) $column['label'], (float) $column['width']))
+                . ') Tj ET';
             $x += (float) $column['width'];
         }
 
@@ -496,17 +657,20 @@ final class ExportService
             $x = 36.0;
 
             foreach ($columns as $index => $column) {
-                $commands[] = 'BT /F1 7.5 Tf ' . $this->pdfNumber($x) . ' ' . $this->pdfNumber($y) . ' Td ('
+                $commands[] = 'BT /F1 7.5 Tf ' . $this->pdfNumber($x) . ' '
+                    . $this->pdfNumber($y) . ' Td ('
                     . $this->pdfText((string) ($row[$index] ?? '')) . ') Tj ET';
                 $x += (float) $column['width'];
             }
 
-            $commands[] = '0.2 w 36 ' . $this->pdfNumber($y - 4) . ' m 806 ' . $this->pdfNumber($y - 4) . ' l S';
+            $commands[] = '0.2 w 36 ' . $this->pdfNumber($y - 4)
+                . ' m 806 ' . $this->pdfNumber($y - 4) . ' l S';
             $y -= 16.0;
         }
 
         if ($rows === []) {
-            $commands[] = 'BT /F1 9 Tf 36 492 Td (' . $this->pdfText(Text::_('COM_XDECAROPEOPLE_EXPORT_EMPTY')) . ') Tj ET';
+            $commands[] = 'BT /F1 9 Tf 36 492 Td ('
+                . $this->pdfText(Text::_('COM_XDECAROPEOPLE_EXPORT_EMPTY')) . ') Tj ET';
         }
 
         $footer = Text::sprintf('COM_XDECAROPEOPLE_EXPORT_PDF_PAGE', $page, $pageCount);
