@@ -16,6 +16,7 @@ final class HtmlView extends BaseHtmlView
     public $pagination;
     public $state;
     public bool $canIdentityDetails = false;
+    public bool $canSensitive = false;
 
     public function display($tpl = null): void
     {
@@ -27,8 +28,10 @@ final class HtmlView extends BaseHtmlView
         $this->items = (array) $this->get('Items');
         $this->pagination = $this->get('Pagination');
         $this->state = $this->get('State');
+        $this->canSensitive = $user->authorise('people.view_sensitive', 'com_xdecaropeople')
+            || $user->authorise('core.admin', 'com_xdecaropeople');
         $this->canIdentityDetails = $user->authorise('people.view_identity_details', 'com_xdecaropeople')
-            || $user->authorise('people.view_sensitive', 'com_xdecaropeople')
+            || $this->canSensitive
             || $user->authorise('core.admin', 'com_xdecaropeople');
 
         $component = Factory::getApplication()->bootComponent('com_xdecaropeople');

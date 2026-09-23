@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
+$currentVersion = trim((string) file_get_contents($root . '/VERSION'));
 
 $fail = static function (string $message): never {
     fwrite(STDERR, $message . PHP_EOL);
@@ -41,8 +42,8 @@ $contains($service, 'public function toCsv(');
 $contains($service, 'public function toXlsx(');
 $contains($service, 'public function toPdf(');
 $contains($service, "ZipArchive::CREATE | ZipArchive::OVERWRITE");
-$contains($service, "$scope === 'selected'");
-$contains($service, "$scope === 'filtered'");
+$contains($service, '$scope === \'selected\'');
+$contains($service, '$scope === \'filtered\'');
 $contains($service, "a.state') . ' >= 0'");
 $contains($template, 'xdecaro-people-export-dialog');
 $contains($template, 'value="xlsx"');
@@ -57,8 +58,8 @@ $contains($root . '/component/admin/language/it-IT/com_xdecaropeople.ini', 'COM_
 $contains($root . '/component/admin/language/en-GB/com_xdecaropeople.ini', 'COM_XDECAROPEOPLE_EXPORT_TITLE=');
 
 $assets = json_decode((string) file_get_contents($asset), true, 512, JSON_THROW_ON_ERROR);
-if (($assets['version'] ?? null) !== '1.7.7') {
-    $fail('Web asset registry version must be 1.7.7.');
+if (version_compare($currentVersion, '1.7.7', '<') || ($assets['version'] ?? null) !== $currentVersion) {
+    $fail('Web asset registry must match People 1.7.7+ current version.');
 }
 
 $exportAsset = null;
@@ -74,8 +75,8 @@ if (($exportAsset['uri'] ?? '') !== 'com_xdecaropeople/export.js') {
 
 $componentXml = simplexml_load_file($componentManifest);
 $packageXml = simplexml_load_file($packageManifest);
-if ((string) $componentXml->version !== '1.7.7' || (string) $packageXml->version !== '1.7.7') {
-    $fail('People manifests must be version 1.7.7.');
+if ((string) $componentXml->version !== $currentVersion || (string) $packageXml->version !== $currentVersion) {
+    $fail('People manifests must match the current People version.');
 }
 
-echo "People 1.7.7 export contract OK\n";
+echo "People 1.7.7+ export contract OK\n";

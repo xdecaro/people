@@ -36,8 +36,15 @@ final class ExportController extends BaseController
             throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_EXPORT_ERROR_SCOPE'), 400);
         }
 
+        $ids = (array) $this->input->get('cid', [], 'array');
+        $selectedIdsRaw = trim($this->input->getString('export_selected_ids', ''));
+
+        if ($selectedIdsRaw !== '') {
+            $ids = array_merge($ids, preg_split('/\s*,\s*/', $selectedIdsRaw) ?: []);
+        }
+
         $ids = array_values(array_unique(array_filter(
-            array_map('intval', (array) $this->input->get('cid', [], 'array')),
+            array_map('intval', $ids),
             static fn (int $id): bool => $id > 0
         )));
 
@@ -54,16 +61,29 @@ final class ExportController extends BaseController
         $canSensitive = $user->authorise('people.view_sensitive', 'com_xdecaropeople')
             || $user->authorise('core.admin', 'com_xdecaropeople');
 
+        $requestedColumns = [];
+        foreach ((array) $this->input->get('export_columns', [], 'array') as $column) {
+            if (!is_scalar($column)) {
+                continue;
+            }
+
+            $column = trim((string) $column);
+            if ($column !== '') {
+                $requestedColumns[] = $column;
+            }
+        }
+
         $service = new ExportService(Factory::getContainer()->get(DatabaseInterface::class));
+        $columns = $service->resolveColumns($requestedColumns, $canIdentityDetails, $canSensitive);
         $rows = $service->loadRows($scope, $ids, $search, $state, $canIdentityDetails, $canSensitive);
 
         [$mimeType, $payload] = match ($format) {
             'xlsx' => [
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                $service->toXlsx($rows, $canIdentityDetails, $canSensitive),
+                $service->toXlsx($rows, $columns),
             ],
-            'pdf' => ['application/pdf', $service->toPdf($rows, $canIdentityDetails)],
-            default => ['text/csv; charset=UTF-8', $service->toCsv($rows, $canIdentityDetails, $canSensitive)],
+            'pdf' => ['application/pdf', $service->toPdf($rows, $columns)],
+            default => ['text/csv; charset=UTF-8', $service->toCsv($rows, $columns)],
         };
 
         $filename = 'people-' . Factory::getDate()->format('Y-m-d-His') . '.' . $format;
