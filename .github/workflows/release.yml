@@ -44,6 +44,7 @@ jobs:
           php tests/people-1.7.3-import-duplicate-rows-contract.php
           php tests/people-1.7.6-duplicate-dashboard-contract.php
           php tests/people-1.7.7-export-contract.php
+          php tests/people-1.7.8-export-selection-contract.php
           python3 - "$V" <<'PY'
           import json, pathlib, sys, xml.etree.ElementTree as ET
           v=sys.argv[1]
@@ -82,6 +83,7 @@ jobs:
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.3.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.6.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.7.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.8.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Controller/ExportController.php'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Service/ExportService.php'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/export.js'
@@ -100,7 +102,7 @@ jobs:
           V="$(tr -d '\r\n' < VERSION)"
           gh release create "v${V}" "dist/com_xdecaropeople_${V}.zip" "dist/pkg_people_${V}.zip" dist/SHA256SUMS.txt \
             --title "People ${V}" \
-            --notes "People ${V}: adds People list export to Excel (.xlsx), CSV and PDF, with all/filtered/selected scopes, existing ACL protections and privacy-aware PDF output. Joomla 6.1.3 only."
+            --notes "People ${V}: improves People export with cross-page person selection, clear-selection controls and selectable columns for Excel, CSV and PDF. Column availability remains ACL-aware; PDF automatically splits wide selections across pages. Joomla 6.1.3 only."
       - name: Publish canonical and legacy-bridge Joomla update feeds
         shell: bash
         run: |
