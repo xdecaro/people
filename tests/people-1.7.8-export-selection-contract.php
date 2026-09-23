@@ -136,7 +136,7 @@ if ((string) $componentXml->version !== $version || (string) $packageXml->versio
 }
 
 
-if (version_compare($version, '1.7.9', '>=')) {
+if ($version === '1.7.9') {
     $model = $root . '/component/admin/src/Model/PeopleModel.php';
     $paginationCss = $root . '/component/media/css/admin.css';
 
@@ -181,6 +181,42 @@ if (version_compare($version, '1.7.9', '>=')) {
     ] as $key) {
         $contains($root . '/component/admin/language/it-IT/com_xdecaropeople.ini', $key);
         $contains($root . '/component/admin/language/en-GB/com_xdecaropeople.ini', $key);
+    }
+}
+
+if (version_compare($version, '1.7.10', '>=')) {
+    $model = $root . '/component/admin/src/Model/PeopleModel.php';
+
+    foreach ([
+        $root . '/component/admin/sql/updates/mysql/1.7.9.sql',
+        $root . '/component/admin/sql/updates/mysql/1.7.10.sql',
+        $model,
+    ] as $path) {
+        if (!is_file($path)) {
+            $fail('Missing People 1.7.10 safe pagination file: ' . $path);
+        }
+    }
+
+    foreach ([
+        '$allowedLimits = [20, 50, 100, 200, 500];',
+        "\$this->setState('list.limit', \$limit);",
+        "\$this->setState('list.start', (int) (floor(\$start / \$limit) * \$limit));",
+    ] as $needle) {
+        $contains($model, $needle);
+    }
+
+    foreach ([
+        '$limitChoices = [20, 50, 100, 200, 500];',
+        'name="list[limit]"',
+        'xdecaro-people-page-size',
+    ] as $needle) {
+        $contains($template, $needle);
+    }
+
+    $templateContent = (string) file_get_contents($template);
+    if (str_contains($templateContent, '$limitChoices = [20, 50, 100, 200, 500, 0];')
+        || str_contains($templateContent, "COM_XDECAROPEOPLE_PAGINATION_ALL")) {
+        $fail('People 1.7.10 must not expose the unsafe All page-size option.');
     }
 }
 
