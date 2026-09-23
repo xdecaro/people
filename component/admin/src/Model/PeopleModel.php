@@ -39,14 +39,14 @@ final class PeopleModel extends ListModel
         parent::populateState($ordering, $direction);
 
         $allowedLimits = [20, 50, 100, 200, 500];
-        $limit = (int) $this->getState('list.limit', 20);
+        $limit = (int) $this->state->get('list.limit', 20);
 
         if (!in_array($limit, $allowedLimits, true)) {
             $limit = 20;
             $this->setState('list.limit', $limit);
         }
 
-        $start = max(0, (int) $this->getState('list.start', 0));
+        $start = max(0, (int) $this->state->get('list.start', 0));
         $this->setState('list.start', (int) (floor($start / $limit) * $limit));
     }
 
