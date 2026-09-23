@@ -1,0 +1,1 @@
+-- People 1.7.13 uses a stable nonzero sentinel for the All page-size option; no database schema change is required.
