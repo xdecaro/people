@@ -36,8 +36,15 @@ final class ExportController extends BaseController
             throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_EXPORT_ERROR_SCOPE'), 400);
         }
 
+        $ids = (array) $this->input->get('cid', [], 'array');
+        $selectedIdsRaw = trim($this->input->getString('export_selected_ids', ''));
+
+        if ($selectedIdsRaw !== '') {
+            $ids = array_merge($ids, preg_split('/\s*,\s*/', $selectedIdsRaw) ?: []);
+        }
+
         $ids = array_values(array_unique(array_filter(
-            array_map('intval', (array) $this->input->get('cid', [], 'array')),
+            array_map('intval', $ids),
             static fn (int $id): bool => $id > 0
         )));
 
