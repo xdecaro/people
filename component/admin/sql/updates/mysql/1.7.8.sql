@@ -1,0 +1,1 @@
+-- People 1.7.8 improves export selection and column choice; no database schema change is required.
