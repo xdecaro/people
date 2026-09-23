@@ -1,0 +1,1 @@
+-- People 1.7.11 fixes list-state recursion; no database schema change is required.
