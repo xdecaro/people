@@ -54,10 +54,17 @@ final class ExportController extends BaseController
         $canSensitive = $user->authorise('people.view_sensitive', 'com_xdecaropeople')
             || $user->authorise('core.admin', 'com_xdecaropeople');
 
-        $requestedColumns = array_values(array_filter(
-            array_map('strval', (array) $this->input->get('export_columns', [], 'array')),
-            static fn (string $column): bool => trim($column) !== ''
-        ));
+        $requestedColumns = [];
+        foreach ((array) $this->input->get('export_columns', [], 'array') as $column) {
+            if (!is_scalar($column)) {
+                continue;
+            }
+
+            $column = trim((string) $column);
+            if ($column !== '') {
+                $requestedColumns[] = $column;
+            }
+        }
 
         $service = new ExportService(Factory::getContainer()->get(DatabaseInterface::class));
         $columns = $service->resolveColumns($requestedColumns, $canIdentityDetails, $canSensitive);
