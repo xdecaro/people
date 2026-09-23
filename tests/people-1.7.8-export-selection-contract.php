@@ -135,4 +135,53 @@ if ((string) $componentXml->version !== $version || (string) $packageXml->versio
     $fail('People manifests must match the current version.');
 }
 
+
+if (version_compare($version, '1.7.9', '>=')) {
+    $model = $root . '/component/admin/src/Model/PeopleModel.php';
+    $paginationCss = $root . '/component/media/css/admin.css';
+
+    foreach ([
+        $root . '/component/admin/sql/updates/mysql/1.7.9.sql',
+        $model,
+        $paginationCss,
+    ] as $path) {
+        if (!is_file($path)) {
+            $fail('Missing People 1.7.9 pagination file: ' . $path);
+        }
+    }
+
+    foreach ([
+        '$allowedLimits = [0, 20, 50, 100, 200, 500];',
+        "\$this->setState('list.limit', \$limit);",
+        "\$this->setState('list.start', \$limit === 0 ? 0",
+    ] as $needle) {
+        $contains($model, $needle);
+    }
+
+    foreach ([
+        '$limitChoices = [20, 50, 100, 200, 500, 0];',
+        'name="list[limit]"',
+        'xdecaro-people-page-size',
+        "Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL'",
+    ] as $needle) {
+        $contains($template, $needle);
+    }
+
+    foreach ([
+        '.xdecaro-people-pagination-footer',
+        '.xdecaro-people-page-size .form-select',
+    ] as $needle) {
+        $contains($paginationCss, $needle);
+    }
+
+    foreach ([
+        'COM_XDECAROPEOPLE_PAGINATION_SHOW=',
+        'COM_XDECAROPEOPLE_PAGINATION_PER_PAGE=',
+        'COM_XDECAROPEOPLE_PAGINATION_ALL=',
+    ] as $key) {
+        $contains($root . '/component/admin/language/it-IT/com_xdecaropeople.ini', $key);
+        $contains($root . '/component/admin/language/en-GB/com_xdecaropeople.ini', $key);
+    }
+}
+
 echo "People 1.7.8+ persistent selection and export-column contract OK\n";
