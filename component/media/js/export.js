@@ -240,15 +240,14 @@
 
     exportForm.querySelector('input[name="export_format"]').value = formatSelect.value || 'xlsx';
     exportForm.querySelector('input[name="export_scope"]').value = scope;
+    exportForm.querySelector('input[name="export_selected_ids"]').value = scope === 'selected'
+      ? Array.from(selectedIds).join(',')
+      : '';
     exportForm.querySelector('input[name="filter_search"]').value = adminForm.querySelector('[name="filter_search"]')?.value || '';
     exportForm.querySelector('input[name="filter_state"]').value = adminForm.querySelector('[name="filter_state"]')?.value || '';
 
-    exportForm.querySelectorAll('input[data-xdecaro-export-cid], input[data-xdecaro-export-column-input]')
+    exportForm.querySelectorAll('input[data-xdecaro-export-column-input]')
       .forEach((input) => input.remove());
-
-    if (scope === 'selected') {
-      selectedIds.forEach((id) => appendHidden('cid[]', id, 'xdecaroExportCid'));
-    }
 
     columns.forEach((column) => appendHidden('export_columns[]', column, 'xdecaroExportColumnInput'));
 
