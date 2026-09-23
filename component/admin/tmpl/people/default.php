@@ -10,7 +10,7 @@ HTMLHelper::_('behavior.multiselect');
 
 $filterState = (string) $this->state->get('filter.state');
 $currentLimit = (int) $this->state->get('list.limit', 20);
-$limitChoices = [20, 50, 100, 200, 500, 1000, 0];
+$limitChoices = [20, 50, 100, 200, 500, 1000, 999999];
 $totalItems = (int) ($this->pagination->total ?? 0);
 ?>
 <form action="<?php echo Route::_('index.php?option=com_xdecaropeople&view=people'); ?>" method="post" name="adminForm" id="adminForm">
@@ -96,7 +96,7 @@ $totalItems = (int) ($this->pagination->total ?? 0);
                 >
                     <?php foreach ($limitChoices as $limitChoice) : ?>
                         <option value="<?php echo (int) $limitChoice; ?>" <?php echo $currentLimit === $limitChoice ? 'selected' : ''; ?>>
-                            <?php if ($limitChoice === 0) : ?>
+                            <?php if ($limitChoice === 999999) : ?>
                                 <?php echo Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL', $totalItems); ?>
                             <?php else : ?>
                                 <?php echo (int) $limitChoice; ?>
