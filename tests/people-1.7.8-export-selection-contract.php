@@ -184,7 +184,7 @@ if ($version === '1.7.9') {
     }
 }
 
-if (version_compare($version, '1.7.10', '>=')) {
+if (version_compare($version, '1.7.10', '>=') && version_compare($version, '1.7.12', '<')) {
     $model = $root . '/component/admin/src/Model/PeopleModel.php';
 
     foreach ([
@@ -217,6 +217,30 @@ if (version_compare($version, '1.7.10', '>=')) {
     if (str_contains($templateContent, '$limitChoices = [20, 50, 100, 200, 500, 0];')
         || str_contains($templateContent, "COM_XDECAROPEOPLE_PAGINATION_ALL")) {
         $fail('People 1.7.10 must not expose the unsafe All page-size option.');
+    }
+}
+
+if (version_compare($version, '1.7.12', '>=')) {
+    $model = $root . '/component/admin/src/Model/PeopleModel.php';
+    $templateContent = (string) file_get_contents($template);
+
+    foreach ([
+        '$allowedLimits = [0, 20, 50, 100, 200, 500, 1000];',
+        "\$this->setState('list.start', \$limit === 0 ? 0",
+    ] as $needle) {
+        $contains($model, $needle);
+    }
+
+    foreach ([
+        '$limitChoices = [20, 50, 100, 200, 500, 1000, 0];',
+        "Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL'",
+    ] as $needle) {
+        $contains($template, $needle);
+    }
+
+    if (!str_contains($templateContent, '1000')
+        || !str_contains($templateContent, 'COM_XDECAROPEOPLE_PAGINATION_ALL')) {
+        $fail('People 1.7.12 must expose both 1000 and All page-size options.');
     }
 }
 
