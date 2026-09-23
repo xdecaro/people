@@ -147,11 +147,11 @@ $filterState = (string) $this->state->get('filter.state');
             </fieldset>
 
             <fieldset>
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-                    <legend class="fs-6 fw-semibold mb-0">
-                        <?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_COLUMNS'); ?>
-                        (<span id="xdecaro-people-export-column-count">0</span>)
-                    </legend>
+                <legend class="fs-6 fw-semibold mb-2">
+                    <?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_COLUMNS'); ?>
+                    (<span id="xdecaro-people-export-column-count">0</span>)
+                </legend>
+                <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mb-3">
                     <div class="btn-group btn-group-sm" role="group" aria-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_EXPORT_COLUMNS')); ?>">
                         <button type="button" class="btn btn-outline-secondary" id="xdecaro-people-export-columns-visible">
                             <?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_COLUMNS_VISIBLE'); ?>
