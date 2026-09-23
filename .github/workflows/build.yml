@@ -45,6 +45,7 @@ jobs:
           php tests/people-1.7.1-duplicate-accordion-contract.php
           php tests/people-1.7.3-import-duplicate-rows-contract.php
           php tests/people-1.7.6-duplicate-dashboard-contract.php
+          php tests/people-1.7.7-export-contract.php
       - name: Validate source metadata
         shell: bash
         run: |
@@ -82,6 +83,7 @@ jobs:
           node --check component/media/js/person-form.js
           node --check component/media/js/person-cancel-fix.js
           node --check component/media/js/import.js
+          node --check component/media/js/export.js
       - name: Deterministic build
         shell: bash
         run: |
@@ -105,6 +107,10 @@ jobs:
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.2.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.3.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.6.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.7.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Controller/ExportController.php'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Service/ExportService.php'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/export.js'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/import.js'
 
   joomla-runtime:
