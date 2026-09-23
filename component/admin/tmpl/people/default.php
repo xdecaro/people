@@ -9,6 +9,9 @@ use Joomla\CMS\Router\Route;
 HTMLHelper::_('behavior.multiselect');
 
 $filterState = (string) $this->state->get('filter.state');
+$currentLimit = (int) $this->state->get('list.limit', 20);
+$limitChoices = [20, 50, 100, 200, 500, 0];
+$totalItems = (int) ($this->pagination->total ?? 0);
 ?>
 <form action="<?php echo Route::_('index.php?option=com_xdecaropeople&view=people'); ?>" method="post" name="adminForm" id="adminForm">
     <div class="xdecaro-scope">
@@ -80,7 +83,34 @@ $filterState = (string) $this->state->get('filter.state');
             </table>
         </div>
 
-        <?php echo $this->pagination->getListFooter(); ?>
+        <div class="xdecaro-people-pagination-footer mt-3">
+            <div class="xdecaro-people-page-size d-flex flex-wrap align-items-center gap-2">
+                <label for="xdecaro-people-page-size" class="form-label mb-0">
+                    <?php echo Text::_('COM_XDECAROPEOPLE_PAGINATION_SHOW'); ?>
+                </label>
+                <select
+                    id="xdecaro-people-page-size"
+                    name="list[limit]"
+                    class="form-select form-select-sm"
+                    onchange="this.form.submit()"
+                >
+                    <?php foreach ($limitChoices as $limitChoice) : ?>
+                        <option value="<?php echo (int) $limitChoice; ?>" <?php echo $currentLimit === $limitChoice ? 'selected' : ''; ?>>
+                            <?php if ($limitChoice === 0) : ?>
+                                <?php echo Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL', $totalItems); ?>
+                            <?php else : ?>
+                                <?php echo (int) $limitChoice; ?>
+                            <?php endif; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="text-body-secondary"><?php echo Text::_('COM_XDECAROPEOPLE_PAGINATION_PER_PAGE'); ?></span>
+            </div>
+
+            <div class="xdecaro-people-pagination-links">
+                <?php echo $this->pagination->getListFooter(); ?>
+            </div>
+        </div>
     </div>
 
     <input type="hidden" name="task" value="">

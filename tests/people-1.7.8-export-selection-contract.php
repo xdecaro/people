@@ -17,8 +17,8 @@ $contains = static function (string $path, string $needle) use ($fail): void {
     }
 };
 
-if ($version !== '1.7.8') {
-    $fail('People 1.7.8 version expected.');
+if (version_compare($version, '1.7.8', '<')) {
+    $fail('People 1.7.8+ version expected.');
 }
 
 $view = $root . '/component/admin/src/View/People/HtmlView.php';
@@ -118,21 +118,70 @@ foreach ([
 }
 
 $assets = json_decode((string) file_get_contents($asset), true, 512, JSON_THROW_ON_ERROR);
-if (($assets['version'] ?? '') !== '1.7.8') {
-    $fail('People web assets must be version 1.7.8.');
+if (($assets['version'] ?? '') !== $version) {
+    $fail('People web assets must match the current version.');
 }
 
 foreach (($assets['assets'] ?? []) as $item) {
-    if (($item['version'] ?? '') !== '1.7.8') {
-        $fail('Every People web asset must be version 1.7.8.');
+    if (($item['version'] ?? '') !== $version) {
+        $fail('Every People web asset must match the current version.');
     }
 }
 
 $componentXml = simplexml_load_file($root . '/component/xdecaropeople.xml');
 $packageXml = simplexml_load_file($root . '/package/pkg_people.xml');
 
-if ((string) $componentXml->version !== '1.7.8' || (string) $packageXml->version !== '1.7.8') {
-    $fail('People manifests must be version 1.7.8.');
+if ((string) $componentXml->version !== $version || (string) $packageXml->version !== $version) {
+    $fail('People manifests must match the current version.');
 }
 
-echo "People 1.7.8 persistent selection and export-column contract OK\n";
+
+if (version_compare($version, '1.7.9', '>=')) {
+    $model = $root . '/component/admin/src/Model/PeopleModel.php';
+    $paginationCss = $root . '/component/media/css/admin.css';
+
+    foreach ([
+        $root . '/component/admin/sql/updates/mysql/1.7.9.sql',
+        $model,
+        $paginationCss,
+    ] as $path) {
+        if (!is_file($path)) {
+            $fail('Missing People 1.7.9 pagination file: ' . $path);
+        }
+    }
+
+    foreach ([
+        '$allowedLimits = [0, 20, 50, 100, 200, 500];',
+        "\$this->setState('list.limit', \$limit);",
+        "\$this->setState('list.start', \$limit === 0 ? 0",
+    ] as $needle) {
+        $contains($model, $needle);
+    }
+
+    foreach ([
+        '$limitChoices = [20, 50, 100, 200, 500, 0];',
+        'name="list[limit]"',
+        'xdecaro-people-page-size',
+        "Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL'",
+    ] as $needle) {
+        $contains($template, $needle);
+    }
+
+    foreach ([
+        '.xdecaro-people-pagination-footer',
+        '.xdecaro-people-page-size .form-select',
+    ] as $needle) {
+        $contains($paginationCss, $needle);
+    }
+
+    foreach ([
+        'COM_XDECAROPEOPLE_PAGINATION_SHOW=',
+        'COM_XDECAROPEOPLE_PAGINATION_PER_PAGE=',
+        'COM_XDECAROPEOPLE_PAGINATION_ALL=',
+    ] as $key) {
+        $contains($root . '/component/admin/language/it-IT/com_xdecaropeople.ini', $key);
+        $contains($root . '/component/admin/language/en-GB/com_xdecaropeople.ini', $key);
+    }
+}
+
+echo "People 1.7.8+ persistent selection and export-column contract OK\n";

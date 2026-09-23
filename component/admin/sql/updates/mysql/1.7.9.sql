@@ -1,0 +1,1 @@
+-- People 1.7.9 adds list page-size controls; no database schema change is required.
