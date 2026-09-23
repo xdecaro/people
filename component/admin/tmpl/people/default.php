@@ -302,6 +302,7 @@ $filterState = (string) $this->state->get('filter.state');
     <input type="hidden" name="task" value="export.download">
     <input type="hidden" name="export_format" value="xlsx">
     <input type="hidden" name="export_scope" value="filtered">
+    <input type="hidden" name="export_selected_ids" value="">
     <input type="hidden" name="filter_search" value="">
     <input type="hidden" name="filter_state" value="">
     <?php echo HTMLHelper::_('form.token'); ?>
