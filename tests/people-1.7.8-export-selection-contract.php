@@ -220,7 +220,7 @@ if (version_compare($version, '1.7.10', '>=') && version_compare($version, '1.7.
     }
 }
 
-if (version_compare($version, '1.7.12', '>=')) {
+if ($version === '1.7.12') {
     $model = $root . '/component/admin/src/Model/PeopleModel.php';
     $templateContent = (string) file_get_contents($template);
 
@@ -241,6 +241,30 @@ if (version_compare($version, '1.7.12', '>=')) {
     if (!str_contains($templateContent, '1000')
         || !str_contains($templateContent, 'COM_XDECAROPEOPLE_PAGINATION_ALL')) {
         $fail('People 1.7.12 must expose both 1000 and All page-size options.');
+    }
+}
+
+if (version_compare($version, '1.7.13', '>=')) {
+    $model = $root . '/component/admin/src/Model/PeopleModel.php';
+    $templateContent = (string) file_get_contents($template);
+
+    foreach ([
+        '$allowedLimits = [20, 50, 100, 200, 500, 1000, 999999];',
+        "\$this->setState('list.start', (int) (floor(\$start / \$limit) * \$limit));",
+    ] as $needle) {
+        $contains($model, $needle);
+    }
+
+    foreach ([
+        '$limitChoices = [20, 50, 100, 200, 500, 1000, 999999];',
+        "Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL'",
+        '$limitChoice === 999999',
+    ] as $needle) {
+        $contains($template, $needle);
+    }
+
+    if (str_contains($templateContent, '$limitChoices = [20, 50, 100, 200, 500, 1000, 0];')) {
+        $fail('People 1.7.13 must not use zero as the All page-size value.');
     }
 }
 

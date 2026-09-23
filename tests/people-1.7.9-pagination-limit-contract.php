@@ -67,7 +67,7 @@ if ($version === '1.7.9') {
         || str_contains($templateContent, 'COM_XDECAROPEOPLE_PAGINATION_ALL')) {
         $fail('People 1.7.10-1.7.11 must not expose the All page-size option.');
     }
-} else {
+} elseif ($version === '1.7.12') {
     foreach ([
         '$allowedLimits = [0, 20, 50, 100, 200, 500, 1000];',
         "\$this->setState('list.limit', \$limit);",
@@ -81,6 +81,25 @@ if ($version === '1.7.9') {
         'name="list[limit]"',
         'xdecaro-people-page-size',
         "Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL'",
+        'getListFooter()',
+    ] as $needle) {
+        $contains($template, $needle);
+    }
+} else {
+    foreach ([
+        '$allowedLimits = [20, 50, 100, 200, 500, 1000, 999999];',
+        "\$this->setState('list.limit', \$limit);",
+        "\$this->setState('list.start', (int) (floor(\$start / \$limit) * \$limit));",
+    ] as $needle) {
+        $contains($model, $needle);
+    }
+
+    foreach ([
+        '$limitChoices = [20, 50, 100, 200, 500, 1000, 999999];',
+        'name="list[limit]"',
+        'xdecaro-people-page-size',
+        "Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL'",
+        '$limitChoice === 999999',
         'getListFooter()',
     ] as $needle) {
         $contains($template, $needle);
