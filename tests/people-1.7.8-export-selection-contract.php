@@ -42,7 +42,7 @@ foreach ([
 }
 
 $contains($view, 'public bool $canSensitive = false;');
-$contains($view, '\$this->canSensitive = \$user->authorise(\'people.view_sensitive\'');
+$contains($view, '$this->canSensitive = $user->authorise(\'people.view_sensitive\'');
 
 foreach ([
     'xdecaro-people-export-clear-selection',
@@ -91,8 +91,8 @@ foreach ([
 foreach ([
     'public function resolveColumns(',
     'private function allowedColumns(',
-    'if (\$canSensitive)',
-    'if (\$canIdentityDetails)',
+    'if ($canSensitive)',
+    'if ($canIdentityDetails)',
     'PDF_COLUMNS_PER_PAGE = 8',
     'array_chunk($columns, self::PDF_COLUMNS_PER_PAGE)',
     'public function toCsv(array $rows, array $columns)',
