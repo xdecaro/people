@@ -657,8 +657,15 @@ a.xdecaro-duplicate-kpi:focus-visible {
 
 
 .xdecaro-people-export-dialog {
-  width: min(560px, calc(100vw - 2rem));
+  width: min(760px, calc(100vw - 2rem));
   max-width: none;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+}
+
+.xdecaro-people-export-columns {
+  max-height: 18rem;
+  overflow: auto;
 }
 
 .xdecaro-people-export-dialog::backdrop {
