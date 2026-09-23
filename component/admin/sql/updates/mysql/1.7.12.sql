@@ -1,0 +1,1 @@
+-- People 1.7.12 adds 1000 and All page-size options; no database schema change is required.
