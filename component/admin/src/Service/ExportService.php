@@ -157,7 +157,7 @@ final class ExportService
         }
 
         $zip = new ZipArchive();
-        if ($zip->open($temporary, ZipArchive::OVERWRITE) !== true) {
+        if ($zip->open($temporary, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             @unlink($temporary);
             throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_EXPORT_ERROR_CREATE'));
         }
@@ -366,7 +366,11 @@ final class ExportService
 
         $columnXml = [];
         foreach ($columns as $index => $column) {
-            $width = min(45, max(12, mb_strlen((string) $column['label'], 'UTF-8') + 4));
+            $maxLength = mb_strlen((string) $column['label'], 'UTF-8');
+            foreach ($rows as $row) {
+                $maxLength = max($maxLength, mb_strlen((string) ($row[$index] ?? ''), 'UTF-8'));
+            }
+            $width = min(45, max(12, $maxLength + 2));
             $columnXml[] = '<col min="' . ($index + 1) . '" max="' . ($index + 1) . '" width="' . $width . '" customWidth="1"/>';
         }
 
