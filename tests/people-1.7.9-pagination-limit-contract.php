@@ -104,4 +104,23 @@ foreach (($assets['assets'] ?? []) as $item) {
     }
 }
 
+
+if (version_compare($version, '1.7.11', '>=')) {
+    $modelContent = (string) file_get_contents($model);
+
+    foreach ([
+        "$limit = (int) $this->state->get('list.limit', 20);",
+        "$start = max(0, (int) $this->state->get('list.start', 0));",
+    ] as $needle) {
+        if (!str_contains($modelContent, $needle)) {
+            $fail('People 1.7.11 must read list state directly from the Registry inside populateState.');
+        }
+    }
+
+    if (str_contains($modelContent, "$this->getState('list.limit', 20)")
+        || str_contains($modelContent, "$this->getState('list.start', 0)")) {
+        $fail('People 1.7.11 must not call getState() from populateState because that recurses.');
+    }
+}
+
 echo "People 1.7.9+ page-size pagination contract OK\n";
