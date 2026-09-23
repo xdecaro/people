@@ -10,7 +10,7 @@ $assert = static function (bool $condition, string $message): void {
     }
 };
 
-$assert($version === '1.7.6', 'People 1.7.6 version expected.');
+$assert(version_compare($version, '1.7.6', '>='), 'People 1.7.6+ version expected.');
 
 $view = (string) file_get_contents($root . '/component/admin/src/View/Duplicates/HtmlView.php');
 $template = (string) file_get_contents($root . '/component/admin/tmpl/duplicates/default.php');
@@ -72,4 +72,4 @@ foreach ([$it, $en] as $language) {
     }
 }
 
-echo "People 1.7.6 duplicate dashboard contract OK\n";
+echo "People 1.7.6+ duplicate dashboard contract OK\n";

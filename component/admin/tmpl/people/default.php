@@ -87,3 +87,80 @@ $filterState = (string) $this->state->get('filter.state');
     <input type="hidden" name="boxchecked" value="0">
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
+
+<dialog
+    id="xdecaro-people-export-dialog"
+    class="xdecaro-people-export-dialog border-0 rounded-3 shadow-lg p-0"
+    data-no-selection="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_EXPORT_NO_SELECTION')); ?>"
+>
+    <div class="card border-0">
+        <div class="card-header d-flex align-items-center justify-content-between gap-3">
+            <strong><?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_TITLE'); ?></strong>
+            <button type="button" class="btn-close" aria-label="<?php echo Text::_('JCLOSE'); ?>" data-xdecaro-export-close></button>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <label class="form-label fw-semibold" for="xdecaro-people-export-format-ui">
+                    <?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_FORMAT'); ?>
+                </label>
+                <select id="xdecaro-people-export-format-ui" class="form-select">
+                    <option value="xlsx"><?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_FORMAT_XLSX'); ?></option>
+                    <option value="csv"><?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_FORMAT_CSV'); ?></option>
+                    <option value="pdf"><?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_FORMAT_PDF'); ?></option>
+                </select>
+            </div>
+
+            <fieldset>
+                <legend class="fs-6 fw-semibold mb-3"><?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_SCOPE'); ?></legend>
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="xdecaro_export_scope_ui" id="xdecaro-people-export-scope-filtered" value="filtered" checked>
+                    <label class="form-check-label" for="xdecaro-people-export-scope-filtered">
+                        <?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_SCOPE_FILTERED'); ?>
+                    </label>
+                </div>
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="xdecaro_export_scope_ui" id="xdecaro-people-export-scope-all" value="all">
+                    <label class="form-check-label" for="xdecaro-people-export-scope-all">
+                        <?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_SCOPE_ALL'); ?>
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="xdecaro_export_scope_ui" id="xdecaro-people-export-scope-selected" value="selected">
+                    <label class="form-check-label" for="xdecaro-people-export-scope-selected">
+                        <?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_SCOPE_SELECTED'); ?>
+                        (<span id="xdecaro-people-export-selected-count">0</span>)
+                    </label>
+                </div>
+            </fieldset>
+
+            <p class="text-body-secondary small mt-3 mb-0">
+                <?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_PRIVACY_NOTICE'); ?>
+            </p>
+        </div>
+        <div class="card-footer d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" data-xdecaro-export-close>
+                <?php echo Text::_('JCANCEL'); ?>
+            </button>
+            <button type="button" class="btn btn-primary" id="xdecaro-people-export-download">
+                <?php echo Text::_('COM_XDECAROPEOPLE_EXPORT_DOWNLOAD'); ?>
+            </button>
+        </div>
+    </div>
+</dialog>
+
+<form
+    action="<?php echo Route::_('index.php?option=com_xdecaropeople'); ?>"
+    method="post"
+    id="xdecaro-people-export-form"
+    class="d-none"
+>
+    <input type="hidden" name="task" value="export.download">
+    <input type="hidden" name="export_format" value="xlsx">
+    <input type="hidden" name="export_scope" value="filtered">
+    <input type="hidden" name="filter_search" value="">
+    <input type="hidden" name="filter_state" value="">
+    <?php echo HTMLHelper::_('form.token'); ?>
+</form>

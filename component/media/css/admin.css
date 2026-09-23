@@ -654,3 +654,13 @@ a.xdecaro-duplicate-kpi:focus-visible {
   }
 }
 
+
+
+.xdecaro-people-export-dialog {
+  width: min(560px, calc(100vw - 2rem));
+  max-width: none;
+}
+
+.xdecaro-people-export-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}

@@ -36,7 +36,9 @@ final class HtmlView extends BaseHtmlView
             $component->getCoreIntegrationService()->enableUi($this->document->getWebAssetManager());
         }
 
-        $this->document->getWebAssetManager()->useStyle('com_xdecaropeople.admin');
+        $this->document->getWebAssetManager()
+            ->useStyle('com_xdecaropeople.admin')
+            ->useScript('com_xdecaropeople.export');
 
         ToolbarHelper::title(Text::_('COM_XDECAROPEOPLE_PEOPLE'), 'users');
 
@@ -49,6 +51,8 @@ final class HtmlView extends BaseHtmlView
                 ToolbarHelper::custom('import.open', 'upload', '', Text::_('COM_XDECAROPEOPLE_IMPORT'), false);
             }
         }
+
+        ToolbarHelper::custom('export.open', 'download', '', Text::_('COM_XDECAROPEOPLE_EXPORT'), false);
 
         if ($user->authorise('core.edit', 'com_xdecaropeople')) {
             ToolbarHelper::editList('person.edit');

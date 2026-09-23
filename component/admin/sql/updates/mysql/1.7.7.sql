@@ -1,0 +1,1 @@
+-- People 1.7.7 adds export features; no database schema change is required.
