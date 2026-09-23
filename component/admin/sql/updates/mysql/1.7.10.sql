@@ -1,0 +1,1 @@
+-- People 1.7.10 removes unsafe unlimited list loading; no database schema change is required.
