@@ -17,8 +17,8 @@ $contains = static function (string $path, string $needle) use ($fail): void {
     }
 };
 
-if ($version !== '1.7.8') {
-    $fail('People 1.7.8 version expected.');
+if (version_compare($version, '1.7.8', '<')) {
+    $fail('People 1.7.8+ version expected.');
 }
 
 $view = $root . '/component/admin/src/View/People/HtmlView.php';
@@ -118,21 +118,21 @@ foreach ([
 }
 
 $assets = json_decode((string) file_get_contents($asset), true, 512, JSON_THROW_ON_ERROR);
-if (($assets['version'] ?? '') !== '1.7.8') {
-    $fail('People web assets must be version 1.7.8.');
+if (($assets['version'] ?? '') !== $version) {
+    $fail('People web assets must match the current version.');
 }
 
 foreach (($assets['assets'] ?? []) as $item) {
-    if (($item['version'] ?? '') !== '1.7.8') {
-        $fail('Every People web asset must be version 1.7.8.');
+    if (($item['version'] ?? '') !== $version) {
+        $fail('Every People web asset must match the current version.');
     }
 }
 
 $componentXml = simplexml_load_file($root . '/component/xdecaropeople.xml');
 $packageXml = simplexml_load_file($root . '/package/pkg_people.xml');
 
-if ((string) $componentXml->version !== '1.7.8' || (string) $packageXml->version !== '1.7.8') {
-    $fail('People manifests must be version 1.7.8.');
+if ((string) $componentXml->version !== $version || (string) $packageXml->version !== $version) {
+    $fail('People manifests must match the current version.');
 }
 
-echo "People 1.7.8 persistent selection and export-column contract OK\n";
+echo "People 1.7.8+ persistent selection and export-column contract OK\n";
