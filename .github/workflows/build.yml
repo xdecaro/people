@@ -260,7 +260,19 @@ jobs:
           if ((int)$db->setQuery($q)->loadResult()!==1) exit(1);
           $q=$db->getQuery(true)->select('COUNT(*)')->from($db->quoteName('#__xdecaropeople_history','h'))->join('INNER',$db->quoteName('#__xdecaropeople_people','p').' ON '.$db->quoteName('p.id').'='.$db->quoteName('h.person_id'))->where($db->quoteName('p.tax_identifier').'='.$db->quote('CIIMPORT00000001'))->where($db->quoteName('h.action').'='.$db->quote('import'));
           if ((int)$db->setQuery($q)->loadResult()!==1) exit(1);
-          echo "People runtime and CSV import OK\n";
+
+          $exporter=new \xdecaro\Component\People\Administrator\Service\ExportService($db);
+          $columns=$exporter->resolveColumns(['display_name','email','birth_date'],true,true);
+          $exportRows=$exporter->loadRows('all',[],'','',true,true);
+          if ($exportRows===[]) exit(1);
+          $csv=$exporter->toCsv($exportRows,$columns);
+          if (!str_starts_with($csv,"\xEF\xBB\xBF") || !str_contains($csv,'ci-import@example.invalid')) exit(1);
+          $xlsx=$exporter->toXlsx($exportRows,$columns);
+          if (!str_starts_with($xlsx,'PK')) exit(1);
+          $pdf=$exporter->toPdf($exportRows,$columns);
+          if (!str_starts_with($pdf,'%PDF-1.4')) exit(1);
+
+          echo "People runtime, CSV import and export formats OK\n";
           PHP
           php people-runtime-probe.php
       - name: Probe duplicate merge runtime
