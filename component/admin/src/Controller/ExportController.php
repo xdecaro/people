@@ -54,16 +54,22 @@ final class ExportController extends BaseController
         $canSensitive = $user->authorise('people.view_sensitive', 'com_xdecaropeople')
             || $user->authorise('core.admin', 'com_xdecaropeople');
 
+        $requestedColumns = array_values(array_filter(
+            array_map('strval', (array) $this->input->get('export_columns', [], 'array')),
+            static fn (string $column): bool => trim($column) !== ''
+        ));
+
         $service = new ExportService(Factory::getContainer()->get(DatabaseInterface::class));
+        $columns = $service->resolveColumns($requestedColumns, $canIdentityDetails, $canSensitive);
         $rows = $service->loadRows($scope, $ids, $search, $state, $canIdentityDetails, $canSensitive);
 
         [$mimeType, $payload] = match ($format) {
             'xlsx' => [
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                $service->toXlsx($rows, $canIdentityDetails, $canSensitive),
+                $service->toXlsx($rows, $columns),
             ],
-            'pdf' => ['application/pdf', $service->toPdf($rows, $canIdentityDetails)],
-            default => ['text/csv; charset=UTF-8', $service->toCsv($rows, $canIdentityDetails, $canSensitive)],
+            'pdf' => ['application/pdf', $service->toPdf($rows, $columns)],
+            default => ['text/csv; charset=UTF-8', $service->toCsv($rows, $columns)],
         };
 
         $filename = 'people-' . Factory::getDate()->format('Y-m-d-His') . '.' . $format;
