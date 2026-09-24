@@ -181,7 +181,7 @@
     ? JoomlaApi.submitform.bind(JoomlaApi)
     : null;
 
-  JoomlaApi.submitform = (task, form) => {
+  JoomlaApi.submitform = (task, form, validate) => {
     const targetForm = form || adminForm;
     const normalizedTask = String(task || '').trim();
 
@@ -189,7 +189,7 @@
       prepareListNavigation();
     }
 
-    if (originalSubmitform) return originalSubmitform(task, form);
+    if (originalSubmitform) return originalSubmitform(task, form, validate);
     if (targetForm) targetForm.submit();
 
     return true;
