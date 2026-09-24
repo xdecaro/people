@@ -231,7 +231,7 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                     }
                 }
                 ?>
-                <details class="card xdecaro-duplicate-group" name="xdecaro-duplicate-review" data-duplicate-group="<?php echo (int) $groupIndex; ?>">
+                <details class="card xdecaro-duplicate-group" name="xdecaro-duplicate-review">
                     <summary class="card-header xdecaro-duplicate-accordion-summary">
                         <div class="xdecaro-duplicate-summary-main">
                             <div class="d-flex flex-wrap align-items-center gap-2">
@@ -271,7 +271,7 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                         </div>
                     </summary>
 
-                    <div class="card-body">
+                    <div class="card-body" data-duplicate-group="<?php echo (int) $groupIndex; ?>">
                         <?php if ($strength === 'conflict') : ?>
                             <div class="alert alert-danger">
                                 <strong><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_CONFLICT_TITLE'); ?></strong>
