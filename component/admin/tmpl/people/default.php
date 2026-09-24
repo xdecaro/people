@@ -26,7 +26,7 @@ $totalItems = (int) ($this->pagination->total ?? 0);
                 >
             </div>
             <div class="xdecaro-people-filter-state">
-                <select name="filter_state" class="form-select" onchange="this.form.submit()">
+                <select name="filter_state" class="form-select" onchange="this.form.requestSubmit()">
                     <option value=""><?php echo Text::_('JOPTION_SELECT_PUBLISHED'); ?></option>
                     <option value="1" <?php echo $filterState === '1' ? 'selected' : ''; ?>><?php echo Text::_('JPUBLISHED'); ?></option>
                     <option value="0" <?php echo $filterState === '0' ? 'selected' : ''; ?>><?php echo Text::_('JUNPUBLISHED'); ?></option>
@@ -92,7 +92,7 @@ $totalItems = (int) ($this->pagination->total ?? 0);
                     id="xdecaro-people-page-size"
                     name="list[limit]"
                     class="form-select form-select-sm"
-                    onchange="this.form.submit()"
+                    onchange="this.form.requestSubmit()"
                 >
                     <?php foreach ($limitChoices as $limitChoice) : ?>
                         <option value="<?php echo (int) $limitChoice; ?>" <?php echo $currentLimit === $limitChoice ? 'selected' : ''; ?>>

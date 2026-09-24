@@ -160,4 +160,29 @@ if (version_compare($version, '1.7.11', '>=')) {
     }
 }
 
+
+if (version_compare($version, '1.7.14', '>=')) {
+    $exportJs = $root . '/component/media/js/export.js';
+    $templateContent = (string) file_get_contents($template);
+
+    foreach ([
+        'const prepareListNavigation = () => {',
+        "input.disabled = true;",
+        "boxchecked.value = '0';",
+        "adminForm.addEventListener('submit'",
+        'JoomlaApi.submitform = (task, form, validate) => {',
+        'originalSubmitform(task, form, validate)',
+    ] as $needle) {
+        $contains($exportJs, $needle);
+    }
+
+    if (substr_count($templateContent, 'this.form.requestSubmit()') < 2) {
+        $fail('People 1.7.14 must use requestSubmit() for list filters and page-size changes.');
+    }
+
+    if (str_contains($templateContent, 'onchange="this.form.submit()"')) {
+        $fail('People 1.7.14 must not bypass the submit event for list navigation.');
+    }
+}
+
 echo "People 1.7.9+ page-size pagination contract OK\n";
