@@ -57,6 +57,18 @@
     writeStoredArray(SELECTION_KEY, Array.from(selectedIds));
   };
 
+  const prepareListNavigation = () => {
+    rowCheckboxes().forEach((input) => {
+      input.disabled = true;
+    });
+
+    const toggle = checkAllToggle();
+    if (toggle) toggle.disabled = true;
+
+    const boxchecked = adminForm.querySelector('input[name="boxchecked"]');
+    if (boxchecked) boxchecked.value = '0';
+  };
+
   const visibleSelectedCount = () => rowCheckboxes().filter((input) => input.checked).length;
 
   const updateCheckAllState = () => {
@@ -164,6 +176,32 @@
   const originalSubmitbutton = typeof JoomlaApi.submitbutton === 'function'
     ? JoomlaApi.submitbutton.bind(JoomlaApi)
     : null;
+
+  const originalSubmitform = typeof JoomlaApi.submitform === 'function'
+    ? JoomlaApi.submitform.bind(JoomlaApi)
+    : null;
+
+  JoomlaApi.submitform = (task, form) => {
+    const targetForm = form || adminForm;
+    const normalizedTask = String(task || '').trim();
+
+    if (targetForm === adminForm && normalizedTask === '') {
+      prepareListNavigation();
+    }
+
+    if (originalSubmitform) return originalSubmitform(task, form);
+    if (targetForm) targetForm.submit();
+
+    return true;
+  };
+
+  adminForm.addEventListener('submit', () => {
+    const task = String(adminForm.querySelector('input[name="task"]')?.value || '').trim();
+
+    if (task === '') {
+      prepareListNavigation();
+    }
+  });
 
   JoomlaApi.submitbutton = (task) => {
     if (task === 'export.open') {
