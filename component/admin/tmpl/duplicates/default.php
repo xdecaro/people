@@ -156,7 +156,7 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
         </div>
     <?php else : ?>
         <div class="xdecaro-duplicate-groups">
-            <?php foreach ($this->groups as $group) : ?>
+            <?php foreach ($this->groups as $groupIndex => $group) : ?>
                 <?php
                 $strength = (string) ($group['strength'] ?? 'possible');
                 $strengthLabel = match ($strength) {
@@ -231,7 +231,7 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                     }
                 }
                 ?>
-                <details class="card xdecaro-duplicate-group" name="xdecaro-duplicate-review">
+                <details class="card xdecaro-duplicate-group" name="xdecaro-duplicate-review" data-duplicate-group="<?php echo (int) $groupIndex; ?>">
                     <summary class="card-header xdecaro-duplicate-accordion-summary">
                         <div class="xdecaro-duplicate-summary-main">
                             <div class="d-flex flex-wrap align-items-center gap-2">
@@ -279,8 +279,58 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                             </div>
                         <?php endif; ?>
 
-                        <div class="xdecaro-duplicate-compare">
-                            <?php foreach ($records as $record) : ?>
+                        <div class="xdecaro-duplicate-mobile-actions">
+                            <div class="small text-body-secondary mb-2">
+                                <?php
+                                echo $strength === 'conflict'
+                                    ? Text::_('COM_XDECAROPEOPLE_DUPLICATE_CONFLICT_ACTION_HINT')
+                                    : Text::_('COM_XDECAROPEOPLE_DUPLICATE_POSSIBLE_ACTION_HINT');
+                                ?>
+                            </div>
+                            <form action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=duplicate.dismiss'); ?>" method="post">
+                                <input type="hidden" name="match_type" value="<?php echo $this->escape($type); ?>">
+                                <input type="hidden" name="match_key" value="<?php echo $this->escape((string) ($group['key'] ?? '')); ?>">
+                                <?php foreach ($recordIds as $recordId) : ?>
+                                    <input type="hidden" name="record_ids[]" value="<?php echo (int) $recordId; ?>">
+                                <?php endforeach; ?>
+                                <?php echo HTMLHelper::_('form.token'); ?>
+                                <button type="submit" class="btn btn-outline-secondary w-100">
+                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_NOT_DUPLICATE'); ?>
+                                </button>
+                            </form>
+                        </div>
+
+                        <?php if (count($records) > 1) : ?>
+                            <div
+                                class="xdecaro-duplicate-mobile-tabs"
+                                role="tablist"
+                                aria-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_RECORDS')); ?>"
+                            >
+                                <?php foreach ($records as $recordIndex => $record) : ?>
+                                    <?php
+                                    $tabId = 'xdecaro-duplicate-' . (int) $groupIndex . '-tab-' . (int) $recordIndex;
+                                    $panelId = 'xdecaro-duplicate-' . (int) $groupIndex . '-panel-' . (int) $recordIndex;
+                                    $tabName = trim((string) ($record['display_name'] ?? ''));
+                                    $tabRecordId = (int) ($record['id'] ?? 0);
+                                    ?>
+                                    <button
+                                        type="button"
+                                        id="<?php echo $tabId; ?>"
+                                        class="xdecaro-duplicate-mobile-tab<?php echo $recordIndex === 0 ? ' is-active' : ''; ?>"
+                                        role="tab"
+                                        aria-selected="<?php echo $recordIndex === 0 ? 'true' : 'false'; ?>"
+                                        aria-controls="<?php echo $panelId; ?>"
+                                        data-duplicate-tab="<?php echo (int) $recordIndex; ?>"
+                                    >
+                                        <strong><?php echo $this->escape($tabName !== '' ? $tabName : Text::_('COM_XDECAROPEOPLE_PERSON_EDIT')); ?></strong>
+                                        <span>#<?php echo $tabRecordId; ?></span>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="xdecaro-duplicate-compare" data-duplicate-panels>
+                            <?php foreach ($records as $recordIndex => $record) : ?>
                                 <?php
                                 $id = (int) ($record['id'] ?? 0);
                                 if ($id < 1) {
@@ -289,7 +339,13 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
 
                                 $name = trim((string) ($record['display_name'] ?? ''));
                                 ?>
-                                <article class="xdecaro-duplicate-person">
+                                <article
+                                    id="xdecaro-duplicate-<?php echo (int) $groupIndex; ?>-panel-<?php echo (int) $recordIndex; ?>"
+                                    class="xdecaro-duplicate-person<?php echo $recordIndex === 0 ? ' is-active' : ''; ?>"
+                                    role="tabpanel"
+                                    aria-labelledby="xdecaro-duplicate-<?php echo (int) $groupIndex; ?>-tab-<?php echo (int) $recordIndex; ?>"
+                                    data-duplicate-panel="<?php echo (int) $recordIndex; ?>"
+                                >
                                     <div class="xdecaro-duplicate-person-heading">
                                         <div>
                                             <h3 class="h6 mb-1">
