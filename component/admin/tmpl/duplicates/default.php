@@ -279,6 +279,49 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                             </div>
                         <?php endif; ?>
 
+                        <div class="xdecaro-duplicate-mobile-overview">
+                            <div class="xdecaro-duplicate-mobile-record-strip" aria-label="<?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_RECORDS'); ?>">
+                                <?php foreach ($records as $record) : ?>
+                                    <?php
+                                    $mobileId = (int) ($record['id'] ?? 0);
+                                    $mobileName = trim((string) ($record['display_name'] ?? ''));
+                                    if ($mobileId < 1) {
+                                        continue;
+                                    }
+                                    ?>
+                                    <span class="xdecaro-duplicate-mobile-record-chip">
+                                        <strong><?php echo $this->escape($mobileName !== '' ? $mobileName : Text::_('COM_XDECAROPEOPLE_PERSON_EDIT')); ?></strong>
+                                        <small>#<?php echo $mobileId; ?></small>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+
+                            <div class="small text-body-secondary xdecaro-duplicate-mobile-swipe-help">
+                                <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_SWIPE_HELP'); ?>
+                            </div>
+
+                            <div class="xdecaro-duplicate-mobile-quick-action">
+                                <div class="small text-body-secondary mb-2">
+                                    <?php
+                                    echo $strength === 'conflict'
+                                        ? Text::_('COM_XDECAROPEOPLE_DUPLICATE_CONFLICT_ACTION_HINT')
+                                        : Text::_('COM_XDECAROPEOPLE_DUPLICATE_POSSIBLE_ACTION_HINT');
+                                    ?>
+                                </div>
+                                <form action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=duplicate.dismiss'); ?>" method="post">
+                                    <input type="hidden" name="match_type" value="<?php echo $this->escape($type); ?>">
+                                    <input type="hidden" name="match_key" value="<?php echo $this->escape((string) ($group['key'] ?? '')); ?>">
+                                    <?php foreach ($recordIds as $recordId) : ?>
+                                        <input type="hidden" name="record_ids[]" value="<?php echo (int) $recordId; ?>">
+                                    <?php endforeach; ?>
+                                    <?php echo HTMLHelper::_('form.token'); ?>
+                                    <button type="submit" class="btn btn-outline-secondary w-100">
+                                        <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_NOT_DUPLICATE'); ?>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
                         <div class="xdecaro-duplicate-compare">
                             <?php foreach ($records as $record) : ?>
                                 <?php
