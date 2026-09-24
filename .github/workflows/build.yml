@@ -48,6 +48,7 @@ jobs:
           php tests/people-1.7.7-export-contract.php
           php tests/people-1.7.8-export-selection-contract.php
           php tests/people-1.7.9-pagination-limit-contract.php
+          php tests/people-1.7.15-duplicates-mobile-contract.php
       - name: Validate source metadata
         shell: bash
         run: |
@@ -112,6 +113,7 @@ jobs:
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.7.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.8.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.14.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.15.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Controller/ExportController.php'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Service/ExportService.php'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/export.js'
