@@ -1,0 +1,1 @@
+-- People 1.7.14 keeps large export selections out of list-navigation form submissions; no database schema change is required.
