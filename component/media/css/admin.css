@@ -712,39 +712,49 @@ a.xdecaro-duplicate-kpi:focus-visible {
     margin-bottom: .8rem;
   }
 
-  .xdecaro-duplicate-mobile-record-strip {
+  .xdecaro-duplicate-mobile-tabs {
     display: flex;
-    gap: .45rem;
+    gap: .5rem;
     overflow-x: auto;
-    padding-bottom: .15rem;
+    padding: .1rem 0 .35rem;
     overscroll-behavior-inline: contain;
     scrollbar-width: thin;
   }
 
-  .xdecaro-duplicate-mobile-record-chip {
-    display: inline-flex;
+  .xdecaro-duplicate-mobile-tab {
     flex: 0 0 auto;
-    align-items: baseline;
-    gap: .35rem;
-    max-width: 85%;
-    padding: .45rem .6rem;
-    border: 1px solid var(--border-color, rgba(127, 127, 127, .25));
-    border-radius: 999px;
+    min-width: min(70vw, 15rem);
+    padding: .65rem .75rem;
+    border: 1px solid var(--border-color, rgba(127, 127, 127, .3));
+    border-radius: .6rem;
     background: var(--body-bg, #fff);
-    white-space: nowrap;
+    color: inherit;
+    text-align: left;
+    line-height: 1.25;
   }
 
-  .xdecaro-duplicate-mobile-record-chip strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .xdecaro-duplicate-mobile-tab strong,
+  .xdecaro-duplicate-mobile-tab small {
+    display: block;
   }
 
-  .xdecaro-duplicate-mobile-record-chip small {
-    color: var(--body-color, inherit);
+  .xdecaro-duplicate-mobile-tab small {
+    margin-top: .15rem;
     opacity: .65;
   }
 
-  .xdecaro-duplicate-mobile-swipe-help {
+  .xdecaro-duplicate-mobile-tab.is-active {
+    border-color: var(--bs-primary, #0d6efd);
+    background: var(--bs-primary-bg-subtle, rgba(13, 110, 253, .08));
+    box-shadow: inset 0 .2rem 0 var(--bs-primary, #0d6efd);
+  }
+
+  .xdecaro-duplicate-mobile-tab:focus-visible {
+    outline: 2px solid var(--bs-primary, #0d6efd);
+    outline-offset: 2px;
+  }
+
+  .xdecaro-duplicate-mobile-tab-help {
     padding-inline: .15rem;
   }
 
@@ -756,21 +766,18 @@ a.xdecaro-duplicate-kpi:focus-visible {
   }
 
   .xdecaro-duplicate-compare {
-    display: flex;
+    display: block;
     grid-template-columns: none;
-    gap: .65rem;
-    overflow-x: auto;
-    padding: 0 0 .65rem;
-    scroll-snap-type: x mandatory;
-    overscroll-behavior-inline: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    overflow: visible;
+    padding: 0;
   }
 
   .xdecaro-duplicate-person {
-    flex: 0 0 calc(100% - .65rem);
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
+    width: 100%;
+  }
+
+  .xdecaro-duplicate-person[hidden] {
+    display: none !important;
   }
 
   .xdecaro-duplicate-actions {

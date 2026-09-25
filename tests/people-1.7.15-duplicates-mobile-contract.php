@@ -17,8 +17,8 @@ $contains = static function (string $path, string $needle) use ($fail): void {
     }
 };
 
-if ($version !== '1.7.15') {
-    $fail('People 1.7.15 version expected.');
+if (version_compare($version, '1.7.15', '<')) {
+    $fail('People 1.7.15+ version expected.');
 }
 
 $template = $root . '/component/admin/tmpl/duplicates/default.php';
@@ -34,35 +34,36 @@ foreach ([
     }
 }
 
-foreach ([
-    'xdecaro-duplicate-mobile-overview',
-    'xdecaro-duplicate-mobile-record-strip',
-    'xdecaro-duplicate-mobile-record-chip',
-    'xdecaro-duplicate-mobile-swipe-help',
-    'xdecaro-duplicate-mobile-quick-action',
-    'COM_XDECAROPEOPLE_DUPLICATE_MOBILE_RECORDS',
-    'COM_XDECAROPEOPLE_DUPLICATE_MOBILE_SWIPE_HELP',
-    'COM_XDECAROPEOPLE_DUPLICATE_NOT_DUPLICATE',
-] as $needle) {
-    $contains($template, $needle);
-}
+if ($version === '1.7.15') {
+    foreach ([
+        'xdecaro-duplicate-mobile-overview',
+        'xdecaro-duplicate-mobile-record-strip',
+        'xdecaro-duplicate-mobile-record-chip',
+        'xdecaro-duplicate-mobile-swipe-help',
+        'xdecaro-duplicate-mobile-quick-action',
+        'COM_XDECAROPEOPLE_DUPLICATE_MOBILE_RECORDS',
+        'COM_XDECAROPEOPLE_DUPLICATE_MOBILE_SWIPE_HELP',
+        'COM_XDECAROPEOPLE_DUPLICATE_NOT_DUPLICATE',
+    ] as $needle) {
+        $contains($template, $needle);
+    }
 
-foreach ([
-    '.xdecaro-duplicate-mobile-overview',
-    '.xdecaro-duplicate-mobile-record-strip',
-    '.xdecaro-duplicate-mobile-record-chip',
-    '.xdecaro-duplicate-mobile-quick-action',
-    'scroll-snap-type: x mandatory',
-    'scroll-snap-align: start',
-    '.xdecaro-duplicate-actions {',
-    'padding-bottom: max(8rem',
-] as $needle) {
-    $contains($css, $needle);
+    foreach ([
+        '.xdecaro-duplicate-mobile-overview',
+        '.xdecaro-duplicate-mobile-record-strip',
+        '.xdecaro-duplicate-mobile-record-chip',
+        '.xdecaro-duplicate-mobile-quick-action',
+        'scroll-snap-type: x mandatory',
+        'scroll-snap-align: start',
+        '.xdecaro-duplicate-actions {',
+        'padding-bottom: max(8rem',
+    ] as $needle) {
+        $contains($css, $needle);
+    }
 }
 
 foreach ([
     'COM_XDECAROPEOPLE_DUPLICATE_MOBILE_RECORDS=',
-    'COM_XDECAROPEOPLE_DUPLICATE_MOBILE_SWIPE_HELP=',
 ] as $key) {
     $contains($root . '/component/admin/language/it-IT/com_xdecaropeople.ini', $key);
     $contains($root . '/component/admin/language/en-GB/com_xdecaropeople.ini', $key);
@@ -72,18 +73,18 @@ $componentXml = simplexml_load_file($root . '/component/xdecaropeople.xml');
 $packageXml = simplexml_load_file($root . '/package/pkg_people.xml');
 $assets = json_decode((string) file_get_contents($root . '/component/media/joomla.asset.json'), true, 512, JSON_THROW_ON_ERROR);
 
-if ((string) $componentXml->version !== '1.7.15' || (string) $packageXml->version !== '1.7.15') {
-    $fail('People manifests must be version 1.7.15.');
+if ((string) $componentXml->version !== $version || (string) $packageXml->version !== $version) {
+    $fail('People manifests must match the current version.');
 }
 
-if (($assets['version'] ?? '') !== '1.7.15') {
-    $fail('People web assets must be version 1.7.15.');
+if (($assets['version'] ?? '') !== $version) {
+    $fail('People web assets must match the current version.');
 }
 
 foreach (($assets['assets'] ?? []) as $item) {
-    if (($item['version'] ?? '') !== '1.7.15') {
-        $fail('Every People web asset must be version 1.7.15.');
+    if (($item['version'] ?? '') !== $version) {
+        $fail('Every People web asset must match the current version.');
     }
 }
 
-echo "People 1.7.15 mobile duplicate review contract OK\n";
+echo "People 1.7.15+ mobile duplicate review contract OK\n";

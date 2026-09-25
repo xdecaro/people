@@ -156,7 +156,7 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
         </div>
     <?php else : ?>
         <div class="xdecaro-duplicate-groups">
-            <?php foreach ($this->groups as $group) : ?>
+            <?php foreach ($this->groups as $groupIndex => $group) : ?>
                 <?php
                 $strength = (string) ($group['strength'] ?? 'possible');
                 $strengthLabel = match ($strength) {
@@ -279,25 +279,40 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                             </div>
                         <?php endif; ?>
 
-                        <div class="xdecaro-duplicate-mobile-overview">
-                            <div class="xdecaro-duplicate-mobile-record-strip" aria-label="<?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_RECORDS'); ?>">
-                                <?php foreach ($records as $record) : ?>
+                        <div class="xdecaro-duplicate-mobile-overview" data-duplicate-group="<?php echo (int) $groupIndex; ?>">
+                            <div
+                                class="xdecaro-duplicate-mobile-tabs"
+                                role="tablist"
+                                aria-label="<?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_RECORDS'); ?>"
+                            >
+                                <?php foreach ($records as $recordIndex => $record) : ?>
                                     <?php
                                     $mobileId = (int) ($record['id'] ?? 0);
                                     $mobileName = trim((string) ($record['display_name'] ?? ''));
                                     if ($mobileId < 1) {
                                         continue;
                                     }
+                                    $tabId = 'xdecaro-duplicate-' . (int) $groupIndex . '-tab-' . (int) $recordIndex;
+                                    $panelId = 'xdecaro-duplicate-' . (int) $groupIndex . '-panel-' . (int) $recordIndex;
                                     ?>
-                                    <span class="xdecaro-duplicate-mobile-record-chip">
+                                    <button
+                                        type="button"
+                                        id="<?php echo $tabId; ?>"
+                                        class="xdecaro-duplicate-mobile-tab<?php echo $recordIndex === 0 ? ' is-active' : ''; ?>"
+                                        role="tab"
+                                        aria-selected="<?php echo $recordIndex === 0 ? 'true' : 'false'; ?>"
+                                        aria-controls="<?php echo $panelId; ?>"
+                                        tabindex="<?php echo $recordIndex === 0 ? '0' : '-1'; ?>"
+                                        data-duplicate-tab="<?php echo (int) $recordIndex; ?>"
+                                    >
                                         <strong><?php echo $this->escape($mobileName !== '' ? $mobileName : Text::_('COM_XDECAROPEOPLE_PERSON_EDIT')); ?></strong>
                                         <small>#<?php echo $mobileId; ?></small>
-                                    </span>
+                                    </button>
                                 <?php endforeach; ?>
                             </div>
 
-                            <div class="small text-body-secondary xdecaro-duplicate-mobile-swipe-help">
-                                <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_SWIPE_HELP'); ?>
+                            <div class="small text-body-secondary xdecaro-duplicate-mobile-tab-help">
+                                <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_TAB_HELP'); ?>
                             </div>
 
                             <div class="xdecaro-duplicate-mobile-quick-action">
@@ -322,8 +337,8 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                             </div>
                         </div>
 
-                        <div class="xdecaro-duplicate-compare">
-                            <?php foreach ($records as $record) : ?>
+                        <div class="xdecaro-duplicate-compare" data-duplicate-panels="<?php echo (int) $groupIndex; ?>">
+                            <?php foreach ($records as $recordIndex => $record) : ?>
                                 <?php
                                 $id = (int) ($record['id'] ?? 0);
                                 if ($id < 1) {
@@ -332,7 +347,13 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
 
                                 $name = trim((string) ($record['display_name'] ?? ''));
                                 ?>
-                                <article class="xdecaro-duplicate-person">
+                                <article
+                                    id="xdecaro-duplicate-<?php echo (int) $groupIndex; ?>-panel-<?php echo (int) $recordIndex; ?>"
+                                    class="xdecaro-duplicate-person<?php echo $recordIndex === 0 ? ' is-active' : ''; ?>"
+                                    role="tabpanel"
+                                    aria-labelledby="xdecaro-duplicate-<?php echo (int) $groupIndex; ?>-tab-<?php echo (int) $recordIndex; ?>"
+                                    data-duplicate-panel="<?php echo (int) $recordIndex; ?>"
+                                >
                                     <div class="xdecaro-duplicate-person-heading">
                                         <div>
                                             <h3 class="h6 mb-1">
