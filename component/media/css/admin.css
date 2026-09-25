@@ -712,50 +712,34 @@ a.xdecaro-duplicate-kpi:focus-visible {
     margin-bottom: .8rem;
   }
 
-  .xdecaro-duplicate-mobile-tabs {
-    display: flex;
-    gap: .5rem;
-    overflow-x: auto;
-    padding: .1rem 0 .35rem;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: thin;
-  }
-
-  .xdecaro-duplicate-mobile-tab {
-    flex: 0 0 auto;
-    min-width: min(70vw, 15rem);
+  .xdecaro-duplicate-mobile-record-summary {
+    display: grid;
+    gap: .2rem;
     padding: .65rem .75rem;
-    border: 1px solid var(--border-color, rgba(127, 127, 127, .3));
-    border-radius: .6rem;
-    background: var(--body-bg, #fff);
-    color: inherit;
-    text-align: left;
-    line-height: 1.25;
+    border: 1px solid var(--border-color, rgba(127, 127, 127, .2));
+    border-radius: .55rem;
+    background: var(--bs-tertiary-bg, rgba(127, 127, 127, .06));
   }
 
-  .xdecaro-duplicate-mobile-tab strong,
-  .xdecaro-duplicate-mobile-tab small {
-    display: block;
+  .xdecaro-duplicate-mobile-record-summary > div:first-child {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .75rem;
   }
 
-  .xdecaro-duplicate-mobile-tab small {
-    margin-top: .15rem;
-    opacity: .65;
+  .xdecaro-duplicate-mobile-record-position {
+    font-weight: 700;
   }
 
-  .xdecaro-duplicate-mobile-tab.is-active {
-    border-color: var(--bs-primary, #0d6efd);
-    background: var(--bs-primary-bg-subtle, rgba(13, 110, 253, .08));
-    box-shadow: inset 0 .2rem 0 var(--bs-primary, #0d6efd);
+  .xdecaro-duplicate-mobile-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .5rem;
   }
 
-  .xdecaro-duplicate-mobile-tab:focus-visible {
-    outline: 2px solid var(--bs-primary, #0d6efd);
-    outline-offset: 2px;
-  }
-
-  .xdecaro-duplicate-mobile-tab-help {
-    padding-inline: .15rem;
+  .xdecaro-duplicate-mobile-nav .btn {
+    min-height: 2.75rem;
   }
 
   .xdecaro-duplicate-mobile-quick-action {

@@ -1,0 +1,1 @@
+-- People 1.7.17 simplifies mobile duplicate review navigation; no database schema change is required.

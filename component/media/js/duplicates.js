@@ -3,62 +3,50 @@
 
   const mobileQuery = window.matchMedia('(max-width: 767.98px)');
 
-  const activate = (group, index, focusTab = false) => {
-    const tabs = Array.from(group.querySelectorAll('[data-duplicate-tab]'));
+  const groups = Array.from(document.querySelectorAll('[data-duplicate-group]'));
+
+  const getPanels = (group) => {
     const panelHost = group.closest('.card-body')?.querySelector('[data-duplicate-panels]');
-    const panels = panelHost ? Array.from(panelHost.querySelectorAll('[data-duplicate-panel]')) : [];
+    return panelHost ? Array.from(panelHost.querySelectorAll('[data-duplicate-panel]')) : [];
+  };
 
-    tabs.forEach((tab) => {
-      const active = Number(tab.dataset.duplicateTab) === index;
-      tab.classList.toggle('is-active', active);
-      tab.setAttribute('aria-selected', active ? 'true' : 'false');
-      tab.tabIndex = active ? 0 : -1;
+  const activate = (group, index) => {
+    const panels = getPanels(group);
+    if (panels.length === 0) return;
 
-      if (active && focusTab) {
-        tab.focus();
-      }
-    });
+    const safeIndex = Math.max(0, Math.min(index, panels.length - 1));
+    group.dataset.duplicateIndex = String(safeIndex);
 
     panels.forEach((panel) => {
-      const active = Number(panel.dataset.duplicatePanel) === index;
+      const active = Number(panel.dataset.duplicatePanel) === safeIndex;
       panel.classList.toggle('is-active', active);
       panel.hidden = mobileQuery.matches ? !active : false;
     });
+
+    const position = group.querySelector('[data-duplicate-position]');
+    if (position) position.textContent = `${safeIndex + 1} / ${panels.length}`;
+
+    const prev = group.querySelector('[data-duplicate-prev]');
+    const next = group.querySelector('[data-duplicate-next]');
+
+    if (prev) prev.disabled = safeIndex === 0;
+    if (next) next.disabled = safeIndex >= panels.length - 1;
   };
 
   const sync = (group) => {
-    const activeTab = group.querySelector('[data-duplicate-tab].is-active');
-    const index = activeTab ? Number(activeTab.dataset.duplicateTab) : 0;
+    const index = Number(group.dataset.duplicateIndex || 0);
     activate(group, Number.isFinite(index) ? index : 0);
   };
 
-  const groups = Array.from(document.querySelectorAll('[data-duplicate-group]'));
-
   groups.forEach((group) => {
     group.addEventListener('click', (event) => {
-      const tab = event.target.closest('[data-duplicate-tab]');
-      if (!tab || !group.contains(tab)) return;
+      const prev = event.target.closest('[data-duplicate-prev]');
+      const next = event.target.closest('[data-duplicate-next]');
 
-      activate(group, Number(tab.dataset.duplicateTab) || 0);
-    });
+      if (!prev && !next) return;
 
-    group.addEventListener('keydown', (event) => {
-      const tab = event.target.closest('[data-duplicate-tab]');
-      if (!tab) return;
-
-      const tabs = Array.from(group.querySelectorAll('[data-duplicate-tab]'));
-      const current = tabs.indexOf(tab);
-      if (current < 0) return;
-
-      let next = current;
-      if (event.key === 'ArrowRight') next = (current + 1) % tabs.length;
-      else if (event.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
-      else if (event.key === 'Home') next = 0;
-      else if (event.key === 'End') next = tabs.length - 1;
-      else return;
-
-      event.preventDefault();
-      activate(group, Number(tabs[next].dataset.duplicateTab) || 0, true);
+      const current = Number(group.dataset.duplicateIndex || 0);
+      activate(group, current + (next ? 1 : -1));
     });
 
     sync(group);
