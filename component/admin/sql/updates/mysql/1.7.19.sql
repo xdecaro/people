@@ -1,0 +1,1 @@
+-- People 1.7.19 allows explicit manual merge for safe name-only duplicate groups; no database schema change is required.
