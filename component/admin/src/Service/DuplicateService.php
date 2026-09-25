@@ -294,14 +294,30 @@ final class DuplicateService
     private function applyGroupRisk(array $bucket, bool $canSensitive): array
     {
         $bucket['merge_allowed'] = ($bucket['strength'] ?? '') === 'strong';
+        $bucket['manual_merge'] = false;
         $bucket['redundant'] = false;
         $bucket['conflict_fields'] = [];
 
-        if (!$canSensitive || (string) ($bucket['type'] ?? '') !== 'name_birth') {
+        if (!$canSensitive) {
             return $bucket;
         }
 
+        $type = (string) ($bucket['type'] ?? '');
         $records = array_values((array) ($bucket['records'] ?? []));
+
+        if ($type === 'name') {
+            $assessment = $this->assessManualNameMerge($records);
+            $bucket['conflict_fields'] = $assessment['conflicts'];
+            $bucket['merge_allowed'] = $assessment['evidence'] && $assessment['conflicts'] === [];
+            $bucket['manual_merge'] = $bucket['merge_allowed'];
+
+            return $bucket;
+        }
+
+        if ($type !== 'name_birth') {
+            return $bucket;
+        }
+
         $taxValues = [];
         $nonEmptyTaxCount = 0;
 
@@ -339,6 +355,20 @@ final class DuplicateService
 
     private function assertMergeIdentityCompatible(string $type, array $rows): void
     {
+        if ($type === 'name') {
+            $assessment = $this->assessManualNameMerge(array_values($rows));
+
+            if (in_array('tax_identifier', $assessment['conflicts'], true)) {
+                throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_TAX_CONFLICT'), 400);
+            }
+
+            if (!$assessment['evidence'] || $assessment['conflicts'] !== []) {
+                throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_IDENTITY_CONFLICT'), 400);
+            }
+
+            return;
+        }
+
         if (!in_array($type, ['tax_identifier', 'name_birth'], true)) {
             throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_MERGE_NOT_ALLOWED'), 400);
         }
@@ -367,6 +397,43 @@ final class DuplicateService
         if ($type === 'tax_identifier' && count($taxValues) !== 1) {
             throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_MERGE_NOT_ALLOWED'), 400);
         }
+    }
+
+    private function assessManualNameMerge(array $rows): array
+    {
+        $normalizers = [
+            'birth_date' => static fn(mixed $value): string => self::normalizeBirthDate($value),
+            'sex' => static fn(mixed $value): string => self::normalizeText($value),
+            'tax_identifier' => static fn(mixed $value): string => self::normalizeTin($value),
+            'birth_place' => static fn(mixed $value): string => self::normalizeText($value),
+            'birth_region' => static fn(mixed $value): string => self::normalizeText($value),
+        ];
+
+        $evidence = false;
+        $conflicts = [];
+
+        foreach ($normalizers as $field => $normalize) {
+            $values = [];
+
+            foreach ($rows as $row) {
+                $value = $normalize($row[$field] ?? null);
+                if ($value === '') {
+                    continue;
+                }
+
+                $evidence = true;
+                $values[$value] = true;
+            }
+
+            if (count($values) > 1) {
+                $conflicts[] = $field;
+            }
+        }
+
+        return [
+            'evidence' => $evidence,
+            'conflicts' => $conflicts,
+        ];
     }
 
     private function loadCandidates(bool $canSensitive, int $excludeId = 0): array
