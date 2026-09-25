@@ -52,6 +52,7 @@ jobs:
           php tests/people-1.7.16-duplicates-tabs-contract.php
           php tests/people-1.7.17-duplicates-simple-mobile-contract.php
           php tests/people-1.7.18-duplicates-all-mobile-contract.php
+          php tests/people-1.7.19-manual-possible-merge-contract.php
       - name: Validate source metadata
         shell: bash
         run: |
@@ -121,6 +122,7 @@ jobs:
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.16.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.17.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.18.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.7.19.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Controller/ExportController.php'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Service/ExportService.php'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/export.js'
@@ -292,3 +294,4 @@ jobs:
           set -euo pipefail
           cd joomla
           php ../tests/people-1.7.0-duplicate-runtime.php
+          php ../tests/people-1.7.19-manual-possible-merge-runtime.php

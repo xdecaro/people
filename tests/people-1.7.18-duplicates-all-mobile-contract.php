@@ -17,8 +17,8 @@ $contains = static function (string $path, string $needle) use ($fail): void {
     }
 };
 
-if ($version !== '1.7.18') {
-    $fail('People 1.7.18 version expected.');
+if (version_compare($version, '1.7.18', '<')) {
+    $fail('People 1.7.18+ version expected.');
 }
 
 $template = $root . '/component/admin/tmpl/duplicates/default.php';
@@ -85,4 +85,4 @@ foreach (($assets['assets'] ?? []) as $asset) {
     }
 }
 
-echo "People 1.7.18 all-record mobile duplicate comparison contract OK\n";
+echo "People 1.7.18+ all-record mobile duplicate comparison contract OK\n";
