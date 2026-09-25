@@ -42,6 +42,45 @@ final class DuplicateController extends BaseController
         $this->setRedirect(Route::_('index.php?option=com_xdecaropeople&view=duplicates', false));
     }
 
+    public function dismissBatch(): void
+    {
+        $this->checkRequestToken();
+
+        $filter = $this->input->post->getCmd('duplicate_filter', 'all');
+        if (!in_array($filter, ['all', 'conflict', 'strong', 'possible'], true)) {
+            $filter = 'all';
+        }
+
+        try {
+            $raw = trim((string) $this->input->post->get('selected_signatures', '', 'raw'));
+            $signatures = $raw === ''
+                ? []
+                : preg_split('/\s*,\s*/', $raw, -1, PREG_SPLIT_NO_EMPTY);
+
+            $count = $this->getPeopleComponent()->getDuplicateService()->ignoreGroupsBySignatures(
+                is_array($signatures) ? $signatures : [],
+                (int) Factory::getApplication()->getIdentity()->id
+            );
+
+            Factory::getApplication()->enqueueMessage(
+                Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_BATCH_DISMISSED', $count),
+                'success'
+            );
+        } catch (Throwable $exception) {
+            Factory::getApplication()->enqueueMessage(
+                $this->safeErrorMessage($exception),
+                'error'
+            );
+        }
+
+        $url = 'index.php?option=com_xdecaropeople&view=duplicates';
+        if ($filter !== 'all') {
+            $url .= '&duplicate_filter=' . rawurlencode($filter);
+        }
+
+        $this->setRedirect(Route::_($url, false));
+    }
+
     public function merge(): void
     {
         $this->checkRequestToken();
