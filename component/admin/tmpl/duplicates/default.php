@@ -279,6 +279,12 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                             </div>
                         <?php endif; ?>
 
+                        <?php if (($group['manual_merge'] ?? false) === true) : ?>
+                            <div class="alert alert-info xdecaro-duplicate-manual-merge-hint">
+                                <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MANUAL_MERGE_HINT'); ?>
+                            </div>
+                        <?php endif; ?>
+
                         <div class="xdecaro-duplicate-mobile-all">
                             <div class="xdecaro-duplicate-mobile-people">
                                 <?php foreach ($records as $record) : ?>
