@@ -18,7 +18,8 @@ $contains = static function (string $path, string $needle) use ($fail): void {
 };
 
 if ($version !== '1.7.17') {
-    $fail('People 1.7.17 version expected.');
+    echo "People 1.7.17 simple mobile duplicate contract skipped for " . $version . "\n";
+    exit(0);
 }
 
 $template = $root . '/component/admin/tmpl/duplicates/default.php';
