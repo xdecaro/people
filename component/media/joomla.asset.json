@@ -56,18 +56,6 @@
       "attributes": {
         "defer": true
       }
-    },
-    {
-      "name": "com_xdecaropeople.duplicates",
-      "type": "script",
-      "uri": "com_xdecaropeople/duplicates.js",
-      "version": "1.7.17",
-      "dependencies": [
-        "core"
-      ],
-      "attributes": {
-        "defer": true
-      }
     }
   ]
 }
