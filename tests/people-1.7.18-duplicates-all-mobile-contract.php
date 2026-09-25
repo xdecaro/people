@@ -73,15 +73,17 @@ foreach ([
     $contains($css, $needle);
 }
 
-$viewContent = (string) file_get_contents($view);
-if (str_contains($viewContent, "useScript('com_xdecaropeople.duplicates')")) {
-    $fail('People 1.7.18 must not require duplicate navigation JavaScript.');
-}
+if ($version === '1.7.18' || $version === '1.7.19') {
+    $viewContent = (string) file_get_contents($view);
+    if (str_contains($viewContent, "useScript('com_xdecaropeople.duplicates')")) {
+        $fail('People 1.7.18/1.7.19 must not require duplicate navigation JavaScript.');
+    }
 
-$assets = json_decode((string) file_get_contents($root . '/component/media/joomla.asset.json'), true, 512, JSON_THROW_ON_ERROR);
-foreach (($assets['assets'] ?? []) as $asset) {
-    if (($asset['name'] ?? '') === 'com_xdecaropeople.duplicates') {
-        $fail('People 1.7.18 must not register the obsolete duplicate navigation script asset.');
+    $assets = json_decode((string) file_get_contents($root . '/component/media/joomla.asset.json'), true, 512, JSON_THROW_ON_ERROR);
+    foreach (($assets['assets'] ?? []) as $asset) {
+        if (($asset['name'] ?? '') === 'com_xdecaropeople.duplicates') {
+            $fail('People 1.7.18/1.7.19 must not register a duplicate navigation script asset.');
+        }
     }
 }
 

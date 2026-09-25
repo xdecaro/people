@@ -1,0 +1,1 @@
+-- People 1.7.20 adds bulk duplicate dismissal and compacts the duplicate list UI; no database schema change is required.

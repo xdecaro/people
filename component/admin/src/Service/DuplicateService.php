@@ -149,6 +149,65 @@ final class DuplicateService
         $this->db->insertObject('#__xdecaropeople_duplicate_ignores', $row);
     }
 
+    public function ignoreGroupsBySignatures(array $signatures, int $userId): int
+    {
+        $this->assertManagePermission();
+
+        $wanted = [];
+        foreach ($signatures as $signature) {
+            $signature = strtolower(trim((string) $signature));
+            if (preg_match('/^[a-f0-9]{64}$/', $signature) === 1) {
+                $wanted[$signature] = true;
+            }
+        }
+
+        if ($wanted === [] || count($wanted) > 500) {
+            throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_INVALID_GROUP'), 400);
+        }
+
+        $available = [];
+        foreach ($this->find(500) as $group) {
+            $signature = strtolower(trim((string) ($group['signature'] ?? '')));
+            if ($signature !== '' && isset($wanted[$signature])) {
+                $available[$signature] = $group;
+            }
+        }
+
+        if (count($available) !== count($wanted)) {
+            throw new RuntimeException(Text::_('COM_XDECAROPEOPLE_DUPLICATE_ERROR_GROUP_CHANGED'), 409);
+        }
+
+        $this->db->transactionStart();
+
+        try {
+            foreach (array_keys($wanted) as $signature) {
+                $group = $available[$signature];
+                $recordIds = array_values(array_filter(array_map(
+                    static fn(array $record): int => (int) ($record['id'] ?? 0),
+                    (array) ($group['records'] ?? [])
+                )));
+
+                $this->ignoreGroup(
+                    (string) ($group['type'] ?? ''),
+                    (string) ($group['key'] ?? ''),
+                    $recordIds,
+                    $userId
+                );
+            }
+
+            $this->db->transactionCommit();
+        } catch (Throwable $exception) {
+            try {
+                $this->db->transactionRollback();
+            } catch (Throwable) {
+            }
+
+            throw $exception;
+        }
+
+        return count($wanted);
+    }
+
     public function mergeGroup(int $targetId, string $type, string $key, array $recordIds, int $userId): array
     {
         $this->assertMergePermission();

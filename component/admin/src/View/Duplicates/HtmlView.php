@@ -52,7 +52,9 @@ final class HtmlView extends BaseHtmlView
             $component->getCoreIntegrationService()->enableUi($this->document->getWebAssetManager());
         }
 
-        $this->document->getWebAssetManager()->useStyle('com_xdecaropeople.admin');
+        $assets = $this->document->getWebAssetManager();
+        $assets->useStyle('com_xdecaropeople.admin');
+        $assets->useScript('com_xdecaropeople.duplicates');
 
         $allGroups = array_values((array) $this->get('Groups'));
         $recordIds = [];
