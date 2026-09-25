@@ -25,11 +25,11 @@ $service = $root . '/component/admin/src/Service/DuplicateService.php';
 $template = $root . '/component/admin/tmpl/duplicates/default.php';
 
 foreach ([
-    "if ($type === 'name')",
+    "if (\$type === 'name')",
     'assessManualNameMerge',
-    "$bucket['manual_merge'] = $bucket['merge_allowed'];",
-    "$assessment['evidence'] && $assessment['conflicts'] === []",
-    "in_array('tax_identifier', $assessment['conflicts'], true)",
+    "\$bucket['manual_merge'] = \$bucket['merge_allowed'];",
+    "\$assessment['evidence'] && \$assessment['conflicts'] === []",
+    "in_array('tax_identifier', \$assessment['conflicts'], true)",
     'COM_XDECAROPEOPLE_DUPLICATE_ERROR_IDENTITY_CONFLICT',
     "'birth_date' =>",
     "'sex' =>",
@@ -41,7 +41,7 @@ foreach ([
 }
 
 foreach ([
-    "($group['manual_merge'] ?? false) === true",
+    "(\$group['manual_merge'] ?? false) === true",
     'COM_XDECAROPEOPLE_DUPLICATE_MANUAL_MERGE_HINT',
     'COM_XDECAROPEOPLE_DUPLICATE_KEEP_AND_MERGE',
     'task=duplicate.merge',
