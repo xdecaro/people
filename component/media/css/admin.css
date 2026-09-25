@@ -278,7 +278,7 @@
 
 .xdecaro-duplicate-groups {
   display: grid;
-  gap: 1rem;
+  gap: .55rem;
 }
 
 .xdecaro-duplicate-group {
@@ -395,7 +395,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: .65rem;
+  padding: .6rem .75rem;
   cursor: pointer;
   user-select: none;
 }
@@ -832,3 +833,90 @@ a.xdecaro-duplicate-kpi:focus-visible {
   }
 }
 
+
+
+.xdecaro-duplicate-bulkbar {
+  position: sticky;
+  top: .5rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .55rem .65rem;
+  border: 1px solid var(--border-color, rgba(127, 127, 127, .25));
+  border-radius: .55rem;
+  background: var(--body-bg, #fff);
+  box-shadow: 0 .2rem .55rem rgba(0, 0, 0, .06);
+}
+
+.xdecaro-duplicate-select-all,
+.xdecaro-duplicate-select-box {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  cursor: pointer;
+}
+
+.xdecaro-duplicate-bulkbar [data-duplicate-bulk-dismiss] {
+  margin-left: auto;
+}
+
+.xdecaro-duplicate-select-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: .35rem;
+  align-items: stretch;
+}
+
+.xdecaro-duplicate-select-box {
+  justify-content: center;
+  align-self: start;
+  min-height: 2.8rem;
+  padding-top: .78rem;
+}
+
+.xdecaro-duplicate-select-row > .xdecaro-duplicate-group {
+  min-width: 0;
+}
+
+.xdecaro-duplicate-select-row.is-selected > .xdecaro-duplicate-group {
+  border-color: var(--bs-primary, #0d6efd);
+  box-shadow: inset .18rem 0 0 var(--bs-primary, #0d6efd);
+}
+
+@media (max-width: 767.98px) {
+  .xdecaro-duplicate-bulkbar {
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .45rem .6rem;
+  }
+
+  .xdecaro-duplicate-bulkbar [data-duplicate-selected-count] {
+    text-align: right;
+  }
+
+  .xdecaro-duplicate-bulkbar [data-duplicate-bulk-dismiss] {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .xdecaro-duplicate-select-row {
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    gap: .25rem;
+  }
+
+  .xdecaro-duplicate-select-box {
+    padding-top: .65rem;
+  }
+
+  .xdecaro-duplicate-accordion-summary {
+    gap: .45rem;
+    padding: .5rem .6rem;
+  }
+
+  .xdecaro-duplicate-summary-main .mt-1 {
+    margin-top: .15rem !important;
+  }
+}
