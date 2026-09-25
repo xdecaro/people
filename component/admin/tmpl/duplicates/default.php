@@ -279,28 +279,100 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                             </div>
                         <?php endif; ?>
 
-                        <div class="xdecaro-duplicate-mobile-overview" data-duplicate-group="<?php echo (int) $groupIndex; ?>">
-                            <div class="xdecaro-duplicate-mobile-record-summary">
-                                <div>
-                                    <strong><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_RECORD'); ?></strong>
-                                    <span
-                                        class="xdecaro-duplicate-mobile-record-position"
-                                        data-duplicate-position
-                                        aria-live="polite"
-                                    >1 / <?php echo count($records); ?></span>
-                                </div>
-                                <div class="small text-body-secondary">
-                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_NAV_HELP'); ?>
-                                </div>
+                        <div class="xdecaro-duplicate-mobile-all">
+                            <div class="xdecaro-duplicate-mobile-people">
+                                <?php foreach ($records as $record) : ?>
+                                    <?php
+                                    $mobileId = (int) ($record['id'] ?? 0);
+                                    if ($mobileId < 1) {
+                                        continue;
+                                    }
+                                    $mobileName = trim((string) ($record['display_name'] ?? ''));
+                                    ?>
+                                    <section class="xdecaro-duplicate-mobile-person-head">
+                                        <div>
+                                            <strong><?php echo $this->escape($mobileName !== '' ? $mobileName : Text::_('COM_XDECAROPEOPLE_PERSON_EDIT')); ?></strong>
+                                            <span>#<?php echo $mobileId; ?></span>
+                                        </div>
+                                        <a
+                                            class="btn btn-sm btn-outline-primary"
+                                            href="<?php echo Route::_('index.php?option=com_xdecaropeople&task=person.edit&id=' . $mobileId); ?>"
+                                        >
+                                            <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_EDIT_PERSON'); ?>
+                                        </a>
+
+                                        <?php if (($group['merge_allowed'] ?? false) && $this->canMerge && count($records) >= 2) : ?>
+                                            <form action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=duplicate.merge'); ?>" method="post">
+                                                <input type="hidden" name="target_id" value="<?php echo $mobileId; ?>">
+                                                <input type="hidden" name="match_type" value="<?php echo $this->escape($type); ?>">
+                                                <input type="hidden" name="match_key" value="<?php echo $this->escape((string) ($group['key'] ?? '')); ?>">
+                                                <?php foreach ($recordIds as $recordId) : ?>
+                                                    <input type="hidden" name="record_ids[]" value="<?php echo (int) $recordId; ?>">
+                                                <?php endforeach; ?>
+                                                <?php echo HTMLHelper::_('form.token'); ?>
+                                                <details class="xdecaro-duplicate-merge-confirm">
+                                                    <summary class="btn btn-sm btn-success w-100">
+                                                        <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_KEEP_AND_MERGE'); ?>
+                                                    </summary>
+                                                    <div class="alert alert-warning mt-2 mb-2">
+                                                        <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MERGE_CONFIRM'); ?>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-danger w-100">
+                                                        <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MERGE_CONFIRM_BUTTON'); ?>
+                                                    </button>
+                                                </details>
+                                            </form>
+                                        <?php endif; ?>
+                                    </section>
+                                <?php endforeach; ?>
                             </div>
 
-                            <div class="xdecaro-duplicate-mobile-nav" aria-label="<?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_RECORDS'); ?>">
-                                <button type="button" class="btn btn-outline-secondary" data-duplicate-prev disabled>
-                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_PREVIOUS'); ?>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-duplicate-next <?php echo count($records) < 2 ? 'disabled' : ''; ?>>
-                                    <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_MOBILE_NEXT'); ?>
-                                </button>
+                            <div class="xdecaro-duplicate-mobile-matrix">
+                                <?php foreach ($comparisonFields as $field) : ?>
+                                    <?php
+                                    $status = $fieldStatuses[$field] ?? 'empty';
+                                    if ($status === 'empty') {
+                                        continue;
+                                    }
+                                    [$statusKey, $statusClass] = $statusBadge($status);
+                                    ?>
+                                    <section class="xdecaro-duplicate-mobile-field xdecaro-duplicate-mobile-field--<?php echo $this->escape($status); ?>">
+                                        <div class="xdecaro-duplicate-mobile-field-title">
+                                            <strong><?php echo Text::_($fieldLabels[$field]); ?></strong>
+                                            <?php if ($statusKey !== '') : ?>
+                                                <span class="badge <?php echo $statusClass; ?>">
+                                                    <?php echo Text::_($statusKey); ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <div class="xdecaro-duplicate-mobile-values">
+                                            <?php foreach ($records as $record) : ?>
+                                                <?php
+                                                $mobileId = (int) ($record['id'] ?? 0);
+                                                if ($mobileId < 1) {
+                                                    continue;
+                                                }
+                                                $value = $fieldValue($record, $field);
+                                                ?>
+                                                <div class="xdecaro-duplicate-mobile-value">
+                                                    <span>#<?php echo $mobileId; ?></span>
+                                                    <strong>
+                                                        <?php if ($field === 'user_id') : ?>
+                                                            <?php if ((int) ($record['user_id'] ?? 0) > 0) : ?>
+                                                                <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER_LINKED', (int) $record['user_id']); ?>
+                                                            <?php else : ?>
+                                                                <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_JOOMLA_USER_NONE'); ?>
+                                                            <?php endif; ?>
+                                                        <?php else : ?>
+                                                            <?php echo $this->escape($renderValue($value)); ?>
+                                                        <?php endif; ?>
+                                                    </strong>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </section>
+                                <?php endforeach; ?>
                             </div>
 
                             <div class="xdecaro-duplicate-mobile-quick-action">
