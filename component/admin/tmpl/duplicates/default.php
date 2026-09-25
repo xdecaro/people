@@ -155,6 +155,29 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
             </a>
         </div>
     <?php else : ?>
+        <form
+            id="xdecaro-duplicate-bulk-form"
+            class="xdecaro-duplicate-bulkbar mb-2"
+            action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=duplicate.dismissBatch'); ?>"
+            method="post"
+            data-duplicate-bulk-form
+            data-confirm-message="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_DUPLICATE_BATCH_CONFIRM')); ?>"
+        >
+            <label class="xdecaro-duplicate-select-all">
+                <input type="checkbox" class="form-check-input" data-duplicate-select-all>
+                <span><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_SELECT_ALL'); ?></span>
+            </label>
+            <span class="small text-body-secondary" data-duplicate-selected-count>
+                <?php echo Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_SELECTED_COUNT', 0); ?>
+            </span>
+            <input type="hidden" name="selected_signatures" value="" data-duplicate-selected-signatures>
+            <input type="hidden" name="duplicate_filter" value="<?php echo $this->escape($this->filter); ?>">
+            <?php echo HTMLHelper::_('form.token'); ?>
+            <button type="submit" class="btn btn-sm btn-outline-secondary" data-duplicate-bulk-dismiss disabled>
+                <?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATE_BATCH_NOT_DUPLICATE'); ?>
+            </button>
+        </form>
+
         <div class="xdecaro-duplicate-groups">
             <?php foreach ($this->groups as $groupIndex => $group) : ?>
                 <?php
@@ -231,7 +254,17 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                     }
                 }
                 ?>
-                <details class="card xdecaro-duplicate-group" name="xdecaro-duplicate-review">
+                <div class="xdecaro-duplicate-select-row">
+                    <label class="xdecaro-duplicate-select-box" title="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_DUPLICATE_SELECT_GROUP')); ?>">
+                        <input
+                            type="checkbox"
+                            class="form-check-input"
+                            value="<?php echo $this->escape((string) ($group['signature'] ?? '')); ?>"
+                            data-duplicate-select
+                            aria-label="<?php echo $this->escape(Text::sprintf('COM_XDECAROPEOPLE_DUPLICATE_SELECT_GROUP_N', $groupIndex + 1)); ?>"
+                        >
+                    </label>
+                    <details class="card xdecaro-duplicate-group" name="xdecaro-duplicate-review">
                     <summary class="card-header xdecaro-duplicate-accordion-summary">
                         <div class="xdecaro-duplicate-summary-main">
                             <div class="d-flex flex-wrap align-items-center gap-2">
@@ -526,7 +559,8 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
                             </form>
                         </div>
                     </div>
-                </details>
+                    </details>
+                </div>
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
