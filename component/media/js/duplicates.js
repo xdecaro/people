@@ -1,62 +1,61 @@
 (() => {
   'use strict';
 
-  const mobileQuery = window.matchMedia('(max-width: 767.98px)');
+  const form = document.querySelector('[data-duplicate-bulk-form]');
+  if (!form) return;
 
-  const groups = Array.from(document.querySelectorAll('[data-duplicate-group]'));
+  const selectAll = form.querySelector('[data-duplicate-select-all]');
+  const countLabel = form.querySelector('[data-duplicate-selected-count]');
+  const hidden = form.querySelector('[data-duplicate-selected-signatures]');
+  const submit = form.querySelector('[data-duplicate-bulk-dismiss]');
+  const checkboxes = Array.from(document.querySelectorAll('[data-duplicate-select]'));
 
-  const getPanels = (group) => {
-    const panelHost = group.closest('.card-body')?.querySelector('[data-duplicate-panels]');
-    return panelHost ? Array.from(panelHost.querySelectorAll('[data-duplicate-panel]')) : [];
+  const update = () => {
+    const selected = checkboxes.filter((box) => box.checked);
+    const signatures = selected.map((box) => box.value).filter(Boolean);
+
+    if (hidden) hidden.value = signatures.join(',');
+    if (countLabel) {
+      const template = countLabel.dataset.countTemplate || '{count} selezionati';
+      countLabel.textContent = template.replace('{count}', String(signatures.length));
+    }
+    if (submit) submit.disabled = signatures.length === 0;
+
+    if (selectAll) {
+      selectAll.checked = checkboxes.length > 0 && selected.length === checkboxes.length;
+      selectAll.indeterminate = selected.length > 0 && selected.length < checkboxes.length;
+    }
+
+    selected.forEach((box) => box.closest('.xdecaro-duplicate-select-row')?.classList.add('is-selected'));
+    checkboxes.filter((box) => !box.checked).forEach((box) => box.closest('.xdecaro-duplicate-select-row')?.classList.remove('is-selected'));
   };
 
-  const activate = (group, index) => {
-    const panels = getPanels(group);
-    if (panels.length === 0) return;
+  if (countLabel) {
+    countLabel.dataset.countTemplate = countLabel.textContent.replace(/0/, '{count}');
+  }
 
-    const safeIndex = Math.max(0, Math.min(index, panels.length - 1));
-    group.dataset.duplicateIndex = String(safeIndex);
-
-    panels.forEach((panel) => {
-      const active = Number(panel.dataset.duplicatePanel) === safeIndex;
-      panel.classList.toggle('is-active', active);
-      panel.hidden = mobileQuery.matches ? !active : false;
+  selectAll?.addEventListener('change', () => {
+    checkboxes.forEach((box) => {
+      box.checked = selectAll.checked;
     });
-
-    const position = group.querySelector('[data-duplicate-position]');
-    if (position) position.textContent = `${safeIndex + 1} / ${panels.length}`;
-
-    const prev = group.querySelector('[data-duplicate-prev]');
-    const next = group.querySelector('[data-duplicate-next]');
-
-    if (prev) prev.disabled = safeIndex === 0;
-    if (next) next.disabled = safeIndex >= panels.length - 1;
-  };
-
-  const sync = (group) => {
-    const index = Number(group.dataset.duplicateIndex || 0);
-    activate(group, Number.isFinite(index) ? index : 0);
-  };
-
-  groups.forEach((group) => {
-    group.addEventListener('click', (event) => {
-      const prev = event.target.closest('[data-duplicate-prev]');
-      const next = event.target.closest('[data-duplicate-next]');
-
-      if (!prev && !next) return;
-
-      const current = Number(group.dataset.duplicateIndex || 0);
-      activate(group, current + (next ? 1 : -1));
-    });
-
-    sync(group);
+    update();
   });
 
-  const resync = () => groups.forEach(sync);
+  checkboxes.forEach((box) => box.addEventListener('change', update));
 
-  if (typeof mobileQuery.addEventListener === 'function') {
-    mobileQuery.addEventListener('change', resync);
-  } else if (typeof mobileQuery.addListener === 'function') {
-    mobileQuery.addListener(resync);
-  }
+  form.addEventListener('submit', (event) => {
+    update();
+
+    if (!hidden?.value) {
+      event.preventDefault();
+      return;
+    }
+
+    const message = form.dataset.confirmMessage || '';
+    if (message && !window.confirm(message)) {
+      event.preventDefault();
+    }
+  });
+
+  update();
 })();
