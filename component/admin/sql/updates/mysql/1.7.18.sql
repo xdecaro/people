@@ -1,0 +1,1 @@
+-- People 1.7.18 shows all duplicate records in one compact mobile comparison; no database schema change is required.
