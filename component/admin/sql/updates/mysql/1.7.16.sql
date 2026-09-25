@@ -1,0 +1,1 @@
+-- People 1.7.16 adds explicit mobile tabs for duplicate review; no database schema change is required.
