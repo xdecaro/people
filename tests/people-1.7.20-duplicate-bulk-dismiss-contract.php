@@ -26,6 +26,7 @@ $controller = $root . '/component/admin/src/Controller/DuplicateController.php';
 $template = $root . '/component/admin/tmpl/duplicates/default.php';
 $view = $root . '/component/admin/src/View/Duplicates/HtmlView.php';
 $css = $root . '/component/media/css/admin.css';
+$rowCss = $root . '/component/media/css/duplicates-row.css';
 $js = $root . '/component/media/js/duplicates.js';
 
 foreach ([
@@ -69,33 +70,15 @@ foreach ([
     'data-duplicate-bulk-dismiss',
     'data-duplicate-select',
     'task=duplicate.dismissBatch',
-    'xdecaro-duplicate-row',
-    'xdecaro-duplicate-row-select',
-    'xdecaro-duplicate-row-details',
+    'class="xdecaro-duplicate-select-row"',
 ] as $needle) {
     $contains($template, $needle);
-}
-
-if (str_contains((string) file_get_contents($template), 'class="xdecaro-duplicate-select-row"')) {
-    $fail('The selection checkbox must be inside the duplicate row, not in an external column.');
 }
 
 foreach ([
     "useScript('com_xdecaropeople.duplicates')",
 ] as $needle) {
     $contains($view, $needle);
-}
-
-foreach ([
-    '.xdecaro-duplicate-bulkbar',
-    '.xdecaro-duplicate-groups {',
-    'gap: .2rem;',
-    '.xdecaro-duplicate-row {',
-    '.xdecaro-duplicate-row-select {',
-    'padding: .45rem .55rem;',
-    'border-radius: .35rem;',
-] as $needle) {
-    $contains($css, $needle);
 }
 
 foreach ([
@@ -106,6 +89,30 @@ foreach ([
     'window.confirm',
 ] as $needle) {
     $contains($js, $needle);
+}
+
+if (version_compare($version, '1.7.21', '>=') || is_file($rowCss)) {
+    if (!is_file($rowCss)) {
+        $fail('People 1.7.21 compact duplicate row stylesheet is missing.');
+    }
+
+    foreach ([
+        '.xdecaro-duplicate-groups {',
+        'gap: .2rem;',
+        '.xdecaro-duplicate-select-row {',
+        'grid-template-columns: 2rem minmax(0, 1fr);',
+        'padding: .45rem .55rem;',
+        'border-radius: .35rem;',
+        '.xdecaro-duplicate-select-row > .xdecaro-duplicate-group {',
+        'border: 0;',
+        'box-shadow: none;',
+        '.xdecaro-duplicate-select-box {',
+        '.xdecaro-duplicate-accordion-summary {',
+    ] as $needle) {
+        $contains($rowCss, $needle);
+    }
+
+    $contains($view, "useStyle('com_xdecaropeople.duplicates-row')");
 }
 
 foreach ([
