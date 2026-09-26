@@ -73,7 +73,7 @@ final class InformationModel extends BaseDatabaseModel
         $items = [
             'Core' => ['element' => 'com_xdecarocore', 'url' => 'index.php?option=com_xdecarocore'],
             'Organizations' => ['element' => 'com_xdecaroorganizations', 'url' => 'index.php?option=com_xdecaroorganizations'],
-            'Membership' => ['element' => 'com_xdecaromembership', 'url' => 'index.php?option=com_xdecaromembership'],
+            'Membership' => ['element' => 'com_decaromembership', 'url' => 'index.php?option=com_decaromembership'],
             'Competitions' => ['element' => 'com_competitions', 'url' => 'index.php?option=com_competitions'],
             'Photos' => ['element' => 'com_xdecarophotos', 'url' => 'index.php?option=com_xdecarophotos'],
             'Documents' => ['element' => 'com_xdecarodocuments', 'url' => 'index.php?option=com_xdecarodocuments'],
