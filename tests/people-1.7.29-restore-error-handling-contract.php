@@ -19,19 +19,19 @@ $controller = $read('component/admin/src/Controller/MaintenanceController.php');
 $italian = $read('component/admin/language/it-IT/com_xdecaropeople.ini');
 $english = $read('component/admin/language/en-GB/com_xdecaropeople.ini');
 
-if (substr_count($controller, 'catch (\\Throwable $e)') < 3) {
-    $failures[] = 'Restore controller actions must catch validation/runtime failures instead of exposing the Joomla error page.';
+if (substr_count($controller, 'catch (RuntimeException $e)') < 3) {
+    $failures[] = 'Restore controller actions must catch expected validation/runtime failures instead of exposing the Joomla error page.';
 }
 
 if (!str_contains($controller, 'private function restoreFailureMessage(')) {
     $failures[] = 'MaintenanceController must centralize a safe restore failure message.';
 }
 
-if (!str_contains($controller, "COM_XDECAROPEOPLE_RESTORE_INVALID_BACKUP")) {
+if (!str_contains($controller, 'COM_XDECAROPEOPLE_RESTORE_INVALID_BACKUP')) {
     $failures[] = 'MaintenanceController must use the translated invalid-backup message.';
 }
 
-if (str_contains($controller, "redirectInformation($e->getMessage()")) {
+if (str_contains($controller, 'redirectInformation($e->getMessage()')) {
     $failures[] = 'Raw exception messages must not be displayed to administrators.';
 }
 
