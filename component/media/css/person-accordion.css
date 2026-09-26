@@ -1,0 +1,71 @@
+.xdecaro-people-person-edit .xdecaro-person-accordion {
+  display: grid;
+  gap: .65rem;
+  padding: .8rem 1rem 1rem;
+}
+
+.xdecaro-people-person-edit .xdecaro-person-accordion .accordion-item {
+  overflow: hidden;
+  border: 1px solid var(--border-color, rgba(127, 127, 127, .25));
+  border-radius: .6rem;
+  background: var(--body-bg, #fff);
+}
+
+.xdecaro-people-person-edit .xdecaro-person-accordion .accordion-header {
+  margin: 0;
+}
+
+.xdecaro-people-person-edit .xdecaro-person-accordion .accordion-button {
+  min-height: 3.25rem;
+  padding: .8rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: inherit;
+  background: var(--body-bg, #fff);
+  box-shadow: none;
+}
+
+.xdecaro-people-person-edit .xdecaro-person-accordion .accordion-button:not(.collapsed) {
+  background: var(--template-bg-light, rgba(127, 127, 127, .08));
+}
+
+.xdecaro-people-person-edit .xdecaro-person-accordion .accordion-button:focus-visible {
+  position: relative;
+  z-index: 2;
+}
+
+.xdecaro-people-person-edit .xdecaro-person-accordion .accordion-body {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color, rgba(127, 127, 127, .18));
+}
+
+.xdecaro-people-person-edit .xdecaro-person-accordion .accordion-body > .control-group:last-child,
+.xdecaro-people-person-edit .xdecaro-person-accordion .accordion-body > .xdecaro-card:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 767.98px) {
+  .xdecaro-people-person-edit .xdecaro-person-accordion {
+    gap: .5rem;
+    padding: .65rem .5rem .75rem;
+  }
+
+  .xdecaro-people-person-edit .xdecaro-person-accordion .accordion-button {
+    min-height: 3rem;
+    padding: .75rem .8rem;
+  }
+
+  .xdecaro-people-person-edit .xdecaro-person-accordion .accordion-body {
+    padding: .8rem .7rem;
+  }
+
+  .xdecaro-people-person-edit .xdecaro-person-accordion .control-group,
+  .xdecaro-people-person-edit .xdecaro-person-accordion .controls,
+  .xdecaro-people-person-edit .xdecaro-person-accordion .form-control,
+  .xdecaro-people-person-edit .xdecaro-person-accordion .form-select,
+  .xdecaro-people-person-edit .xdecaro-person-accordion .choices {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
