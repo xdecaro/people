@@ -1,0 +1,99 @@
+.xdecaro-duplicates .xdecaro-duplicate-groups {
+  gap: .2rem;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-select-row {
+  display: block;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-select-row > .xdecaro-duplicate-select-box {
+  display: none;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-group {
+  border: 1px solid var(--border-color, rgba(127, 127, 127, .22));
+  border-radius: .3rem;
+  box-shadow: none;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-accordion-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .55rem;
+  padding: .4rem .55rem;
+  min-height: 3rem;
+  border: 0;
+  background: var(--body-bg, #fff);
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-row-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  margin: 0;
+  padding: 0 .15rem;
+  cursor: pointer;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-row-control .form-check-input {
+  margin: 0;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-summary-main {
+  min-width: 0;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-summary-main > .d-flex {
+  gap: .35rem !important;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-summary-main .mt-1 {
+  margin-top: .12rem !important;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-difference-summary {
+  display: inline;
+  margin-left: .35rem;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-summary-counts {
+  gap: .25rem;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-summary-counts .badge,
+.xdecaro-duplicates .xdecaro-duplicate-summary-main .badge {
+  font-size: .72rem;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-select-row.is-selected .xdecaro-duplicate-group {
+  border-color: var(--bs-primary, #0d6efd);
+  box-shadow: inset .16rem 0 0 var(--bs-primary, #0d6efd);
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-group[open] > .xdecaro-duplicate-accordion-summary {
+  border-bottom: 1px solid var(--border-color, rgba(127, 127, 127, .16));
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-group > .card-body {
+  padding: .75rem;
+}
+
+@media (max-width: 767.98px) {
+  .xdecaro-duplicates .xdecaro-duplicate-accordion-summary {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: .4rem;
+    padding: .38rem .45rem;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-summary-counts {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-difference-summary {
+    display: block;
+    margin-left: 0;
+  }
+}
