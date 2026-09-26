@@ -19,7 +19,12 @@ final class MaintenanceController extends BaseController
         $user = $this->app->getIdentity();
         $this->requirePermission('people.backup');
         $backup = $this->component()->getBackupService()->create((int) $user->id, 'manual');
-        $this->redirectInformation('Backup creato: ' . ($backup['filename'] ?? $backup['uuid'] ?? ''), 'success');
+        $filename = (string) ($backup['filename'] ?? '');
+        $peopleCount = (int) ($backup['people_count'] ?? 0);
+        $message = $filename !== ''
+            ? 'Backup creato: ' . $filename . ' (' . $peopleCount . ' persone).'
+            : 'Backup People creato correttamente (' . $peopleCount . ' persone).';
+        $this->redirectInformation($message, 'success');
     }
 
     public function downloadBackup(): void
@@ -77,7 +82,12 @@ final class MaintenanceController extends BaseController
             throw new RuntimeException('Il ripristino completo richiede conferma esplicita.', 400);
         }
         $result = $this->component()->getRestoreService()->restoreFull($this->restorePath(), (int) $this->app->getIdentity()->id);
-        $this->redirectInformation('Ripristino completo terminato. È stato creato automaticamente un backup di sicurezza ' . ($result['safety_backup_uuid'] ?? '') . '.', 'success');
+        $safetyFilename = (string) ($result['safety_backup_filename'] ?? '');
+        $message = 'Ripristino completo terminato.';
+        $message .= $safetyFilename !== ''
+            ? ' Backup di sicurezza creato: ' . $safetyFilename . '.'
+            : ' È stato creato automaticamente un backup di sicurezza.';
+        $this->redirectInformation($message, 'success');
     }
 
     public function restorePerson(): void
@@ -173,10 +183,12 @@ final class MaintenanceController extends BaseController
                 (int) $this->app->getIdentity()->id,
                 $confirmation
             );
-            $this->redirectInformation(
-                'Dati People svuotati. Backup di sicurezza: ' . ($result['safety_backup_uuid'] ?? '-') . '.',
-                'success'
-            );
+            $safetyFilename = (string) ($result['safety_backup_filename'] ?? '');
+            $message = 'Dati People svuotati.';
+            $message .= $safetyFilename !== ''
+                ? ' Backup di sicurezza creato: ' . $safetyFilename . '.'
+                : ' Backup di sicurezza creato correttamente.';
+            $this->redirectInformation($message, 'success');
         } catch (\Throwable $e) {
             $this->redirectInformation('Svuotamento database non completato: ' . $e->getMessage(), 'error');
         }
@@ -194,10 +206,12 @@ final class MaintenanceController extends BaseController
                 (int) $this->app->getIdentity()->id,
                 $confirmation
             );
-            $this->redirectInformation(
-                'Database People ricreato dallo schema canonico. Backup di sicurezza: ' . ($result['safety_backup_uuid'] ?? '-') . '.',
-                'success'
-            );
+            $safetyFilename = (string) ($result['safety_backup_filename'] ?? '');
+            $message = 'Database People ricreato dallo schema canonico.';
+            $message .= $safetyFilename !== ''
+                ? ' Backup di sicurezza creato: ' . $safetyFilename . '.'
+                : ' Backup di sicurezza creato correttamente.';
+            $this->redirectInformation($message, 'success');
         } catch (\Throwable $e) {
             $this->redirectInformation('Ricreazione database non completata: ' . $e->getMessage(), 'error');
         }
