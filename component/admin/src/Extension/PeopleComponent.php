@@ -14,6 +14,7 @@ use xdecaro\Component\People\Administrator\Service\NotificationIntegrationServic
 use xdecaro\Component\People\Administrator\Service\OrganizationsIntegrationService;
 use xdecaro\Component\People\Administrator\Service\MembershipIntegrationService;
 use xdecaro\Component\People\Administrator\Service\PersonProviderService;
+use xdecaro\Component\People\Administrator\Service\PersonTrashService;
 
 final class PeopleComponent extends MVCComponent
 {
@@ -26,6 +27,7 @@ final class PeopleComponent extends MVCComponent
     private ?OrganizationsIntegrationService $organizations = null;
     private ?MembershipIntegrationService $membership = null;
     private ?MaintenanceLogService $maintenanceLog = null;
+    private ?PersonTrashService $personTrash = null;
 
     public function setCoreIntegrationService(CoreIntegrationService $service): void { $this->core = $service; }
     public function getCoreIntegrationService(): CoreIntegrationService { return $this->core ??= new CoreIntegrationService(); }
@@ -45,4 +47,6 @@ final class PeopleComponent extends MVCComponent
     public function getMembershipIntegrationService(): MembershipIntegrationService { if (!$this->membership) throw new RuntimeException('People Membership integration service not initialized.'); return $this->membership; }
     public function setMaintenanceLogService(MaintenanceLogService $service): void { $this->maintenanceLog = $service; }
     public function getMaintenanceLogService(): MaintenanceLogService { if (!$this->maintenanceLog) throw new RuntimeException('People maintenance log service not initialized.'); return $this->maintenanceLog; }
+    public function setPersonTrashService(PersonTrashService $service): void { $this->personTrash = $service; }
+    public function getPersonTrashService(): PersonTrashService { if (!$this->personTrash) throw new RuntimeException('People recycle service not initialized.'); return $this->personTrash; }
 }
