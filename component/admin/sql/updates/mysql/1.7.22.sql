@@ -1,0 +1,1 @@
+-- People 1.7.22 tightens duplicate rows to a normal list height; no database schema change is required.
