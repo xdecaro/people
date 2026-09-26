@@ -1,0 +1,22 @@
+name: People 1.7.29 restore error handling contract
+
+on:
+  push:
+    branches:
+      - people-1.7.29-restore-error-handling
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Verify graceful restore failures
+        run: php tests/people-1.7.29-restore-error-handling-contract.php
