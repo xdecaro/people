@@ -22,6 +22,26 @@
       <option value="possible_duplicate">COM_XDECAROPEOPLE_CONFIG_NOTIFICATION_TYPE_DUPLICATE</option>
     </field>
   </fieldset>
+  <fieldset name="maintenance" label="COM_XDECAROPEOPLE_CONFIG_MAINTENANCE">
+    <field
+      name="backup_storage_path"
+      type="text"
+      label="COM_XDECAROPEOPLE_CONFIG_BACKUP_STORAGE_PATH"
+      description="COM_XDECAROPEOPLE_CONFIG_BACKUP_STORAGE_PATH_DESC"
+      default=""
+      filter="string"
+    />
+    <field
+      name="backup_max_upload_mb"
+      type="number"
+      label="COM_XDECAROPEOPLE_CONFIG_BACKUP_MAX_UPLOAD_MB"
+      description="COM_XDECAROPEOPLE_CONFIG_BACKUP_MAX_UPLOAD_MB_DESC"
+      default="64"
+      min="1"
+      step="1"
+      filter="uint"
+    />
+  </fieldset>
   <fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
     <field name="rules" type="rules" label="JCONFIG_PERMISSIONS_LABEL" filter="rules" validate="rules" component="com_xdecaropeople" section="component"/>
   </fieldset>
