@@ -48,21 +48,23 @@ $person = (object) [
     'created_by' => $adminId,
 ];
 $db->insertObject('#__xdecaropeople_people', $person, 'id');
-$db->insertObject('#__xdecaropeople_history', (object) [
+$history = (object) [
     'person_id' => (int) $person->id,
     'action' => 'create',
     'changed_fields' => '["created"]',
     'actor_user_id' => $adminId,
     'created' => $now,
-]);
-$db->insertObject('#__xdecaropeople_duplicate_ignores', (object) [
+];
+$db->insertObject('#__xdecaropeople_history', $history);
+$ignore = (object) [
     'signature' => hash('sha256', 'backup-runtime-ignore'),
     'match_type' => 'email',
     'record_ids' => json_encode([(int) $person->id]),
     'created_by' => $adminId,
     'created' => $now,
-]);
-$db->insertObject('#__xdecaropeople_merges', (object) [
+];
+$db->insertObject('#__xdecaropeople_duplicate_ignores', $ignore);
+$merge = (object) [
     'source_person_id' => 900001,
     'source_uuid' => '99999999-9999-4999-8999-999999999999',
     'target_person_id' => (int) $person->id,
@@ -70,7 +72,8 @@ $db->insertObject('#__xdecaropeople_merges', (object) [
     'copied_fields' => '[]',
     'created_by' => $adminId,
     'created' => $now,
-]);
+];
+$db->insertObject('#__xdecaropeople_merges', $merge);
 
 $first = $backup->create($adminId, 'runtime_test');
 $second = $backup->create($adminId, 'runtime_test_repeat');
