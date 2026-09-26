@@ -21,6 +21,8 @@ jobs:
           coverage: none
       - name: Verify People 1.7.28 maintenance contract
         run: php tests/people-1.7.28-information-maintenance-contract.php
+      - name: Verify People 1.7.28 backup contract
+        run: php tests/people-1.7.28-backup-contract.php
       - name: Build People package
         run: chmod +x build/build.sh && build/build.sh
 
