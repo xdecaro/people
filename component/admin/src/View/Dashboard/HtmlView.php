@@ -46,6 +46,8 @@ final class HtmlView extends BaseHtmlView
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 
+        $app->getLanguage()->load('com_xdecaropeople.dashboard', JPATH_ADMINISTRATOR, null, true);
+
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $this->loadPeopleSummary($db);
 
@@ -77,7 +79,10 @@ final class HtmlView extends BaseHtmlView
                 || $user->authorise('core.admin', 'com_xdecaropeople')
             );
 
-        $this->document->getWebAssetManager()->useStyle('com_xdecaropeople.admin');
+        $this->document->getWebAssetManager()
+            ->useStyle('com_xdecaropeople.admin')
+            ->useStyle('com_xdecaropeople.dashboard');
+
         ToolbarHelper::title(Text::_('COM_XDECAROPEOPLE_DASHBOARD'), 'users');
 
         parent::display($tpl);
