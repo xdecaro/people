@@ -16,6 +16,40 @@ document.addEventListener('DOMContentLoaded', () => {
     sync();
   });
 
+  const activityList = document.querySelector('.xdecaro-activity-list');
+  if (activityList) {
+    const items = Array.from(activityList.querySelectorAll('.xdecaro-activity-item'));
+    const visibleItems = items.slice(0, 5);
+    const extraItems = items.slice(5);
+
+    if (extraItems.length > 0) {
+      extraItems.forEach((item) => {
+        item.hidden = true;
+      });
+
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'btn btn-sm btn-outline-secondary xdecaro-activity-toggle';
+      toggle.textContent = `Mostra tutte (${items.length})`;
+      toggle.setAttribute('aria-expanded', 'false');
+
+      toggle.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        extraItems.forEach((item) => {
+          item.hidden = expanded;
+        });
+        toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        toggle.textContent = expanded ? `Mostra tutte (${items.length})` : 'Mostra meno';
+      });
+
+      activityList.insertAdjacentElement('afterend', toggle);
+    }
+
+    visibleItems.forEach((item) => {
+      item.hidden = false;
+    });
+  }
+
   const host = document.querySelector('.xdecaro-database-maintenance');
   if (!host || typeof Joomla === 'undefined' || typeof Joomla.getOptions !== 'function') {
     return;
