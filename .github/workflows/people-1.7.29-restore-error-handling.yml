@@ -3,6 +3,7 @@ name: People 1.7.29 restore error handling contract
 on:
   push:
     branches:
+      - main
       - people-1.7.29-restore-error-handling
   pull_request:
 
