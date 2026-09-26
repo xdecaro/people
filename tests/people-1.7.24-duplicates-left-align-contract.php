@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
-$css = $root . '/component/media/css/admin.css';
+$css = $root . '/component/media/css/duplicates-compact.css';
 
 $fail = static function (string $message): never {
     fwrite(STDERR, $message . PHP_EOL);
@@ -19,8 +19,11 @@ $contains = static function (string $path, string $needle) use ($fail): void {
 
 foreach ([
     '.xdecaro-duplicate-select-row {',
-    'grid-template-columns: minmax(0, 1fr);',
+    'display: block;',
+    '.xdecaro-duplicate-group {',
+    'padding: 0 !important;',
     '.xdecaro-duplicate-accordion-summary {',
+    'display: grid !important;',
     'grid-template-columns: auto minmax(0, 1fr);',
     '.xdecaro-duplicate-summary-main {',
     'width: 100%;',
