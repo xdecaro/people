@@ -103,7 +103,7 @@ Purpose: quickly reset People data for import/testing while keeping the current 
 
 Mandatory flow:
 
-1. require `core.manage` plus a dedicated destructive maintenance permission;
+1. require `core.manage` plus `people.database_destructive`;
 2. require CSRF token;
 3. require the administrator to type exactly `SVUOTA`;
 4. create a full People safety backup automatically;
@@ -129,7 +129,7 @@ Purpose: rebuild the functional People database from the **current canonical sch
 
 Mandatory flow:
 
-1. require `core.manage` plus the dedicated destructive maintenance permission;
+1. require `core.manage` plus `people.database_destructive`;
 2. require CSRF token;
 3. require the administrator to type exactly `RICREA`;
 4. create a full People safety backup automatically;
@@ -175,18 +175,19 @@ A destructive operation must abort if its safety backup cannot be created and va
 
 Existing backup/restore permissions remain unchanged.
 
-Add one explicit permission for destructive database maintenance, for example:
+Add two explicit database-maintenance permissions:
 
-`people.database_destructive`
+- `people.database_repair` — may inspect a repair plan and apply conservative canonical-schema repair;
+- `people.database_destructive` — may empty or recreate the functional People database.
 
 Rules:
 
 - `Controlla`: `core.manage`;
-- `Ripara`: `core.manage` plus a schema-maintenance permission or `people.database_destructive` if keeping ACL minimal;
+- `Ripara`: `core.manage` + `people.database_repair`;
 - `Svuota`: `core.manage` + `people.database_destructive`;
 - `Ricrea`: `core.manage` + `people.database_destructive`.
 
-The default administrator role may receive the permission through normal Joomla ACL inheritance; it must never be bypassed in code.
+The default administrator role may receive these permissions through normal Joomla ACL inheritance; they must never be bypassed in code.
 
 ## Confirmation UX
 
@@ -303,14 +304,15 @@ Tests must cover at least:
 8. `Svuota` aborts when safety backup fails;
 9. `Svuota` clears all four functional tables while preserving backup/log tables;
 10. `Ricrea` refuses without exact `RICREA` confirmation;
-11. `Ricrea` creates a safety backup first;
+11. `Ricrea` creates and validates a safety backup first;
 12. `Ricrea` rebuilds exactly the four functional tables from canonical schema;
 13. `Ricrea` preserves maintenance tables and their prior rows;
 14. no operation touches any non-People table;
 15. Joomla 6.1.3 clean install still succeeds;
 16. upgrade from supported legacy People baselines still succeeds;
 17. existing backup/restore runtime tests remain green;
-18. information-page contract verifies all four maintenance actions and warning text.
+18. information-page contract verifies all four maintenance actions, typed confirmations and external-reference warning;
+19. ACL tests verify repair and destructive operations cannot be invoked without their dedicated permissions.
 
 CI must also compare the canonical schema with `install.mysql.utf8mb4.sql` sufficiently to prevent the two definitions drifting apart.
 
