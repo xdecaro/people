@@ -19,8 +19,12 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Verify People 1.7.28 maintenance contract
-        run: php tests/people-1.7.28-information-maintenance-contract.php
+      - name: Verify People 1.7.28 contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tests/people-1.7.28-information-maintenance-contract.php
+          php tests/people-1.7.28-restore-contract.php
 
   runtime:
     runs-on: ubuntu-latest
