@@ -69,5 +69,10 @@ jobs:
           php cli/joomla.php extension:install --path=/tmp/core.zip -vvv
           VERSION="$(tr -d '\r\n' < "$GITHUB_WORKSPACE/VERSION")"
           php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_people_${VERSION}.zip" -vvv
-      - name: Verify People trash runtime
-        run: cd joomla && php ../tests/people-1.7.28-trash-runtime.php
+      - name: Verify People maintenance runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          php ../tests/people-1.7.28-trash-runtime.php
+          php ../tests/people-1.7.28-backup-runtime.php
