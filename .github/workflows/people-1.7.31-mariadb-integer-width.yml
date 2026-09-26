@@ -22,3 +22,4 @@ jobs:
         run: |
           set -euo pipefail
           php tests/people-1.7.31-mariadb-integer-width-contract.php
+          php tests/people-1.7.31-release-readiness-contract.php
