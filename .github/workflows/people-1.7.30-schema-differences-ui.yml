@@ -18,7 +18,9 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Schema differences UI contract
+      - name: Schema differences UI contracts
         run: |
           set -euo pipefail
           php tests/people-1.7.30-schema-differences-ui-contract.php
+          php tests/people-1.7.30-release-readiness-contract.php
+          node --check component/media/js/database-maintenance.js
