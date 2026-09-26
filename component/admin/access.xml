@@ -9,5 +9,7 @@
     <action name="core.delete" title="JACTION_DELETE"/>
     <action name="people.view_identity_details" title="COM_XDECAROPEOPLE_ACTION_VIEW_IDENTITY_DETAILS"/>
     <action name="people.view_sensitive" title="COM_XDECAROPEOPLE_ACTION_VIEW_SENSITIVE"/>
+    <action name="people.backup" title="COM_XDECAROPEOPLE_ACTION_BACKUP"/>
+    <action name="people.restore" title="COM_XDECAROPEOPLE_ACTION_RESTORE"/>
   </section>
 </access>
