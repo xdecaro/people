@@ -128,6 +128,64 @@ final class DatabaseMaintenanceService
         ];
     }
 
+    public function recreateFunctionalDatabase(int $actorUserId, string $confirmation): array
+    {
+        if ($confirmation !== 'RICREA') {
+            throw new RuntimeException('Per ricreare il database People devi digitare esattamente RICREA.', 400);
+        }
+
+        $safetyBackup = $this->backup->create($actorUserId, 'before_recreate_database');
+        $safetyUuid = (string) ($safetyBackup['uuid'] ?? '');
+        if ($safetyUuid === '') {
+            throw new RuntimeException('Backup di sicurezza non creato. Ricreazione annullata.');
+        }
+        $this->backup->verify($safetyUuid);
+
+        $functionalTables = $this->definition->functionalTables();
+        foreach ($functionalTables as $table) {
+            $this->assertFunctionalTable($table);
+        }
+
+        try {
+            foreach (array_reverse($functionalTables) as $table) {
+                $this->db->setQuery('DROP TABLE IF EXISTS ' . $this->db->quoteName($table))->execute();
+            }
+
+            foreach ($functionalTables as $table) {
+                $this->db->setQuery($this->definition->createTableSql($table))->execute();
+            }
+
+            $repair = $this->repair($actorUserId);
+            $schema = $this->inspector->inspect();
+            $integrity = $this->integrity->check($actorUserId, false);
+
+            if (empty($schema['ok'])) {
+                throw new RuntimeException('Lo schema People ricreato non corrisponde allo schema canonico.');
+            }
+
+            $this->log->log('database_recreate', null, $actorUserId, [
+                'safety_backup_uuid' => $safetyUuid,
+                'recreated_tables' => $functionalTables,
+                'schema_status' => (string) ($schema['status'] ?? 'Errore'),
+                'integrity_ok' => (bool) ($integrity['ok'] ?? false),
+                'repair_operations' => count((array) ($repair['operations'] ?? [])),
+            ]);
+
+            return [
+                'safety_backup_uuid' => $safetyUuid,
+                'schema_status' => (string) ($schema['status'] ?? 'Errore'),
+                'integrity' => $integrity,
+                'recreated_tables' => $functionalTables,
+            ];
+        } catch (\Throwable $e) {
+            throw new RuntimeException(
+                'Ricreazione database People non completata. Backup di sicurezza: ' . $safetyUuid . '.',
+                0,
+                $e
+            );
+        }
+    }
+
     private function buildRepairPlan(array $inspection): array
     {
         $plan = [];
