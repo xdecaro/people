@@ -1,0 +1,1 @@
+-- People 1.7.21 compacts the duplicate list into normal rows with the selection control visually inside each row; no database schema change is required.
