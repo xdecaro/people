@@ -19,43 +19,19 @@ return new class implements ServiceProviderInterface
     {
         $container->registerServiceProvider(new MVCFactory('xdecaro\\Component\\People'));
         $container->registerServiceProvider(new ComponentDispatcherFactory('xdecaro\\Component\\People'));
-
         $container->share(CoreIntegrationService::class, static fn(): CoreIntegrationService => new CoreIntegrationService());
-        $container->share(PersonProviderService::class, static fn(Container $container): PersonProviderService => new PersonProviderService(
-            $container->get(DatabaseInterface::class),
-            $container->get(CoreIntegrationService::class)
-        ));
-        $container->share(DuplicateService::class, static fn(Container $container): DuplicateService => new DuplicateService(
-            $container->get(DatabaseInterface::class)
-        ));
-        $container->share(ImportService::class, static fn(Container $container): ImportService => new ImportService(
-            $container->get(DatabaseInterface::class)
-        ));
-        $container->share(NotificationIntegrationService::class, static fn(Container $container): NotificationIntegrationService => new NotificationIntegrationService(
-            $container->get(DatabaseInterface::class)
-        ));
-        $container->share(CompetitionsIntegrationService::class, static fn(Container $container): CompetitionsIntegrationService => new CompetitionsIntegrationService(
-            $container->get(PersonProviderService::class)
-        ));
-        $container->share(OrganizationsIntegrationService::class, static fn(Container $container): OrganizationsIntegrationService => new OrganizationsIntegrationService(
-            $container->get(PersonProviderService::class)
-        ));
-        $container->share(MembershipIntegrationService::class, static fn(Container $container): MembershipIntegrationService => new MembershipIntegrationService(
-            $container->get(PersonProviderService::class)
-        ));
-        $container->share(MaintenanceLogService::class, static fn(Container $container): MaintenanceLogService => new MaintenanceLogService(
-            $container->get(DatabaseInterface::class)
-        ));
-        $container->share(PersonTrashService::class, static fn(Container $container): PersonTrashService => new PersonTrashService(
-            $container->get(DatabaseInterface::class),
-            $container->get(MaintenanceLogService::class)
-        ));
+        $container->share(PersonProviderService::class, static fn(Container $container): PersonProviderService => new PersonProviderService($container->get(DatabaseInterface::class), $container->get(CoreIntegrationService::class)));
+        $container->share(DuplicateService::class, static fn(Container $container): DuplicateService => new DuplicateService($container->get(DatabaseInterface::class)));
+        $container->share(ImportService::class, static fn(Container $container): ImportService => new ImportService($container->get(DatabaseInterface::class)));
+        $container->share(NotificationIntegrationService::class, static fn(Container $container): NotificationIntegrationService => new NotificationIntegrationService($container->get(DatabaseInterface::class)));
+        $container->share(CompetitionsIntegrationService::class, static fn(Container $container): CompetitionsIntegrationService => new CompetitionsIntegrationService($container->get(PersonProviderService::class)));
+        $container->share(OrganizationsIntegrationService::class, static fn(Container $container): OrganizationsIntegrationService => new OrganizationsIntegrationService($container->get(PersonProviderService::class)));
+        $container->share(MembershipIntegrationService::class, static fn(Container $container): MembershipIntegrationService => new MembershipIntegrationService($container->get(PersonProviderService::class)));
+        $container->share(MaintenanceLogService::class, static fn(Container $container): MaintenanceLogService => new MaintenanceLogService($container->get(DatabaseInterface::class)));
+        $container->share(PersonTrashService::class, static fn(Container $container): PersonTrashService => new PersonTrashService($container->get(DatabaseInterface::class), $container->get(MaintenanceLogService::class)));
         $container->share(BackupStorageService::class, static fn(): BackupStorageService => new BackupStorageService());
-        $container->share(BackupService::class, static fn(Container $container): BackupService => new BackupService(
-            $container->get(DatabaseInterface::class),
-            $container->get(BackupStorageService::class),
-            $container->get(MaintenanceLogService::class)
-        ));
+        $container->share(BackupService::class, static fn(Container $container): BackupService => new BackupService($container->get(DatabaseInterface::class), $container->get(BackupStorageService::class), $container->get(MaintenanceLogService::class)));
+        $container->share(RestoreService::class, static fn(Container $container): RestoreService => new RestoreService($container->get(DatabaseInterface::class), $container->get(BackupService::class), $container->get(MaintenanceLogService::class), $container->get(PersonTrashService::class)));
 
         $container->set(ComponentInterface::class, static function (Container $container): ComponentInterface {
             $component = new PeopleComponent($container->get(ComponentDispatcherFactoryInterface::class));
@@ -72,6 +48,7 @@ return new class implements ServiceProviderInterface
             $component->setPersonTrashService($container->get(PersonTrashService::class));
             $component->setBackupStorageService($container->get(BackupStorageService::class));
             $component->setBackupService($container->get(BackupService::class));
+            $component->setRestoreService($container->get(RestoreService::class));
             return $component;
         });
     }
