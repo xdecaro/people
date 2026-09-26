@@ -1,0 +1,1 @@
+-- People 1.7.25 splits compact duplicate summaries into three internal rows; no database schema change is required.
