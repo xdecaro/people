@@ -21,3 +21,53 @@ jobs:
           coverage: none
       - name: Verify People 1.7.28 maintenance contract
         run: php tests/people-1.7.28-information-maintenance-contract.php
+
+  runtime:
+    runs-on: ubuntu-latest
+    needs: contract
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: joomla
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: 'mysqli, zip, simplexml'
+          coverage: none
+      - name: Build People package
+        run: chmod +x build/build.sh && build/build.sh
+      - name: Build pinned Core dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          CORE_SHA='423d1cb0bf0a4cedf165295e03050f5a886bbcd3'
+          git clone --quiet https://github.com/xdecaro/core.git /tmp/core-src
+          git -C /tmp/core-src checkout --quiet "$CORE_SHA"
+          python3 /tmp/core-src/build/build.py
+          cp /tmp/core-src/dist/pkg_xdecarocore_2.0.1.zip /tmp/core.zip
+      - name: Install Joomla 6.1.3, Core and People
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 'https://github.com/joomla/joomla-cms/releases/download/6.1.3/Joomla_6.1.3-Stable-Full_Package.zip' -o /tmp/joomla.zip
+          echo 'a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1  /tmp/joomla.zip' | sha256sum --check --strict
+          mkdir joomla
+          unzip -q /tmp/joomla.zip -d joomla
+          cd joomla
+          php installation/joomla.php install --site-name='People 1.7.28 CI' --admin-user='People CI Admin' --admin-username=admin --admin-password="PeopleCI-${GITHUB_RUN_ID}!" --admin-email=admin@example.invalid --db-type=mysqli --db-host=127.0.0.1 --db-user=root --db-pass='' --db-name=joomla --db-prefix=ppl_ --db-encryption=0 --no-interaction
+          php cli/joomla.php extension:install --path=/tmp/core.zip -vvv
+          VERSION="$(tr -d '\r\n' < "$GITHUB_WORKSPACE/VERSION")"
+          php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_people_${VERSION}.zip" -vvv
+      - name: Verify People trash runtime
+        run: cd joomla && php ../tests/people-1.7.28-trash-runtime.php
