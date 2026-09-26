@@ -3,6 +3,13 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
+$version = trim((string) file_get_contents($root . '/VERSION'));
+
+if ($version !== '1.7.22') {
+    echo "People 1.7.22 dense duplicate row contract skipped for {$version}\n";
+    exit(0);
+}
+
 $cssPath = $root . '/component/media/css/duplicates-compact.css';
 $jsPath = $root . '/component/media/js/duplicates.js';
 
