@@ -33,6 +33,9 @@
     const line2 = document.createElement('div');
     line2.className = 'xdecaro-duplicate-summary-line2';
 
+    const line3 = document.createElement('div');
+    line3.className = 'xdecaro-duplicate-summary-line3';
+
     counts.classList.add('xdecaro-duplicate-summary-right');
     line1.append(identity, counts);
 
@@ -64,9 +67,9 @@
     matchSummary.textContent = summaryParts.join(' · ');
 
     line2.append(nameComparison);
-    if (summaryParts.length > 0) line2.append(matchSummary);
+    if (summaryParts.length > 0) line3.append(matchSummary);
 
-    summaryMain.replaceChildren(line1, line2);
+    summaryMain.replaceChildren(line1, line2, line3);
   });
 
   document.addEventListener('click', (event) => {

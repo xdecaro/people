@@ -50,7 +50,7 @@
   display: grid;
   width: 100%;
   min-width: 0;
-  gap: .18rem;
+  gap: .12rem;
   line-height: 1.15;
 }
 
@@ -84,35 +84,38 @@
   white-space: nowrap;
 }
 
-.xdecaro-duplicates .xdecaro-duplicate-summary-line2 {
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-start;
-  gap: .35rem .75rem;
+.xdecaro-duplicates .xdecaro-duplicate-summary-line2,
+.xdecaro-duplicates .xdecaro-duplicate-summary-line3 {
   width: 100%;
   min-width: 0;
+  text-align: left;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-summary-line2 {
+  display: block;
   font-size: .82rem;
+  line-height: 1.2;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-summary-line3 {
+  display: block;
+  font-size: .78rem;
   line-height: 1.25;
 }
 
-.xdecaro-duplicates .xdecaro-duplicate-name-comparison {
-  flex: 0 1 auto;
+.xdecaro-duplicates .xdecaro-duplicate-name-comparison,
+.xdecaro-duplicates .xdecaro-duplicate-match-summary {
+  display: block;
+  width: 100%;
   min-width: 0;
-  max-width: 42%;
   overflow: hidden;
-  color: var(--body-color, inherit);
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.xdecaro-duplicates .xdecaro-duplicate-match-summary {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.xdecaro-duplicates .xdecaro-duplicate-name-comparison {
+  color: var(--body-color, inherit);
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-counts .badge,
@@ -154,14 +157,8 @@
     white-space: normal;
   }
 
-  .xdecaro-duplicates .xdecaro-duplicate-summary-line2 {
-    display: grid;
-    gap: .12rem;
-  }
-
   .xdecaro-duplicates .xdecaro-duplicate-name-comparison,
   .xdecaro-duplicates .xdecaro-duplicate-match-summary {
-    max-width: none;
     overflow: visible;
     text-overflow: clip;
     white-space: normal;
