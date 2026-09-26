@@ -1,0 +1,22 @@
+name: People 1.7.29 database maintenance
+
+on:
+  pull_request:
+  push:
+    branches:
+      - people-1.7.29-empty-database
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Canonical database contract
+        run: php tests/people-1.7.29-canonical-schema-contract.php
