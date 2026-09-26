@@ -31,6 +31,7 @@ return new class implements ServiceProviderInterface
         $container->share(PersonTrashService::class, static fn(Container $c): PersonTrashService => new PersonTrashService($c->get(DatabaseInterface::class), $c->get(MaintenanceLogService::class)));
         $container->share(BackupStorageService::class, static fn(): BackupStorageService => new BackupStorageService());
         $container->share(BackupService::class, static fn(Container $c): BackupService => new BackupService($c->get(DatabaseInterface::class), $c->get(BackupStorageService::class), $c->get(MaintenanceLogService::class)));
+        $container->share(RestoreService::class, static fn(Container $c): RestoreService => new RestoreService($c->get(DatabaseInterface::class), $c->get(MaintenanceLogService::class)));
 
         $container->set(ComponentInterface::class, static function (Container $container): ComponentInterface {
             $component = new PeopleComponent($container->get(ComponentDispatcherFactoryInterface::class));
@@ -47,6 +48,7 @@ return new class implements ServiceProviderInterface
             $component->setPersonTrashService($container->get(PersonTrashService::class));
             $component->setBackupStorageService($container->get(BackupStorageService::class));
             $component->setBackupService($container->get(BackupService::class));
+            $component->setRestoreService($container->get(RestoreService::class));
             return $component;
         });
     }
