@@ -82,3 +82,4 @@ jobs:
           php ../tests/people-1.7.28-backup-runtime.php
           php ../tests/people-1.7.28-restore-preview-runtime.php
           php ../tests/people-1.7.28-restore-full-runtime.php
+          php ../tests/people-1.7.28-restore-person-runtime.php
