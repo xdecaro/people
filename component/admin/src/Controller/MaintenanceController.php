@@ -167,6 +167,8 @@ final class MaintenanceController extends BaseController
 
     private function restoreFailureMessage(RuntimeException $e): string
     {
+        $this->app->getLanguage()->load('com_xdecaropeople.maintenance', JPATH_ADMINISTRATOR, null, true);
+
         return Text::_('COM_XDECAROPEOPLE_RESTORE_INVALID_BACKUP');
     }
 
