@@ -69,6 +69,14 @@
       "version": "1.7.28",
       "dependencies": ["core"],
       "attributes": {"defer": true}
+    },
+    {
+      "name": "com_xdecaropeople.database-maintenance",
+      "type": "script",
+      "uri": "com_xdecaropeople/database-maintenance.js",
+      "version": "1.7.28",
+      "dependencies": ["core"],
+      "attributes": {"defer": true}
     }
   ]
 }
