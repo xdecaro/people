@@ -91,4 +91,47 @@ foreach ([
     }
 }
 
+$serviceFiles = [
+    'MaintenanceLogService' => $root . '/component/admin/src/Service/MaintenanceLogService.php',
+    'PersonTrashService' => $root . '/component/admin/src/Service/PersonTrashService.php',
+];
+foreach ($serviceFiles as $name => $path) {
+    if (!is_file($path)) {
+        $fail('Missing maintenance service: ' . $name);
+    }
+}
+
+$provider = $read($root . '/component/admin/services/provider.php');
+$component = $read($root . '/component/admin/src/Extension/PeopleComponent.php');
+$controller = $read($root . '/component/admin/src/Controller/PeopleController.php');
+
+foreach ([
+    'MaintenanceLogService::class',
+    'PersonTrashService::class',
+] as $needle) {
+    if (!str_contains($provider, $needle)) {
+        $fail('Service not registered in DI: ' . $needle);
+    }
+}
+foreach ([
+    'getMaintenanceLogService',
+    'getPersonTrashService',
+] as $needle) {
+    if (!str_contains($component, $needle)) {
+        $fail('PeopleComponent missing service getter: ' . $needle);
+    }
+}
+foreach ([
+    'function delete(',
+    'function restoreTrash(',
+    'function purge(',
+    'checkToken()',
+    "authorise('core.edit.state'",
+    "authorise('core.delete'",
+] as $needle) {
+    if (!str_contains($controller, $needle)) {
+        $fail('PeopleController missing trash lifecycle contract: ' . $needle);
+    }
+}
+
 echo "People 1.7.28 information maintenance contract OK\n";
