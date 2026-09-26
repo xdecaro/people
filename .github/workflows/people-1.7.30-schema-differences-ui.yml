@@ -1,0 +1,24 @@
+name: People 1.7.30 schema differences UI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - people-1.7.30-schema-differences-ui
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Schema differences UI contract
+        run: |
+          set -euo pipefail
+          php tests/people-1.7.30-schema-differences-ui-contract.php
