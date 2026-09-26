@@ -18,7 +18,6 @@ $read = static function (string $path) use ($root, &$failures): string {
     }
     return $content;
 };
-
 $assertContains = static function (string $needle, string $haystack, string $message) use (&$failures): void {
     if (!str_contains($haystack, $needle)) $failures[] = $message . " (missing: {$needle})";
 };
@@ -64,22 +63,27 @@ foreach (['#__xdecaroorganizations_', '#__xdecaromembership_', '#__xdecarocompet
 
 $maintenanceService = $read('component/admin/src/Service/MaintenanceLogService.php');
 $trashService = $read('component/admin/src/Service/PersonTrashService.php');
+$backupStorage = $read('component/admin/src/Service/BackupStorageService.php');
+$backupService = $read('component/admin/src/Service/BackupService.php');
 $provider = $read('component/admin/services/provider.php');
 $component = $read('component/admin/src/Extension/PeopleComponent.php');
 $controller = $read('component/admin/src/Controller/PeopleController.php');
 
 $assertContains('final class MaintenanceLogService', $maintenanceService, 'MaintenanceLogService must exist');
-foreach (['function log(', 'function recent(', 'function latestForSubject('] as $method) {
-    $assertContains($method, $maintenanceService, "MaintenanceLogService must expose {$method}");
-}
+foreach (['function log(', 'function recent(', 'function latestForSubject('] as $method) $assertContains($method, $maintenanceService, "MaintenanceLogService must expose {$method}");
 $assertContains('final class PersonTrashService', $trashService, 'PersonTrashService must exist');
-foreach (['function trash(', 'function restore(', 'function purge(', 'function getRecentTrashed('] as $method) {
-    $assertContains($method, $trashService, "PersonTrashService must expose {$method}");
-}
-$assertContains('MaintenanceLogService::class', $provider, 'DI must register MaintenanceLogService');
-$assertContains('PersonTrashService::class', $provider, 'DI must register PersonTrashService');
-$assertContains('getMaintenanceLogService', $component, 'PeopleComponent must expose MaintenanceLogService');
-$assertContains('getPersonTrashService', $component, 'PeopleComponent must expose PersonTrashService');
+foreach (['function trash(', 'function restore(', 'function purge(', 'function getRecentTrashed('] as $method) $assertContains($method, $trashService, "PersonTrashService must expose {$method}");
+$assertContains('final class BackupStorageService', $backupStorage, 'BackupStorageService must exist');
+foreach (['function resolvePrivateDirectory(', 'function pathFor(', 'function isHealthy('] as $method) $assertContains($method, $backupStorage, "BackupStorageService must expose {$method}");
+$assertContains('final class BackupService', $backupService, 'BackupService must exist');
+foreach (['function create(', 'function list(', 'function resolveDownload(', 'function delete('] as $method) $assertContains($method, $backupService, "BackupService must expose {$method}");
+foreach (['manifest.json', 'data.json', 'SHA256SUMS.txt'] as $entry) $assertContains($entry, $backupService, "BackupService must use canonical ZIP entry {$entry}");
+foreach (['#__xdecaropeople_people', '#__xdecaropeople_history', '#__xdecaropeople_duplicate_ignores', '#__xdecaropeople_merges'] as $table) $assertContains($table, $backupService, "Backup whitelist must contain {$table}");
+$assertNotContains('#__xdecaropeople_backups', $backupService, 'Backup payload must not recursively include backup metadata');
+$assertNotContains('#__xdecaropeople_maintenance_log', $backupService, 'Backup payload must not include maintenance log');
+
+foreach (['MaintenanceLogService::class', 'PersonTrashService::class', 'BackupStorageService::class', 'BackupService::class'] as $service) $assertContains($service, $provider, "DI must register {$service}");
+foreach (['getMaintenanceLogService', 'getPersonTrashService', 'getBackupStorageService', 'getBackupService'] as $getter) $assertContains($getter, $component, "PeopleComponent must expose {$getter}");
 $assertContains('function restoreTrash(', $controller, 'PeopleController must expose restoreTrash task');
 $assertContains('function purge(', $controller, 'PeopleController must expose explicit purge task');
 
