@@ -21,9 +21,13 @@ jobs:
       - name: Database maintenance contracts
         run: |
           set -euo pipefail
+          php tests/people-1.7.28-information-maintenance-contract.php
+          php tests/people-1.7.28-restore-contract.php
+          php tests/people-1.7.28-information-ui-contract.php
           php tests/people-1.7.29-canonical-schema-contract.php
           php tests/people-1.7.29-database-maintenance-ui-contract.php
           php tests/people-1.7.29-release-readiness-contract.php
+          node --check component/media/js/database-maintenance.js
 
   runtime:
     runs-on: ubuntu-latest
@@ -72,7 +76,17 @@ jobs:
           php cli/joomla.php extension:install --path=/tmp/core.zip -vvv
           VERSION="$(tr -d '\r\n' < "$GITHUB_WORKSPACE/VERSION")"
           php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_people_${VERSION}.zip" -vvv
-      - name: Verify database maintenance runtime
+      - name: Verify existing maintenance runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          php ../tests/people-1.7.28-backup-runtime.php
+          php ../tests/people-1.7.28-restore-preview-runtime.php
+          php ../tests/people-1.7.28-restore-full-runtime.php
+          php ../tests/people-1.7.28-restore-person-runtime.php
+          php ../tests/people-1.7.28-information-runtime.php
+      - name: Verify canonical database maintenance runtime
         shell: bash
         run: |
           set -euo pipefail
