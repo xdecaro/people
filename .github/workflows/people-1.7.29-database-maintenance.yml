@@ -74,3 +74,4 @@ jobs:
           set -euo pipefail
           cd joomla
           php ../tests/people-1.7.29-database-schema-runtime.php
+          php ../tests/people-1.7.29-database-repair-runtime.php
