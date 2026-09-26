@@ -1,0 +1,23 @@
+name: People 1.7.28 information maintenance contract
+
+on:
+  push:
+    branches:
+      - main
+      - feat/people-1.7.28-maintenance
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Verify People 1.7.28 maintenance contract
+        run: php tests/people-1.7.28-information-maintenance-contract.php
