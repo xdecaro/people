@@ -1,0 +1,2 @@
+-- People 1.7.32 readable backup names and compact activity marker
+-- UX-only release: no database schema changes are required.

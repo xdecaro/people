@@ -70,6 +70,7 @@ final class DatabaseMaintenanceService
 
         $safetyBackup = $this->backup->create($actorUserId, 'before_empty_database');
         $safetyUuid = (string) ($safetyBackup['uuid'] ?? '');
+        $safetyFilename = (string) ($safetyBackup['filename'] ?? '');
         if ($safetyUuid === '') {
             throw new RuntimeException('Backup di sicurezza non creato. Svuotamento annullato.');
         }
@@ -97,7 +98,7 @@ final class DatabaseMaintenanceService
         } catch (\Throwable $e) {
             $this->db->transactionRollback();
             throw new RuntimeException(
-                'Svuotamento People non completato. Backup di sicurezza: ' . $safetyUuid . '.',
+                'Svuotamento People non completato. Il backup di sicurezza è stato creato: ' . ($safetyFilename !== '' ? $safetyFilename : $safetyUuid) . '.',
                 0,
                 $e
             );
@@ -115,6 +116,7 @@ final class DatabaseMaintenanceService
         $integrity = $this->integrity->check($actorUserId, false);
         $this->log->log('database_empty', null, $actorUserId, [
             'safety_backup_uuid' => $safetyUuid,
+            'safety_backup_filename' => $safetyFilename,
             'removed_counts' => $removedCounts,
             'schema_status' => (string) ($schema['status'] ?? 'Errore'),
             'integrity_ok' => (bool) ($integrity['ok'] ?? false),
@@ -122,6 +124,7 @@ final class DatabaseMaintenanceService
 
         return [
             'safety_backup_uuid' => $safetyUuid,
+            'safety_backup_filename' => $safetyFilename,
             'removed_counts' => $removedCounts,
             'schema_status' => (string) ($schema['status'] ?? 'Errore'),
             'integrity' => $integrity,
@@ -136,6 +139,7 @@ final class DatabaseMaintenanceService
 
         $safetyBackup = $this->backup->create($actorUserId, 'before_recreate_database');
         $safetyUuid = (string) ($safetyBackup['uuid'] ?? '');
+        $safetyFilename = (string) ($safetyBackup['filename'] ?? '');
         if ($safetyUuid === '') {
             throw new RuntimeException('Backup di sicurezza non creato. Ricreazione annullata.');
         }
@@ -165,6 +169,7 @@ final class DatabaseMaintenanceService
 
             $this->log->log('database_recreate', null, $actorUserId, [
                 'safety_backup_uuid' => $safetyUuid,
+                'safety_backup_filename' => $safetyFilename,
                 'recreated_tables' => $functionalTables,
                 'schema_status' => (string) ($schema['status'] ?? 'Errore'),
                 'integrity_ok' => (bool) ($integrity['ok'] ?? false),
@@ -173,13 +178,14 @@ final class DatabaseMaintenanceService
 
             return [
                 'safety_backup_uuid' => $safetyUuid,
+                'safety_backup_filename' => $safetyFilename,
                 'schema_status' => (string) ($schema['status'] ?? 'Errore'),
                 'integrity' => $integrity,
                 'recreated_tables' => $functionalTables,
             ];
         } catch (\Throwable $e) {
             throw new RuntimeException(
-                'Ricreazione database People non completata. Backup di sicurezza: ' . $safetyUuid . '.',
+                'Ricreazione database People non completata. Il backup di sicurezza è stato creato: ' . ($safetyFilename !== '' ? $safetyFilename : $safetyUuid) . '.',
                 0,
                 $e
             );

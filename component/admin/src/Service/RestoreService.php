@@ -103,8 +103,19 @@ final class RestoreService
             foreach ($counts as $table => $expected) { $actual=(int)$this->db->setQuery($this->db->getQuery(true)->select('COUNT(*)')->from($this->db->quoteName($table)))->loadResult(); if ($actual !== $expected) throw new RuntimeException('People restore integrity count mismatch.'); }
             $this->db->transactionCommit();
         } catch (\Throwable $e) { $this->db->transactionRollback(); throw new RuntimeException('People restore failed and was rolled back.', 0, $e); }
-        $this->log->log('restore_full', null, $actorUserId, ['backup_uuid'=>(string)($preview['manifest']['backup_uuid']??''),'safety_backup_uuid'=>(string)($safety['uuid']??''),'restored_counts'=>$counts]);
-        return ['safety_backup_uuid'=>(string)($safety['uuid']??''),'restored_counts'=>$counts,'integrity_ok'=>true,'warnings'=>(array)($preview['warnings']??[])];
+        $this->log->log('restore_full', null, $actorUserId, [
+            'backup_uuid'=>(string)($preview['manifest']['backup_uuid']??''),
+            'safety_backup_uuid'=>(string)($safety['uuid']??''),
+            'safety_backup_filename'=>(string)($safety['filename']??''),
+            'restored_counts'=>$counts,
+        ]);
+        return [
+            'safety_backup_uuid'=>(string)($safety['uuid']??''),
+            'safety_backup_filename'=>(string)($safety['filename']??''),
+            'restored_counts'=>$counts,
+            'integrity_ok'=>true,
+            'warnings'=>(array)($preview['warnings']??[]),
+        ];
     }
 
     public function restorePerson(string $zipPath, string $personUuid, int $actorUserId, bool $overwrite = false): array
