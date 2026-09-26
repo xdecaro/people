@@ -1,5 +1,5 @@
 .xdecaro-duplicates .xdecaro-duplicate-groups {
-  gap: .2rem;
+  gap: .12rem;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-select-row {
@@ -12,7 +12,7 @@
 
 .xdecaro-duplicates .xdecaro-duplicate-group {
   border: 1px solid var(--border-color, rgba(127, 127, 127, .22));
-  border-radius: .3rem;
+  border-radius: .25rem;
   box-shadow: none;
 }
 
@@ -20,9 +20,9 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: .55rem;
-  padding: .4rem .55rem;
-  min-height: 3rem;
+  gap: .45rem;
+  padding: .28rem .45rem;
+  min-height: 2.75rem;
   border: 0;
   background: var(--body-bg, #fff);
 }
@@ -33,7 +33,7 @@
   justify-content: center;
   align-self: stretch;
   margin: 0;
-  padding: 0 .15rem;
+  padding: 0 .1rem;
   cursor: pointer;
 }
 
@@ -42,24 +42,38 @@
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-main {
+  display: grid;
+  grid-template-columns: auto minmax(11rem, .9fr) minmax(10rem, 1.1fr);
+  align-items: center;
+  gap: .45rem;
   min-width: 0;
+  line-height: 1.15;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-main > .d-flex {
-  gap: .35rem !important;
+  flex-wrap: nowrap !important;
+  gap: .3rem !important;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-main .mt-1 {
-  margin-top: .12rem !important;
+  margin-top: 0 !important;
 }
 
+.xdecaro-duplicates .xdecaro-duplicate-summary-main > .small,
 .xdecaro-duplicates .xdecaro-duplicate-difference-summary {
-  display: inline;
-  margin-left: .35rem;
+  min-width: 0;
+  margin-left: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-counts {
-  gap: .25rem;
+  flex-wrap: nowrap;
+  gap: .22rem;
+  white-space: nowrap;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-counts .badge,
@@ -77,23 +91,50 @@
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-group > .card-body {
-  padding: .75rem;
+  padding: .7rem;
+}
+
+@media (max-width: 991.98px) {
+  .xdecaro-duplicates .xdecaro-duplicate-summary-main {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-difference-summary {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 767.98px) {
   .xdecaro-duplicates .xdecaro-duplicate-accordion-summary {
     grid-template-columns: auto minmax(0, 1fr);
-    gap: .4rem;
-    padding: .38rem .45rem;
+    gap: .35rem;
+    padding: .32rem .4rem;
+    min-height: 0;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-summary-main {
+    display: block;
+    line-height: 1.25;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-summary-main > .d-flex {
+    flex-wrap: wrap !important;
+    white-space: normal;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-summary-main > .small,
+  .xdecaro-duplicates .xdecaro-duplicate-difference-summary {
+    display: block;
+    margin-top: .12rem !important;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .xdecaro-duplicates .xdecaro-duplicate-summary-counts {
     grid-column: 2;
     justify-content: flex-start;
-  }
-
-  .xdecaro-duplicates .xdecaro-duplicate-difference-summary {
-    display: block;
-    margin-left: 0;
+    flex-wrap: wrap;
+    white-space: normal;
   }
 }
