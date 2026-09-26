@@ -135,8 +135,11 @@ final class RestoreService
         $peopleTrashed = 0;
         foreach ($tables['#__xdecaropeople_people'] as $row) {
             $state = (int) ($row['state'] ?? 0);
-            if ($state === -2) $peopleTrashed++;
-            elseif ($state >= 0) $peopleActive++;
+            if ($state === -2) {
+                $peopleTrashed++;
+            } elseif ($state >= 0) {
+                $peopleActive++;
+            }
         }
 
         $result = [
@@ -163,7 +166,75 @@ final class RestoreService
 
     public function restoreFull(string $zipPath, int $actorUserId): array
     {
-        throw new RuntimeException('Full People restore is not implemented yet.', 501);
+        $preview = $this->preview($zipPath, $actorUserId);
+        $tables = $preview['data']['tables'] ?? null;
+        if (!is_array($tables)) {
+            throw new RuntimeException('People restore payload is unavailable.');
+        }
+
+        $safetyBackup = $this->backup->create($actorUserId, 'pre-restore');
+        $restoredCounts = [];
+
+        $deleteOrder = [
+            '#__xdecaropeople_duplicate_ignores',
+            '#__xdecaropeople_merges',
+            '#__xdecaropeople_history',
+            '#__xdecaropeople_people',
+        ];
+        $insertOrder = self::PAYLOAD_TABLES;
+
+        $this->db->transactionStart();
+        try {
+            foreach ($deleteOrder as $table) {
+                $this->db->setQuery(
+                    $this->db->getQuery(true)->delete($this->db->quoteName($table))
+                )->execute();
+            }
+
+            foreach ($insertOrder as $table) {
+                $rows = $tables[$table] ?? null;
+                if (!is_array($rows)) {
+                    throw new RuntimeException('People restore table payload is invalid.');
+                }
+
+                foreach ($rows as $row) {
+                    if (!is_array($row)) {
+                        throw new RuntimeException('People restore row payload is invalid.');
+                    }
+                    $object = (object) $row;
+                    $this->db->insertObject($table, $object);
+                }
+
+                $restoredCounts[$table] = count($rows);
+            }
+
+            foreach ($restoredCounts as $table => $expectedCount) {
+                $actualCount = (int) $this->db->setQuery(
+                    $this->db->getQuery(true)->select('COUNT(*)')->from($this->db->quoteName($table))
+                )->loadResult();
+                if ($actualCount !== $expectedCount) {
+                    throw new RuntimeException('People restore integrity count mismatch.');
+                }
+            }
+
+            $this->db->transactionCommit();
+        } catch (\Throwable $e) {
+            $this->db->transactionRollback();
+            throw new RuntimeException('People restore failed and was rolled back.', 0, $e);
+        }
+
+        $this->log->log('restore_full', null, $actorUserId, [
+            'backup_uuid' => (string) ($preview['manifest']['backup_uuid'] ?? ''),
+            'safety_backup_uuid' => (string) ($safetyBackup['uuid'] ?? ''),
+            'restored_counts' => $restoredCounts,
+        ]);
+
+        return [
+            'safety_backup_uuid' => (string) ($safetyBackup['uuid'] ?? ''),
+            'restored_counts' => $restoredCounts,
+            'integrity_ok' => true,
+            'warnings' => (array) ($preview['warnings'] ?? []),
+        ];
     }
 
     public function restorePerson(string $zipPath, string $personUuid, int $actorUserId, bool $overwrite = false): array
