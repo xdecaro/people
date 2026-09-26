@@ -1,0 +1,4 @@
+-- People 1.7.29 database maintenance schema marker
+-- No persistent table change is required by this migration.
+-- Fresh/recreated functional tables are defined by the canonical schema service;
+-- historical update SQL remains upgrade-only and is never replayed by runtime recreate.

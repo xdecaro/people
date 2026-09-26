@@ -68,6 +68,11 @@ final class InformationModel extends BaseDatabaseModel
         ];
     }
 
+    public function getDatabaseSchemaStatus(): array
+    {
+        return $this->component()->getDatabaseMaintenanceService()->check(0, false);
+    }
+
     public function getConnectedComponents(): array
     {
         $items = [

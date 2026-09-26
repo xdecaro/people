@@ -8,6 +8,7 @@ use Joomla\CMS\Session\Session;
 
 $d = $this->diagnostics;
 $db = $this->databaseSummary;
+$schema = $this->databaseSchemaStatus;
 $integrity = (array) ($d['integrity'] ?? []);
 $missing = (array) ($db['missing'] ?? []);
 $token = Session::getFormToken();
@@ -28,6 +29,10 @@ $actionLabel = static function (string $action): string {
         'restore_trash_person' => 'Persona ripristinata',
         'purge_person' => 'Persona eliminata definitivamente',
         'integrity_check' => 'Controllo integrità',
+        'database_check' => 'Controllo database',
+        'database_repair' => 'Riparazione database',
+        'database_empty' => 'Dati People svuotati',
+        'database_recreate' => 'Database People ricreato',
         default => $action,
     };
 };
@@ -101,7 +106,7 @@ $actionLabel = static function (string $action): string {
     </section>
 
     <section class="xdecaro-info-card xdecaro-info-card--database">
-        <div class="xdecaro-info-card__head"><div><h2>Gestione database</h2><p class="mb-0 text-muted">Backup People, restore controllato e recupero delle persone cancellate.</p></div></div>
+        <div class="xdecaro-info-card__head"><div><h2>Gestione database</h2><p class="mb-0 text-muted">Backup People, restore controllato e manutenzione dello schema corrente.</p></div></div>
         <div class="xdecaro-management-grid">
             <div class="xdecaro-management-panel">
                 <h3>Backup</h3>
@@ -129,6 +134,72 @@ $actionLabel = static function (string $action): string {
                         <?php echo HTMLHelper::_('form.token'); ?>
                     </form>
                 <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="xdecaro-database-maintenance mt-3">
+            <div class="xdecaro-info-card__head">
+                <div>
+                    <h3>Manutenzione database</h3>
+                    <p class="mb-0 text-muted">Lo schema canonico corrente è la fonte unica per controllo, riparazione e ricreazione.</p>
+                </div>
+                <span class="badge <?php echo !empty($schema['ok']) ? 'bg-success' : 'bg-warning text-dark'; ?>"><?php echo $this->escape((string) ($schema['status'] ?? 'Da verificare')); ?></span>
+            </div>
+
+            <div class="xdecaro-maintenance-actions">
+                <div class="xdecaro-maintenance-action">
+                    <h4>Controlla database</h4>
+                    <p>Confronta tabelle, colonne e indici People con lo schema canonico senza modificare nulla.</p>
+                    <form method="post" action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=maintenance.checkDatabase'); ?>">
+                        <button type="submit" class="btn btn-outline-primary">Controlla database</button>
+                        <?php echo HTMLHelper::_('form.token'); ?>
+                    </form>
+                </div>
+
+                <div class="xdecaro-maintenance-action">
+                    <h4>Ripara database</h4>
+                    <p>Ricrea strutture mancanti e corregge solo differenze note. I record delle persone non vengono cancellati.</p>
+                    <?php if ($this->canDatabaseRepair): ?>
+                        <form method="post" action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=maintenance.repairDatabase'); ?>">
+                            <button type="submit" class="btn btn-outline-warning">Ripara database</button>
+                            <?php echo HTMLHelper::_('form.token'); ?>
+                        </form>
+                    <?php endif; ?>
+                </div>
+
+                <div class="xdecaro-maintenance-action xdecaro-maintenance-action--danger">
+                    <h4>Svuota dati People</h4>
+                    <p>Crea prima un backup di sicurezza, poi elimina i dati delle quattro tabelle funzionali. Backup e registro manutenzione restano disponibili.</p>
+                    <?php if ($this->canDatabaseDestructive): ?>
+                        <form method="post" action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=maintenance.emptyDatabase'); ?>" data-database-confirm="SVUOTA">
+                            <label class="form-label" for="xdecaro-confirm-empty">Digita <strong>SVUOTA</strong> per confermare</label>
+                            <div class="xdecaro-confirm-row">
+                                <input id="xdecaro-confirm-empty" class="form-control" type="text" name="database_confirmation" autocomplete="off">
+                                <button type="submit" class="btn btn-danger" disabled>Svuota dati People</button>
+                            </div>
+                            <?php echo HTMLHelper::_('form.token'); ?>
+                        </form>
+                    <?php endif; ?>
+                </div>
+
+                <div class="xdecaro-maintenance-action xdecaro-maintenance-action--danger-strong">
+                    <h4>Ricrea database People</h4>
+                    <p>Crea un backup verificato, elimina solo le quattro tabelle funzionali e le ricrea vuote dallo schema canonico corrente.</p>
+                    <?php if ($this->canDatabaseDestructive): ?>
+                        <form method="post" action="<?php echo Route::_('index.php?option=com_xdecaropeople&task=maintenance.recreateDatabase'); ?>" data-database-confirm="RICREA">
+                            <label class="form-label" for="xdecaro-confirm-recreate">Digita <strong>RICREA</strong> per confermare</label>
+                            <div class="xdecaro-confirm-row">
+                                <input id="xdecaro-confirm-recreate" class="form-control" type="text" name="database_confirmation" autocomplete="off">
+                                <button type="submit" class="btn btn-danger" disabled>Ricrea database People</button>
+                            </div>
+                            <?php echo HTMLHelper::_('form.token'); ?>
+                        </form>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="alert alert-warning mt-3 mb-0" role="alert">
+                Svuotare o ricreare People non modifica Organizations, Membership o Competitions: eventuali riferimenti UUID esterni possono restare senza persona finché i dati non vengono ripristinati, reimportati o ricollegati.
             </div>
         </div>
     </section>

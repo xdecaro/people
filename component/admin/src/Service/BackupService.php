@@ -7,7 +7,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Extension\ExtensionHelper;
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
-use Joomla\Database\ParameterType;
 use Joomla\Registry\Registry;
 use JsonException;
 use RuntimeException;
@@ -17,7 +16,7 @@ final class BackupService
 {
     private const FORMAT = 'xdecaro.people.backup';
     private const FORMAT_VERSION = 1;
-    private const SCHEMA_VERSION = '1.7.28';
+    private const SCHEMA_VERSION = '1.7.29';
 
     private const PAYLOAD_TABLES = [
         '#__xdecaropeople_people',
@@ -168,7 +167,7 @@ final class BackupService
         return array_values((array) $this->db->setQuery($query)->loadAssocList());
     }
 
-    public function resolveDownload(string $backupUuid): array
+    public function verify(string $backupUuid): array
     {
         $row = $this->loadBackup($backupUuid);
         if (!$row || ($row['status'] ?? '') !== 'ready') {
@@ -185,14 +184,19 @@ final class BackupService
             throw new RuntimeException('People backup file integrity check failed.', 409);
         }
 
+        $row['path'] = $path;
+        unset($row['storage_path']);
+        return $row;
+    }
+
+    public function resolveDownload(string $backupUuid): array
+    {
+        $row = $this->verify($backupUuid);
         $actorUserId = (int) (Factory::getApplication()->getIdentity()->id ?? 0);
         $this->log->log('backup_download', null, $actorUserId, [
             'backup_uuid' => (string) $row['uuid'],
             'size_bytes' => (int) $row['size_bytes'],
         ]);
-
-        $row['path'] = $path;
-        unset($row['storage_path']);
         return $row;
     }
 
