@@ -5,6 +5,8 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Extension\MVCComponent;
 use RuntimeException;
+use xdecaro\Component\People\Administrator\Service\BackupService;
+use xdecaro\Component\People\Administrator\Service\BackupStorageService;
 use xdecaro\Component\People\Administrator\Service\CompetitionsIntegrationService;
 use xdecaro\Component\People\Administrator\Service\CoreIntegrationService;
 use xdecaro\Component\People\Administrator\Service\DuplicateService;
@@ -28,6 +30,8 @@ final class PeopleComponent extends MVCComponent
     private ?MembershipIntegrationService $membership = null;
     private ?MaintenanceLogService $maintenanceLog = null;
     private ?PersonTrashService $trash = null;
+    private ?BackupStorageService $backupStorage = null;
+    private ?BackupService $backup = null;
 
     public function setCoreIntegrationService(CoreIntegrationService $service): void { $this->core = $service; }
     public function getCoreIntegrationService(): CoreIntegrationService { return $this->core ??= new CoreIntegrationService(); }
@@ -93,5 +97,19 @@ final class PeopleComponent extends MVCComponent
     {
         if (!$this->trash) throw new RuntimeException('People trash service not initialized.');
         return $this->trash;
+    }
+
+    public function setBackupStorageService(BackupStorageService $service): void { $this->backupStorage = $service; }
+    public function getBackupStorageService(): BackupStorageService
+    {
+        if (!$this->backupStorage) throw new RuntimeException('People backup storage service not initialized.');
+        return $this->backupStorage;
+    }
+
+    public function setBackupService(BackupService $service): void { $this->backup = $service; }
+    public function getBackupService(): BackupService
+    {
+        if (!$this->backup) throw new RuntimeException('People backup service not initialized.');
+        return $this->backup;
     }
 }
