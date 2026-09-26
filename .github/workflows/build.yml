@@ -2,7 +2,7 @@ name: People CI
 
 on:
   push:
-    branches: [main, people-1.7.33-person-accordion-timezone]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
