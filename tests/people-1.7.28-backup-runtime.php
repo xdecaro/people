@@ -58,11 +58,19 @@ $db->insertObject('#__xdecaropeople_duplicate_ignores', $ignoreRow);
 $db->insertObject('#__xdecaropeople_merges', $mergeRow);
 
 $first = $backup->create($adminId, 'runtime-test');
-foreach (['uuid','path','payload_sha256','people_count'] as $key) {
+foreach (['uuid','path','payload_sha256','people_count','filename'] as $key) {
     if (empty($first[$key]) && $key !== 'people_count') { fwrite(STDERR, "Missing backup result key {$key}.\n"); exit(1); }
 }
 if ((int) $first['people_count'] !== 2 || !is_file($first['path'])) {
     fwrite(STDERR, "Backup result count/file invalid.\n");
+    exit(1);
+}
+if (!preg_match('/^people-backup-runtime-test-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}-v[0-9A-Za-z._-]+-2-persone\.zip$/', (string) $first['filename'])) {
+    fwrite(STDERR, "Backup filename is not readable/canonical: " . ($first['filename'] ?? '') . "\n");
+    exit(1);
+}
+if (basename((string) $first['path']) === (string) $first['filename']) {
+    fwrite(STDERR, "Readable filename must remain separate from private UUID storage path.\n");
     exit(1);
 }
 
@@ -92,6 +100,7 @@ $second = $backup->create($adminId, 'runtime-test-repeat');
 if (($second['payload_sha256'] ?? '') !== ($first['payload_sha256'] ?? '')) { fwrite(STDERR, "Canonical payload checksum must be stable.\n"); exit(1); }
 $download = $backup->resolveDownload((string) $first['uuid']);
 if (($download['path'] ?? '') !== $first['path']) { fwrite(STDERR, "Backup download resolution mismatch.\n"); exit(1); }
+if (($download['filename'] ?? '') !== ($first['filename'] ?? '')) { fwrite(STDERR, "Readable download filename mismatch.\n"); exit(1); }
 $backup->delete((string) $second['uuid'], $adminId);
 if (is_file($second['path'])) { fwrite(STDERR, "Deleted backup file still exists.\n"); exit(1); }
 
