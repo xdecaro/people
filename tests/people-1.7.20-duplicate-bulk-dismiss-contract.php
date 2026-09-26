@@ -110,3 +110,7 @@ foreach ([
 }
 
 echo "People 1.7.20+ bulk duplicate dismissal contract OK\n";
+
+if (version_compare($version, '1.7.24', '>=')) {
+    require __DIR__ . '/people-1.7.24-duplicates-left-align-contract.php';
+}

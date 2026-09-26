@@ -11,29 +11,34 @@
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-group {
+  width: 100%;
+  padding: 0 !important;
   border: 1px solid var(--border-color, rgba(127, 127, 127, .22));
   border-radius: .25rem;
   box-shadow: none;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-accordion-summary {
-  display: grid;
+  display: grid !important;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: .45rem;
-  padding: .4rem .5rem;
+  justify-content: stretch !important;
+  gap: .5rem;
+  width: 100%;
   min-height: 0;
+  padding: .42rem .55rem;
   border: 0;
   background: var(--body-bg, #fff);
+  text-align: left;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-row-control {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  align-self: stretch;
+  align-self: center;
   margin: 0;
-  padding: 0 .1rem;
+  padding: 0;
   cursor: pointer;
 }
 
@@ -43,21 +48,24 @@
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-main {
   display: grid;
-  gap: .2rem;
+  width: 100%;
   min-width: 0;
+  gap: .18rem;
   line-height: 1.15;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-line1 {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: .65rem;
+  justify-content: space-between;
+  gap: .75rem;
+  width: 100%;
   min-width: 0;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-line1 > :first-child {
   display: flex !important;
+  flex: 1 1 auto;
   flex-wrap: wrap !important;
   align-items: center;
   gap: .3rem !important;
@@ -67,17 +75,21 @@
 .xdecaro-duplicates .xdecaro-duplicate-summary-right,
 .xdecaro-duplicates .xdecaro-duplicate-summary-counts {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: nowrap;
   gap: .22rem;
+  margin-left: auto;
   white-space: nowrap;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-line2 {
   display: flex;
   align-items: baseline;
+  justify-content: flex-start;
   gap: .35rem .75rem;
+  width: 100%;
   min-width: 0;
   font-size: .82rem;
   line-height: 1.25;
@@ -86,8 +98,10 @@
 .xdecaro-duplicates .xdecaro-duplicate-name-comparison {
   flex: 0 1 auto;
   min-width: 0;
+  max-width: 42%;
   overflow: hidden;
   color: var(--body-color, inherit);
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -96,6 +110,7 @@
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -120,12 +135,14 @@
 
 @media (max-width: 767.98px) {
   .xdecaro-duplicates .xdecaro-duplicate-accordion-summary {
+    grid-template-columns: auto minmax(0, 1fr);
     gap: .35rem;
     padding: .38rem .42rem;
   }
 
   .xdecaro-duplicates .xdecaro-duplicate-summary-line1 {
-    grid-template-columns: minmax(0, 1fr);
+    align-items: flex-start;
+    flex-direction: column;
     gap: .25rem;
   }
 
@@ -133,6 +150,7 @@
   .xdecaro-duplicates .xdecaro-duplicate-summary-counts {
     justify-content: flex-start;
     flex-wrap: wrap;
+    margin-left: 0;
     white-space: normal;
   }
 
@@ -143,6 +161,7 @@
 
   .xdecaro-duplicates .xdecaro-duplicate-name-comparison,
   .xdecaro-duplicates .xdecaro-duplicate-match-summary {
+    max-width: none;
     overflow: visible;
     text-overflow: clip;
     white-space: normal;

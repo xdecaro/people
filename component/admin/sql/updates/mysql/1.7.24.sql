@@ -1,0 +1,1 @@
+-- People 1.7.24 fixes compact duplicate-row alignment; no database schema change is required.
