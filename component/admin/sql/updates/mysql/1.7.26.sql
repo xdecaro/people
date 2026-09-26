@@ -1,0 +1,1 @@
+-- People 1.7.26 refines duplicate-card spacing; no database schema change is required.
