@@ -28,8 +28,10 @@ $notContains = static function (string $haystack, string $needle, string $messag
 };
 
 $template = $read('component/admin/tmpl/person/edit.php');
+$view = $read('component/admin/src/View/Person/HtmlView.php');
 $js = $read('component/media/js/person-form.js');
-$css = $read('component/media/css/admin.css');
+$css = $read('component/media/css/person-accordion.css');
+$assets = $read('component/media/joomla.asset.json');
 $backup = $read('component/admin/src/Service/BackupService.php');
 
 $contains($template, 'id="personAccordion"', 'Person edit must render one accordion container');
@@ -48,7 +50,8 @@ $notContains($js, "closest('.tab-pane')", 'Person form validation must no longer
 
 $contains($css, '.xdecaro-person-accordion', 'Person accordion styling is missing');
 $contains($css, '.xdecaro-person-accordion .accordion-button', 'Person accordion button styling is missing');
-$notContains($css, '> joomla-tab:not([view="accordion"])', 'Legacy horizontal person tab styling must be removed');
+$contains($assets, 'com_xdecaropeople.person-accordion', 'Person accordion stylesheet must be registered as a Joomla web asset');
+$contains($view, "useStyle('com_xdecaropeople.person-accordion')", 'Person edit view must load the accordion stylesheet');
 
 $contains($backup, "getParam('timezone'", 'Readable backup timestamp must prefer the current Joomla user timezone');
 $contains($backup, "get('offset', 'UTC')", 'Readable backup timestamp must retain Joomla global timezone fallback');
