@@ -13,6 +13,7 @@ final class HtmlView extends BaseHtmlView
 {
     public array $diagnostics = [];
     public array $databaseSummary = [];
+    public array $databaseSchemaStatus = [];
     public array $connectedComponents = [];
     public array $backups = [];
     public array $recentTrashed = [];
@@ -21,6 +22,8 @@ final class HtmlView extends BaseHtmlView
     public bool $canRestore = false;
     public bool $canEditState = false;
     public bool $canDelete = false;
+    public bool $canDatabaseRepair = false;
+    public bool $canDatabaseDestructive = false;
 
     public function display($tpl = null): void
     {
@@ -30,9 +33,12 @@ final class HtmlView extends BaseHtmlView
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 
-        $app->getDocument()->getWebAssetManager()->useStyle('com_xdecaropeople.information');
+        $assets = $app->getDocument()->getWebAssetManager();
+        $assets->useStyle('com_xdecaropeople.information');
+        $assets->useScript('com_xdecaropeople.database-maintenance');
         $this->diagnostics = (array) $this->get('Diagnostics');
         $this->databaseSummary = (array) $this->get('DatabaseSummary');
+        $this->databaseSchemaStatus = (array) $this->get('DatabaseSchemaStatus');
         $this->connectedComponents = (array) $this->get('ConnectedComponents');
         $this->backups = (array) $this->get('Backups');
         $this->recentTrashed = (array) $this->get('RecentTrashed');
@@ -41,6 +47,8 @@ final class HtmlView extends BaseHtmlView
         $this->canRestore = $user->authorise('people.restore', 'com_xdecaropeople');
         $this->canEditState = $user->authorise('core.edit.state', 'com_xdecaropeople');
         $this->canDelete = $user->authorise('core.delete', 'com_xdecaropeople');
+        $this->canDatabaseRepair = $user->authorise('people.database_repair', 'com_xdecaropeople');
+        $this->canDatabaseDestructive = $user->authorise('people.database_destructive', 'com_xdecaropeople');
 
         ToolbarHelper::title(Text::_('COM_XDECAROPEOPLE_INFORMATION'), 'info-circle');
         parent::display($tpl);
