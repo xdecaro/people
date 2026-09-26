@@ -17,6 +17,7 @@ use xdecaro\Component\People\Administrator\Service\OrganizationsIntegrationServi
 use xdecaro\Component\People\Administrator\Service\MembershipIntegrationService;
 use xdecaro\Component\People\Administrator\Service\PersonProviderService;
 use xdecaro\Component\People\Administrator\Service\PersonTrashService;
+use xdecaro\Component\People\Administrator\Service\RestoreService;
 
 final class PeopleComponent extends MVCComponent
 {
@@ -32,6 +33,7 @@ final class PeopleComponent extends MVCComponent
     private ?PersonTrashService $personTrash = null;
     private ?BackupStorageService $backupStorage = null;
     private ?BackupService $backup = null;
+    private ?RestoreService $restore = null;
 
     public function setCoreIntegrationService(CoreIntegrationService $service): void { $this->core = $service; }
     public function getCoreIntegrationService(): CoreIntegrationService { return $this->core ??= new CoreIntegrationService(); }
@@ -57,4 +59,6 @@ final class PeopleComponent extends MVCComponent
     public function getBackupStorageService(): BackupStorageService { if (!$this->backupStorage) throw new RuntimeException('People backup storage service not initialized.'); return $this->backupStorage; }
     public function setBackupService(BackupService $service): void { $this->backup = $service; }
     public function getBackupService(): BackupService { if (!$this->backup) throw new RuntimeException('People backup service not initialized.'); return $this->backup; }
+    public function setRestoreService(RestoreService $service): void { $this->restore = $service; }
+    public function getRestoreService(): RestoreService { if (!$this->restore) throw new RuntimeException('People restore service not initialized.'); return $this->restore; }
 }
