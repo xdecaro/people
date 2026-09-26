@@ -13,12 +13,12 @@ $fail = static function (string $message): never {
 $contains = static function (string $path, string $needle) use ($fail): void {
     $content = file_get_contents($path);
     if ($content === false || !str_contains($content, $needle)) {
-        $fail('Missing People 1.7.20 bulk duplicate contract in ' . $path . ': ' . $needle);
+        $fail('Missing People 1.7.20+ bulk duplicate contract in ' . $path . ': ' . $needle);
     }
 };
 
-if ($version !== '1.7.20') {
-    $fail('People 1.7.20 version expected.');
+if (version_compare($version, '1.7.20', '<')) {
+    $fail('People 1.7.20+ version expected.');
 }
 
 $service = $root . '/component/admin/src/Service/DuplicateService.php';
@@ -38,7 +38,7 @@ foreach ([
     $js,
 ] as $path) {
     if (!is_file($path)) {
-        $fail('Missing People 1.7.20 file: ' . $path);
+        $fail('Missing People 1.7.20+ file: ' . $path);
     }
 }
 
@@ -81,21 +81,13 @@ foreach ([
 
 foreach ([
     '.xdecaro-duplicate-bulkbar',
-    '.xdecaro-duplicate-select-row',
-    'gap: .55rem;',
-    'padding: .6rem .75rem;',
-] as $needle) {
-    $contains($css, $needle);
-}
-
-foreach ([
     '[data-duplicate-bulk-form]',
     '[data-duplicate-select-all]',
     '[data-duplicate-select]',
     "signatures.join(',')",
     'window.confirm',
 ] as $needle) {
-    $contains($js, $needle);
+    $contains(str_starts_with($needle, '.') ? $css : $js, $needle);
 }
 
 foreach ([
@@ -109,4 +101,28 @@ foreach ([
     $contains($root . '/component/admin/language/en-GB/com_xdecaropeople.ini', $key);
 }
 
-echo "People 1.7.20 bulk duplicate dismissal contract OK\n";
+if (version_compare($version, '1.7.21', '>=')) {
+    foreach ([
+        'xdecaro-duplicate-row',
+        'xdecaro-duplicate-row-select',
+        'xdecaro-duplicate-row-details',
+    ] as $needle) {
+        $contains($template, $needle);
+    }
+
+    if (str_contains((string) file_get_contents($template), 'class="xdecaro-duplicate-select-row"')) {
+        $fail('People 1.7.21 must keep the selection checkbox inside the duplicate row.');
+    }
+
+    foreach ([
+        'gap: .2rem;',
+        '.xdecaro-duplicate-row {',
+        '.xdecaro-duplicate-row-select {',
+        'padding: .45rem .55rem;',
+        'border-radius: .35rem;',
+    ] as $needle) {
+        $contains($css, $needle);
+    }
+}
+
+echo "People 1.7.20+ bulk duplicate dismissal contract OK\n";
