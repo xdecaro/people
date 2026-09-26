@@ -1,0 +1,1 @@
+-- People 1.7.21 compacts duplicate rows and integrates selection controls into each row; no database schema change is required.

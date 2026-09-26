@@ -10,6 +10,21 @@
   const submit = form.querySelector('[data-duplicate-bulk-dismiss]');
   const checkboxes = Array.from(document.querySelectorAll('[data-duplicate-select]'));
 
+  document.querySelectorAll('.xdecaro-duplicate-select-row').forEach((row) => {
+    const control = row.querySelector('.xdecaro-duplicate-select-box');
+    const summary = row.querySelector('.xdecaro-duplicate-accordion-summary');
+
+    if (!control || !summary) return;
+
+    control.classList.add('xdecaro-duplicate-row-control');
+    summary.prepend(control);
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('[data-duplicate-select]')) return;
+    event.stopPropagation();
+  }, true);
+
   const update = () => {
     const selected = checkboxes.filter((box) => box.checked);
     const signatures = selected.map((box) => box.value).filter(Boolean);
