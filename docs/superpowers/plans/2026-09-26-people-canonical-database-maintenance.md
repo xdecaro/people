@@ -2,81 +2,77 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add safe canonical-schema inspection, repair, data emptying, and functional-table recreation to People → Informazioni without touching Joomla or other components.
+**Goal:** Add safe canonical-schema inspection, repair, functional-data emptying, and functional-table recreation to People → Informazioni without touching Joomla or other components.
 
-**Architecture:** A pure PHP canonical schema definition becomes the runtime source of truth for the six People-owned tables. A schema inspector compares live MySQL/MariaDB metadata to that definition, while a maintenance orchestrator performs conservative repair and backup-first destructive operations. The existing Information page remains the only administrator UI; controllers stay thin and all destructive behavior is server-validated.
+**Architecture:** A pure PHP canonical schema definition becomes the runtime source of truth for the six People-owned tables. A schema inspector compares live MySQL/MariaDB metadata against that definition; a maintenance service performs conservative repair and backup-first destructive operations. The existing Information page remains the administrator entry point and the controller stays thin.
 
-**Tech Stack:** Joomla 6.1.3, PHP 8.3+, Joomla DatabaseInterface, MySQL 8/MariaDB-compatible DDL, existing People Backup/Integrity/Maintenance services, vanilla JavaScript, GitHub Actions.
+**Tech Stack:** Joomla 6.1.3, PHP 8.3+, Joomla `DatabaseInterface`, MySQL 8/MariaDB-compatible DDL, existing People Backup/Integrity/Maintenance services, vanilla JavaScript, GitHub Actions.
 
 **Spec:** `docs/superpowers/specs/2026-09-26-people-canonical-database-maintenance-design.md`
 
 ## Global Constraints
 
-- Target release: **People 1.7.29**; latest published release is currently 1.7.28, so 1.7.29 is unused at planning time.
-- Joomla target remains exactly **6.1.3**.
-- PHP minimum remains **8.3**.
-- People may operate only on tables whose exact canonical names start with `#__xdecaropeople_` and are present in the definition.
-- Functional tables: `#__xdecaropeople_people`, `#__xdecaropeople_history`, `#__xdecaropeople_duplicate_ignores`, `#__xdecaropeople_merges`.
-- Maintenance tables: `#__xdecaropeople_backups`, `#__xdecaropeople_maintenance_log`.
-- Unknown columns/indexes/tables are reported but never removed unless their exact identity is in the version-controlled legacy-removal allowlist.
-- `Svuota` and `Ricrea` require a successfully verified automatic safety backup before any destructive database action.
-- `Svuota` requires exact server-side confirmation `SVUOTA`; `Ricrea` requires exact server-side confirmation `RICREA`.
-- `Svuota` and `Ricrea` preserve the backup and maintenance-log tables and their rows.
-- Existing backup payload remains limited to the four functional People tables.
-- No direct reads or writes to private tables owned by Organizations, Membership, Competitions, Photos, Documents, Notifications, Core, or Joomla.
+- Target release: **People 1.7.29**. Latest published release at planning time is 1.7.28.
+- Joomla target: exactly **6.1.3**. PHP minimum: **8.3**.
+- Canonical functional tables: `#__xdecaropeople_people`, `#__xdecaropeople_history`, `#__xdecaropeople_duplicate_ignores`, `#__xdecaropeople_merges`.
+- Canonical maintenance tables: `#__xdecaropeople_backups`, `#__xdecaropeople_maintenance_log`.
+- Unknown tables/columns/indexes are reported but never removed unless their exact identity is version-controlled in the legacy-removal allowlist.
+- `Svuota` and `Ricrea` require a successfully created and verified automatic safety backup before the first destructive data/schema query.
+- Exact typed confirmations are server-authoritative: `SVUOTA` and `RICREA`.
+- `Svuota` and `Ricrea` preserve backup metadata/files and maintenance-log rows.
+- Backup payload remains limited to the four functional People tables.
+- No operation may read or write private tables owned by Joomla, Core, Organizations, Membership, Competitions, Photos, Documents, Notifications, or any other component.
 
 ## Review Focus
 
-- **Unknown/custom schema objects:** inspector reports them; repair and recreate-support code must not silently drop them unless allowlisted. Covered in Tasks 2–3.
-- **Safety backup failure or checksum mismatch:** empty/recreate abort before the first destructive query and return a recoverable error. Covered in Tasks 4–5.
-- **Partial DDL failure during recreate:** operation reports the safety-backup UUID and leaves maintenance history available for manual restore. Covered in Task 5.
-- **Maintenance history preservation:** pre-existing backup rows/log rows survive both empty and recreate. Covered in Tasks 4–5.
-- **Table-scope escape:** no generated repair/recreate operation may target a table outside the six exact canonical People tables. Covered in Tasks 1–5.
+- **Custom/unknown schema objects:** they remain untouched even when repair runs; only exact allowlisted legacy objects may be removed. Tasks 2–3.
+- **Safety-backup failure:** an unwritable backup destination or invalid backup verification aborts before deletes/drops. Tasks 4–5.
+- **Partial DDL failure:** recreate must surface the safety-backup UUID and keep maintenance history available for recovery. Task 5.
+- **Maintenance preservation:** existing backup rows/files and audit rows survive empty/recreate. Tasks 4–5.
+- **Scope escape:** generated SQL is restricted to the six exact canonical logical table names and uses Joomla prefix replacement only after validation. Tasks 1–5.
 
 ---
 
-### Task 1: Canonical People schema definition and installer parity
+### Task 1: Canonical schema definition and installer parity
 
 **Files:**
 - Create: `component/admin/src/Service/DatabaseSchemaDefinition.php`
 - Create: `tests/people-1.7.29-canonical-schema-contract.php`
-- Modify: `component/admin/sql/install.mysql.utf8mb4.sql`
+- Modify only if parity test proves drift: `component/admin/sql/install.mysql.utf8mb4.sql`
 
 **Interfaces:**
-- Produces: `DatabaseSchemaDefinition::tables(): array`
-- Produces: `DatabaseSchemaDefinition::functionalTables(): array`
-- Produces: `DatabaseSchemaDefinition::maintenanceTables(): array`
-- Produces: `DatabaseSchemaDefinition::table(string $table): array`
-- Produces: `DatabaseSchemaDefinition::createTableSql(string $table): string`
-- Produces: `DatabaseSchemaDefinition::legacyRemovals(): array`
+- `DatabaseSchemaDefinition::tables(): array`
+- `DatabaseSchemaDefinition::functionalTables(): array`
+- `DatabaseSchemaDefinition::maintenanceTables(): array`
+- `DatabaseSchemaDefinition::table(string $table): array`
+- `DatabaseSchemaDefinition::createTableSql(string $table): string`
+- `DatabaseSchemaDefinition::legacyRemovals(): array`
 
-- [ ] **Step 1: Write the failing canonical-schema contract**
+- [ ] **Step 1: Write the failing contract**
 
-Create `tests/people-1.7.29-canonical-schema-contract.php` asserting that the definition exposes exactly six tables, classifies exactly four as `functional` and two as `maintenance`, rejects unknown table names, contains no foreign component prefixes, and generates canonical CREATE TABLE SQL for each table. Also normalize the generated SQL signatures and `install.mysql.utf8mb4.sql` signatures and assert matching table/column/index identities.
+Assert exactly six table definitions, exactly four functional and two maintenance roles, exact known names only, no foreign prefixes, deterministic CREATE TABLE output, and rejection of unknown table names. Extract table/column/index signatures from generated DDL and from `install.mysql.utf8mb4.sql` and assert parity.
 
-- [ ] **Step 2: Run the contract and verify RED**
-
-Run: `php tests/people-1.7.29-canonical-schema-contract.php`
-
-Expected: FAIL because `DatabaseSchemaDefinition.php` does not exist.
-
-- [ ] **Step 3: Implement `DatabaseSchemaDefinition`**
-
-Use one structured definition per table containing role, ordered column SQL fragments, primary key, unique indexes, normal indexes, engine, charset and collation. `createTableSql()` must only accept an exact defined table name and must build deterministic DDL from that structure. Start `legacyRemovals()` empty unless an exact retired object is proven from repository history during implementation; do not invent legacy names.
-
-- [ ] **Step 4: Align installer SQL with the canonical definition**
-
-Update `component/admin/sql/install.mysql.utf8mb4.sql` only where the contract proves drift. Fresh installation SQL must represent the same six-table current schema, without replaying historical update files.
-
-- [ ] **Step 5: Run the contract and verify GREEN**
+- [ ] **Step 2: Verify RED**
 
 Run: `php tests/people-1.7.29-canonical-schema-contract.php`
 
-Expected: `People 1.7.29 canonical schema contract PASS`.
+Expected: FAIL because `DatabaseSchemaDefinition` does not exist.
+
+- [ ] **Step 3: Implement the canonical definition**
+
+Represent each table with ordered column SQL fragments, PK, unique indexes, indexes, engine, charset, collation and role. `createTableSql()` builds DDL only for exact known logical names. Start `legacyRemovals()` empty unless repository evidence identifies an exact retired object; never invent legacy names to satisfy tests.
+
+- [ ] **Step 4: Align installer SQL only if needed**
+
+Fresh installer SQL must represent the same current schema. Historical `updates/mysql/*` files are not replayed or parsed by runtime maintenance.
+
+- [ ] **Step 5: Verify GREEN**
+
+Run the canonical contract. Expected: `PASS`.
 
 - [ ] **Step 6: Commit**
 
-Commit message: `feat: define canonical People database schema`
+`feat: define canonical People database schema`
 
 ---
 
@@ -89,45 +85,41 @@ Commit message: `feat: define canonical People database schema`
 - Modify: `component/admin/src/Extension/PeopleComponent.php`
 
 **Interfaces:**
-- Consumes: Task 1 `DatabaseSchemaDefinition`.
-- Produces: `DatabaseSchemaInspector::inspect(): array`
-- Produces: `PeopleComponent::getDatabaseSchemaDefinition(): DatabaseSchemaDefinition`
-- Produces: `PeopleComponent::getDatabaseSchemaInspector(): DatabaseSchemaInspector`
-- `inspect()` result keys: `status`, `ok`, `tables`, `missing_tables`, `unexpected_tables`, `missing_columns`, `incompatible_columns`, `unknown_columns`, `missing_indexes`, `incompatible_indexes`, `unknown_indexes`, `engine_differences`, `collation_differences`.
+- Consumes `DatabaseSchemaDefinition`.
+- `DatabaseSchemaInspector::inspect(): array`
+- Result keys: `status`, `ok`, `tables`, `missing_tables`, `unexpected_tables`, `missing_columns`, `incompatible_columns`, `unknown_columns`, `missing_indexes`, `incompatible_indexes`, `unknown_indexes`, `engine_differences`, `collation_differences`.
+- `PeopleComponent::getDatabaseSchemaDefinition(): DatabaseSchemaDefinition`
+- `PeopleComponent::getDatabaseSchemaInspector(): DatabaseSchemaInspector`
 
-- [ ] **Step 1: Write runtime tests for clean and drifted schemas**
+- [ ] **Step 1: Write the runtime probe**
 
-In `tests/people-1.7.29-database-schema-runtime.php`, on Joomla 6.1.3 assert: a freshly installed schema is `OK`; removing one test index is reported as missing; adding a custom column is reported under `unknown_columns`; creating a fake `#__xdecaropeople_custom_test` table is reported under `unexpected_tables`; none of these read-only checks mutates schema or rows.
+On Joomla 6.1.3/MySQL: assert a clean install is clean; then independently create and detect a missing table, missing column, missing index, custom column, custom index, and unexpected `#__xdecaropeople_*` table. Each mutation must be restored before the next case so the probe exits with the canonical schema intact. Assert inspection itself never mutates rows/schema.
 
-- [ ] **Step 2: Run the runtime probe and verify RED**
+- [ ] **Step 2: Verify RED**
 
-Run inside the existing Joomla CI harness: `php ../tests/people-1.7.29-database-schema-runtime.php`
+Run in the Joomla harness: `php ../tests/people-1.7.29-database-schema-runtime.php`
 
-Expected: FAIL because the inspector service/getters are missing.
+Expected: FAIL because inspector/getters are missing.
 
-- [ ] **Step 3: Implement `DatabaseSchemaInspector`**
+- [ ] **Step 3: Implement inspector normalization**
 
-Use MySQL/MariaDB metadata (`INFORMATION_SCHEMA` or deterministic `SHOW` queries) to normalize live table, column and index metadata. Compare only against `DatabaseSchemaDefinition`; do not derive expectations from historical migrations. Unknown objects are findings, never repair instructions.
+Read live metadata through `INFORMATION_SCHEMA` or deterministic `SHOW` queries. Normalize column type/null/default/extra, indexes, engine and collation before comparison. Unknown objects are findings only, never executable instructions.
 
-- [ ] **Step 4: Register definition and inspector in DI/component**
+- [ ] **Step 4: Register definition + inspector**
 
-Add shared services in `component/admin/services/provider.php`; add typed setters/getters in `PeopleComponent` following existing service patterns.
+Wire both through `component/admin/services/provider.php` and typed setters/getters in `PeopleComponent`.
 
-- [ ] **Step 5: Run canonical contract plus runtime probe**
+- [ ] **Step 5: Verify GREEN**
 
-Run:
-`php tests/people-1.7.29-canonical-schema-contract.php`
-`php ../tests/people-1.7.29-database-schema-runtime.php`
-
-Expected: both PASS.
+Run canonical contract + schema runtime. Expected: both PASS and final live schema clean.
 
 - [ ] **Step 6: Commit**
 
-Commit message: `feat: inspect People schema against canonical definition`
+`feat: inspect People schema against canonical definition`
 
 ---
 
-### Task 3: Conservative database repair and ACL
+### Task 3: Conservative schema repair and ACL
 
 **Files:**
 - Create: `component/admin/src/Service/DatabaseMaintenanceService.php`
@@ -139,81 +131,83 @@ Commit message: `feat: inspect People schema against canonical definition`
 - Modify: `component/admin/language/en-GB/com_xdecaropeople.ini`
 
 **Interfaces:**
-- Consumes: `DatabaseSchemaDefinition`, `DatabaseSchemaInspector`, `MaintenanceLogService`, `BackupService`, `IntegrityService`.
-- Produces: `DatabaseMaintenanceService::check(int $actorUserId, bool $writeLog = true): array`
-- Produces: `DatabaseMaintenanceService::repair(int $actorUserId): array`
-- Produces: `PeopleComponent::getDatabaseMaintenanceService(): DatabaseMaintenanceService`
-- Adds ACL: `people.database_repair`, `people.database_destructive`.
+- Constructor dependencies: `DatabaseInterface`, `DatabaseSchemaDefinition`, `DatabaseSchemaInspector`, `BackupService`, `IntegrityService`, `MaintenanceLogService`.
+- `DatabaseMaintenanceService::check(int $actorUserId, bool $writeLog = true): array`
+- `DatabaseMaintenanceService::repair(int $actorUserId): array`
+- `PeopleComponent::getDatabaseMaintenanceService(): DatabaseMaintenanceService`
+- ACL actions: `people.database_repair`, `people.database_destructive`.
 
-- [ ] **Step 1: Write failing repair and scope tests**
+- [ ] **Step 1: Write failing repair/scope tests**
 
-Create a runtime probe that removes a canonical index/column from a disposable installed schema, adds one custom column/index and one fake People-prefixed table, runs `repair()`, and asserts canonical missing structures are recreated while the custom objects remain untouched. Add a legacy-removal test fixture only through `DatabaseSchemaDefinition::legacyRemovals()` and assert only that exact allowlisted object may be removed. Assert a non-People table with matching column names is unchanged.
+Damage a disposable installed schema by removing a canonical table/column/index. Add custom column/index and a fake People-prefixed table plus an unrelated non-People probe table. Assert `repair()` recreates canonical missing structures and leaves all unknown/custom/non-People objects untouched. Add a static assertion that DROP-column/DROP-index planning can only be sourced from `legacyRemovals()`; with the current empty allowlist no unknown object may be dropped.
 
 - [ ] **Step 2: Verify RED**
 
 Run: `php ../tests/people-1.7.29-database-repair-runtime.php`
 
-Expected: FAIL because `DatabaseMaintenanceService` is missing.
+Expected: FAIL because the maintenance service is missing.
 
 - [ ] **Step 3: Implement `check()` and `repair()`**
 
-`check()` delegates to the inspector and optionally logs `database_check`. `repair()` performs a fresh inspection, constructs an explicit ordered repair plan, permits CREATE/ADD/MODIFY/index replacement plus exact allowlisted removals, executes only canonical People-table operations, re-inspects, and logs `database_repair` with before/after status and operation names.
+`check()` delegates to inspector and optionally logs `database_check`. `repair()` re-inspects, builds an explicit ordered plan, allows only canonical CREATE/ADD/MODIFY/index replacement plus exact allowlisted removals, validates every logical table against the canonical definition before converting `#__` with `$db->replacePrefix()`, executes, re-inspects, and logs `database_repair` with before/after status and operation names.
 
-- [ ] **Step 4: Add ACL definitions and language labels**
+- [ ] **Step 4: Add ACL and labels**
 
-Add `people.database_repair` and `people.database_destructive` to `access.xml` with Italian/English labels. Do not grant permissions in code.
+Add `people.database_repair` and `people.database_destructive`; never grant/bypass them in PHP.
 
 - [ ] **Step 5: Register maintenance service**
 
-Wire it through the DI provider and `PeopleComponent`.
+Wire DI + `PeopleComponent` getter/setter.
 
 - [ ] **Step 6: Verify GREEN**
 
-Run the repair runtime plus existing People maintenance contracts. Expected: repair runtime PASS and no regression failures.
+Run repair runtime + existing 1.7.28 maintenance contracts. Expected: PASS and schema restored clean.
 
 - [ ] **Step 7: Commit**
 
-Commit message: `feat: repair canonical People database schema`
+`feat: repair canonical People database schema`
 
 ---
 
 ### Task 4: Verified safety backup and “Svuota dati People”
 
 **Files:**
+- Create: `component/admin/src/Exception/DatabaseMaintenanceException.php`
 - Modify: `component/admin/src/Service/BackupService.php`
 - Modify: `component/admin/src/Service/DatabaseMaintenanceService.php`
 - Create: `tests/people-1.7.29-database-empty-runtime.php`
 
 **Interfaces:**
-- Produces: `BackupService::verify(string $backupUuid): array` — validates recorded file existence and SHA256 without logging a download.
-- Produces: `DatabaseMaintenanceService::emptyFunctionalData(int $actorUserId, string $confirmation): array`
-- Result includes: `safety_backup_uuid`, `removed_counts`, `schema_status`, `integrity`.
+- `BackupService::verify(string $backupUuid): array` validates existence + SHA256 without logging a download.
+- `DatabaseMaintenanceException::getSafetyBackupUuid(): ?string`
+- `DatabaseMaintenanceService::emptyFunctionalData(int $actorUserId, string $confirmation): array`
+- Result: `safety_backup_uuid`, `removed_counts`, `schema_status`, `integrity`.
 
-- [ ] **Step 1: Write failing empty-database tests**
+- [ ] **Step 1: Write failing backup/empty tests**
 
-Seed rows in all six People tables. Assert `emptyFunctionalData()` rejects any confirmation except exact `SVUOTA`; assert simulated backup creation/verification failure leaves all functional rows intact; assert success removes rows from all four functional tables, preserves pre-existing `backups` and `maintenance_log` rows, creates/logs a `before_empty_database` safety backup, resets functional auto-increments where supported, and leaves a clean canonical schema.
+Assert `BackupService::verify()` rejects a deliberately tampered backup file. Seed all functional tables plus pre-existing backup/log rows. Assert wrong confirmation rejects with no backup/delete. Configure an invalid/unwritable backup storage path and assert empty aborts with functional rows untouched. Restore valid storage and assert success creates+verifies reason `before_empty_database`, deletes only the four functional tables in dependency-safe order, preserves all pre-existing maintenance rows plus the new backup/log, resets functional AUTO_INCREMENT where supported, and finishes with clean schema/integrity.
 
 - [ ] **Step 2: Verify RED**
 
 Run: `php ../tests/people-1.7.29-database-empty-runtime.php`
 
-Expected: FAIL because `verify()` / `emptyFunctionalData()` are missing.
+Expected: FAIL because `verify()` / exception / empty method are missing.
 
-- [ ] **Step 3: Refactor backup verification into `BackupService::verify()`**
+- [ ] **Step 3: Refactor backup verification**
 
-Move file existence + SHA256 validation out of download-only behavior. `resolveDownload()` must call `verify()` and continue to log `backup_download`; internal safety checks call `verify()` directly and do not create a false download audit event.
+Move file existence and SHA256 validation into `verify()`. `resolveDownload()` calls `verify()` and still logs `backup_download`; internal safety checks call `verify()` directly.
 
 - [ ] **Step 4: Implement `emptyFunctionalData()`**
 
-Validate confirmation first; create backup with reason `before_empty_database`; verify it; count rows; delete in order `history`, `duplicate_ignores`, `merges`, `people` using transactional DML where available; reset functional AUTO_INCREMENT counters after successful deletes; run inspector/integrity checks; log `database_empty` including backup UUID and counts. Never clear maintenance tables.
+Validate exact `SVUOTA`; create backup with `before_empty_database`; verify it before deletes; count rows; delete `history`, `duplicate_ignores`, `merges`, `people` using transactional DML where available; reset AUTO_INCREMENT after successful deletes; run schema/integrity checks; log `database_empty`. Never delete maintenance tables. Expected operational errors use `DatabaseMaintenanceException` and include backup UUID when one already exists.
 
-- [ ] **Step 5: Verify GREEN**
+- [ ] **Step 5: Verify GREEN + regressions**
 
-Run empty runtime plus all existing backup/restore runtime probes. Expected: all PASS.
+Run empty runtime and all existing backup/restore runtime probes. Expected: all PASS.
 
 - [ ] **Step 6: Commit**
 
-Commit message: `feat: safely empty People functional data`
+`feat: safely empty People functional data`
 
 ---
 
@@ -224,35 +218,36 @@ Commit message: `feat: safely empty People functional data`
 - Create: `tests/people-1.7.29-database-recreate-runtime.php`
 
 **Interfaces:**
-- Consumes: `DatabaseSchemaDefinition::createTableSql()`, `BackupService::verify()`.
-- Produces: `DatabaseMaintenanceService::recreateFunctionalDatabase(int $actorUserId, string $confirmation): array`
-- Result includes: `safety_backup_uuid`, `schema_status`, `integrity`, `recreated_tables`.
+- `DatabaseMaintenanceService::recreateFunctionalDatabase(int $actorUserId, string $confirmation): array`
+- Result: `safety_backup_uuid`, `schema_status`, `integrity`, `recreated_tables`.
 
 - [ ] **Step 1: Write failing recreate tests**
 
-Seed functional and maintenance rows and intentionally add structural drift to a functional table. Assert wrong confirmation rejects without backup or DDL; backup/verification failure performs no DROP; successful `RICREA` creates reason `before_recreate_database`, preserves all prior backup/log rows, drops/recreates exactly the four functional tables, produces zero functional rows, restores canonical columns/indexes, and leaves unrelated Joomla/external test tables unchanged. Add a forced DDL-failure path and assert the thrown/reported error retains the safety-backup UUID for recovery.
+Seed functional + maintenance rows and drift one functional table. Assert wrong confirmation does nothing. Assert invalid backup storage aborts before DDL. On success assert reason `before_recreate_database`, verified backup first, exactly four functional tables dropped/recreated through `DatabaseSchemaDefinition::createTableSql()` + `$db->replacePrefix()`, zero functional rows, canonical schema, and all prior maintenance rows/files preserved. Create an unrelated probe table and verify untouched.
+
+For the partial-DDL failure case, create an external test table with a foreign key referencing People so dropping the referenced functional table fails after the safety backup exists; assert `DatabaseMaintenanceException::getSafetyBackupUuid()` returns that backup UUID and the external test table remains untouched. Run this failure case last in the probe.
 
 - [ ] **Step 2: Verify RED**
 
 Run: `php ../tests/people-1.7.29-database-recreate-runtime.php`
 
-Expected: FAIL because `recreateFunctionalDatabase()` is missing.
+Expected: FAIL because recreate is missing.
 
 - [ ] **Step 3: Implement recreate orchestration**
 
-Validate `RICREA`, create+verify safety backup, drop only names returned by `functionalTables()`, recreate each from `createTableSql()`, run `repair()`/inspection for the preserved maintenance tables, perform post-checks, and log `database_recreate`. Catch expected operational errors and attach the safety backup UUID to the service exception/result message; do not claim DDL atomicity.
+Validate exact `RICREA`; create+verify backup; drop only names returned by `functionalTables()`; recreate them deterministically from canonical DDL; inspect/repair preserved maintenance tables if safe; perform post-checks; log `database_recreate`. Do not claim transaction atomicity for DDL. If DDL fails after backup, throw `DatabaseMaintenanceException` carrying the safety-backup UUID.
 
-- [ ] **Step 4: Verify GREEN**
+- [ ] **Step 4: Verify GREEN + regressions**
 
-Run recreate runtime, empty runtime, repair runtime, and existing restore-full runtime. Expected: all PASS.
+Run recreate, empty, repair, and existing restore-full runtimes. Expected: PASS except the deliberately caught failure case, which must assert the expected recoverable exception.
 
 - [ ] **Step 5: Commit**
 
-Commit message: `feat: recreate People database from canonical schema`
+`feat: recreate People database from canonical schema`
 
 ---
 
-### Task 6: Information-page controls, controller actions, and typed confirmation UX
+### Task 6: Information-page controls, thin controller, typed-confirmation UX
 
 **Files:**
 - Modify: `component/admin/src/Controller/MaintenanceController.php`
@@ -265,47 +260,47 @@ Commit message: `feat: recreate People database from canonical schema`
 - Create: `tests/people-1.7.29-database-maintenance-ui-contract.php`
 
 **Interfaces:**
-- Controller actions: `checkDatabase()`, `repairDatabase()`, `emptyDatabase()`, `recreateDatabase()`.
-- Model: `getDatabaseSchemaStatus(): array` plus latest database-maintenance audit summaries.
+- Controller: `checkDatabase()`, `repairDatabase()`, `emptyDatabase()`, `recreateDatabase()`.
+- Model: `getDatabaseSchemaStatus(): array`.
 - View properties: `databaseSchemaStatus`, `canDatabaseRepair`, `canDatabaseDestructive`.
 
-- [ ] **Step 1: Write failing UI/controller contract**
+- [ ] **Step 1: Write failing UI/controller/ACL contract**
 
-Assert the Information page exposes all four actions, shows current schema status and external-reference warning, includes typed `SVUOTA`/`RICREA` fields, loads `com_xdecaropeople.database-maintenance` JS, and has separate permission booleans. Assert controller methods enforce `core.manage` plus the dedicated ACL, CSRF, exact server-side confirmation, and catch expected runtime failures into Information-page messages rather than raw call stacks.
+Assert all four actions exist; `checkDatabase` requires `core.manage`; repair requires both `core.manage` and `people.database_repair`; empty/recreate require both `core.manage` and `people.database_destructive`; every POST checks CSRF; destructive actions pass the typed string to the service. Assert Information contains schema status, maintenance history summary, external UUID-reference warning, exact `SVUOTA`/`RICREA` inputs, and registered JS asset. Assert expected maintenance exceptions are converted to queued Information-page messages rather than uncaught call stacks.
 
 - [ ] **Step 2: Verify RED**
 
 Run: `php tests/people-1.7.29-database-maintenance-ui-contract.php`
 
-Expected: FAIL because the controls/actions/assets are absent.
+Expected: FAIL.
 
-- [ ] **Step 3: Add thin controller actions**
+- [ ] **Step 3: Implement thin controller actions**
 
-Each action performs token + ACL + input validation, calls `DatabaseMaintenanceService`, queues a concise success/warning/error message, and redirects to `index.php?option=com_xdecaropeople&view=information`. `emptyDatabase()` passes `confirmation`; `recreateDatabase()` passes `confirmation` exactly as typed.
+Token → required ACL(s) → input → service call → localized message → redirect to Information. Catch `DatabaseMaintenanceException`/expected `RuntimeException`; include safety-backup UUID in the message when available.
 
-- [ ] **Step 4: Expose schema state from model/view**
+- [ ] **Step 4: Expose read-only schema status**
 
-Use `getDatabaseMaintenanceService()->check(0, false)` for read-only page status. Add permission booleans without bypass logic.
+`InformationModel::getDatabaseSchemaStatus()` calls `check(0, false)`. View sets dedicated ACL booleans; no UI visibility is treated as authorization.
 
-- [ ] **Step 5: Build the Manutenzione database panel**
+- [ ] **Step 5: Build Manutenzione database panel**
 
-Order actions by risk: Controlla, Ripara, Svuota, Ricrea. State clearly that backup/log tables are preserved, while external components may retain UUID references after empty/recreate. Show last check/repair/destructive operation where audit data exists.
+Order: Controlla, Ripara, Svuota, Ricrea. State what is preserved/removed. Show current schema status, last check/repair/destructive action and latest safety-backup UUID/date when available. Warn that Organizations/Membership/Competitions/etc. may retain UUID references until reimport/restore/relink.
 
-- [ ] **Step 6: Add typed-confirmation JavaScript**
+- [ ] **Step 6: Add JS confirmation gating**
 
-`database-maintenance.js` only enables the Svuota/Ricrea submit buttons when input matches exact `SVUOTA`/`RICREA`; server validation remains authoritative. Register/load the asset through Joomla Web Asset Manager.
+`database-maintenance.js` enables destructive submit buttons only on exact text match. Server-side confirmation remains authoritative. Register/load via Web Asset Manager.
 
 - [ ] **Step 7: Verify GREEN**
 
-Run UI contract and Information runtime. Expected: PASS, plus PHP/JS syntax checks clean.
+Run UI contract, existing Information runtime, `php -l` for touched PHP, and `node --check component/media/js/database-maintenance.js`.
 
 - [ ] **Step 8: Commit**
 
-Commit message: `feat: add database maintenance controls to Information`
+`feat: add database maintenance controls to Information`
 
 ---
 
-### Task 7: Version 1.7.29, regression compatibility, CI, packaging, and release readiness
+### Task 7: People 1.7.29 versioning, CI, packaging, and release readiness
 
 **Files:**
 - Modify: `VERSION`
@@ -317,47 +312,42 @@ Commit message: `feat: add database maintenance controls to Information`
 - Create: `.github/workflows/people-1.7.29-database-maintenance.yml`
 - Modify: `.github/workflows/release.yml`
 
-**Interfaces:**
-- No new runtime API; this task locks packaging/version/CI behavior.
+**Interfaces:** no new runtime API; this task locks release metadata and evidence.
 
-- [ ] **Step 1: Add failing release-readiness assertions**
+- [ ] **Step 1: Add failing 1.7.29 release-readiness assertions**
 
-Extend the 1.7.29 contract/workflow to require the new schema/inspector/maintenance services, JS asset, ACL actions, SQL marker and runtime probes in the package. Make the existing 1.7.28 maintenance regression contract forward-compatible: require current `VERSION >= 1.7.28` and require component/package/assets to equal the current `VERSION`, rather than hard-coding 1.7.28 forever.
+Require new service/exception/JS paths, two ACL actions, SQL marker, canonical/installer parity contract and all new runtime probes. Fix the existing 1.7.28 maintenance regression contract so it requires current `VERSION >= 1.7.28` and component/package/assets equal the current `VERSION` rather than permanently requiring exactly 1.7.28.
 
-- [ ] **Step 2: Verify RED before version bump**
+- [ ] **Step 2: Verify RED before bump**
 
-Run the new 1.7.29 contracts. Expected: FAIL on version/marker/release packaging requirements.
+Run new 1.7.29 contracts. Expected: FAIL on version/marker/package requirements.
 
-- [ ] **Step 3: Bump all version metadata to 1.7.29**
+- [ ] **Step 3: Bump to 1.7.29 everywhere**
 
-Update `VERSION`, component manifest, package manifest and every asset version to `1.7.29`. Keep Joomla target `6.1.3` and PHP minimum `8.3.0`.
+Update `VERSION`, both manifests and every web-asset version. Keep Joomla `6.1.3` and PHP minimum `8.3.0`.
 
-- [ ] **Step 4: Add `1.7.29.sql` marker**
+- [ ] **Step 4: Add 1.7.29 update marker**
 
-No historical replay is used for recreate. Add only schema/upgrade SQL genuinely required by this release; if no persistent table change is required, use a documented no-op marker so Joomla records the version cleanly.
+If no persistent schema change is required beyond ACL/code, use a documented no-op SQL marker. Runtime recreate must never replay historical update SQL.
 
-- [ ] **Step 5: Add dedicated 1.7.29 workflow**
+- [ ] **Step 5: Add dedicated workflow**
 
-Run static contracts first, then one Joomla 6.1.3/MySQL runtime job containing schema-inspection, repair, empty, recreate, existing backup/restore and Information probes. Keep the general People CI unchanged except for new contract/package checks needed for this release.
+Contracts first; then Joomla 6.1.3/MySQL runtime for inspector, repair, empty, recreate, existing backup/restore and Information probes. Runtime probes must restore their intentional schema mutations before exit except the explicit partial-DDL failure case, which runs last in its isolated probe.
 
-- [ ] **Step 6: Update release workflow package assertions and notes**
+- [ ] **Step 6: Update release workflow**
 
-Require all new service/JS/tested package paths, the 1.7.29 SQL marker, and the two new ACL actions. Release notes must describe canonical schema check/repair and backup-first empty/recreate; do not claim cross-component cleanup.
+Verify packaged new files, JS syntax, SQL marker, canonical/installer parity, 1.7.29 runtime contract, and release notes describing canonical check/repair + backup-first empty/recreate. Do not claim cross-component cleanup.
 
-- [ ] **Step 7: Run complete verification**
+- [ ] **Step 7: Run full verification**
 
-Required evidence before merge/release:
+Evidence required before PR merge: PHP syntax; all People contracts; JS syntax; deterministic build; package ZIP inspection; Joomla 6.1.3 clean install; supported upgrade baselines; full 1.7.29 database-maintenance runtime; existing Organizations/Notifications/runtime integrations. Zero failures required.
 
-`php -l` over all PHP files; all People contracts; `node --check component/media/js/database-maintenance.js`; deterministic package build; Joomla 6.1.3 clean install; supported upgrade baselines; People 1.7.29 maintenance runtime; existing Organizations/Notifications/runtime integrations; package ZIP inspection.
+- [ ] **Step 8: Spec/diff review**
 
-Expected: zero failures.
+Verify: exactly six canonical tables; no foreign-table access; unknown objects preserved; maintenance history preserved; safety backup verified first; server typed confirmations; installer/canonical parity; expected failures do not expose call stacks.
 
-- [ ] **Step 8: Review diff against the spec**
+- [ ] **Step 9: Commit and open PR**
 
-Confirm line-by-line that: six exact tables only; no foreign table access; unknown schema objects are preserved; backup/log rows survive destructive actions; typed confirmations are server-validated; safety backup is verified first; installer SQL and canonical schema agree.
+`release: prepare People 1.7.29 canonical database maintenance`
 
-- [ ] **Step 9: Commit and prepare PR**
-
-Commit message: `release: prepare People 1.7.29 canonical database maintenance`
-
-Open a PR from `people-1.7.29-empty-database` to `main`. Do not merge or publish until all required CI is freshly green.
+Open PR `people-1.7.29-empty-database` → `main`. Do not merge or publish until all required CI is freshly green.
