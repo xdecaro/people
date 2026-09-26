@@ -31,6 +31,13 @@
       "dependencies": ["com_xdecaropeople.admin"]
     },
     {
+      "name": "com_xdecaropeople.person-accordion",
+      "type": "style",
+      "uri": "com_xdecaropeople/person-accordion.css",
+      "version": "1.7.32",
+      "dependencies": ["com_xdecaropeople.admin"]
+    },
+    {
       "name": "com_xdecaropeople.person-form",
       "type": "script",
       "uri": "com_xdecaropeople/person-form.js",
