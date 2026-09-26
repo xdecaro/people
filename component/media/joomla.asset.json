@@ -10,6 +10,15 @@
       "version": "1.7.20"
     },
     {
+      "name": "com_xdecaropeople.duplicates-compact",
+      "type": "style",
+      "uri": "com_xdecaropeople/duplicates-compact.css",
+      "version": "1.7.20",
+      "dependencies": [
+        "com_xdecaropeople.admin"
+      ]
+    },
+    {
       "name": "com_xdecaropeople.person-form",
       "type": "script",
       "uri": "com_xdecaropeople/person-form.js",
