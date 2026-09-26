@@ -6,14 +6,14 @@
     <element>pkg_people</element>
     <type>package</type>
     <client>site</client>
-    <version>1.7.27</version>
+    <version>1.7.28</version>
     <downloads>
-      <downloadurl type="full" format="zip">https://github.com/xdecaro/people/releases/download/v1.7.27/pkg_people_1.7.27.zip</downloadurl>
+      <downloadurl type="full" format="zip">https://github.com/xdecaro/people/releases/download/v1.7.28/pkg_people_1.7.28.zip</downloadurl>
     </downloads>
     <tags>
       <tag>stable</tag>
     </tags>
-    <sha256>d17ae383371ac1fcb3078043dd39bf3bd7ac8d7fa1123323e7d359ed0086edb0</sha256>
+    <sha256>098302101c0443adf4873434abe6d85a2e782e4c07f27db5d6e9699e1152031d</sha256>
     <maintainer>Luca De Caro</maintainer>
     <maintainerurl>https://github.com/xdecaro/people</maintainerurl>
     <targetplatform name="joomla" version="6\.1\.3$" />
