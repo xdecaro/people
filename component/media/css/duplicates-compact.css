@@ -1,5 +1,5 @@
 .xdecaro-duplicates .xdecaro-duplicate-groups {
-  gap: .12rem;
+  gap: .18rem;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-select-row {
@@ -18,11 +18,11 @@
 
 .xdecaro-duplicates .xdecaro-duplicate-accordion-summary {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: .45rem;
-  padding: .28rem .45rem;
-  min-height: 2.75rem;
+  padding: .4rem .5rem;
+  min-height: 0;
   border: 0;
   background: var(--body-bg, #fff);
 }
@@ -43,41 +43,65 @@
 
 .xdecaro-duplicates .xdecaro-duplicate-summary-main {
   display: grid;
-  grid-template-columns: auto minmax(11rem, .9fr) minmax(10rem, 1.1fr);
-  align-items: center;
-  gap: .45rem;
+  gap: .2rem;
   min-width: 0;
   line-height: 1.15;
 }
 
-.xdecaro-duplicates .xdecaro-duplicate-summary-main > .d-flex {
-  flex-wrap: nowrap !important;
+.xdecaro-duplicates .xdecaro-duplicate-summary-line1 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .65rem;
+  min-width: 0;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-summary-line1 > :first-child {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center;
   gap: .3rem !important;
   min-width: 0;
-  white-space: nowrap;
 }
 
-.xdecaro-duplicates .xdecaro-duplicate-summary-main .mt-1 {
-  margin-top: 0 !important;
-}
-
-.xdecaro-duplicates .xdecaro-duplicate-summary-main > .small,
-.xdecaro-duplicates .xdecaro-duplicate-difference-summary {
-  min-width: 0;
-  margin-left: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+.xdecaro-duplicates .xdecaro-duplicate-summary-right,
 .xdecaro-duplicates .xdecaro-duplicate-summary-counts {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   flex-wrap: nowrap;
   gap: .22rem;
   white-space: nowrap;
 }
 
+.xdecaro-duplicates .xdecaro-duplicate-summary-line2 {
+  display: flex;
+  align-items: baseline;
+  gap: .35rem .75rem;
+  min-width: 0;
+  font-size: .82rem;
+  line-height: 1.25;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-name-comparison {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--body-color, inherit);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-match-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .xdecaro-duplicates .xdecaro-duplicate-summary-counts .badge,
-.xdecaro-duplicates .xdecaro-duplicate-summary-main .badge {
+.xdecaro-duplicates .xdecaro-duplicate-summary-line1 .badge {
   font-size: .72rem;
 }
 
@@ -94,47 +118,33 @@
   padding: .7rem;
 }
 
-@media (max-width: 991.98px) {
-  .xdecaro-duplicates .xdecaro-duplicate-summary-main {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .xdecaro-duplicates .xdecaro-duplicate-difference-summary {
-    grid-column: 1 / -1;
-  }
-}
-
 @media (max-width: 767.98px) {
   .xdecaro-duplicates .xdecaro-duplicate-accordion-summary {
-    grid-template-columns: auto minmax(0, 1fr);
     gap: .35rem;
-    padding: .32rem .4rem;
-    min-height: 0;
+    padding: .38rem .42rem;
   }
 
-  .xdecaro-duplicates .xdecaro-duplicate-summary-main {
-    display: block;
-    line-height: 1.25;
+  .xdecaro-duplicates .xdecaro-duplicate-summary-line1 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .25rem;
   }
 
-  .xdecaro-duplicates .xdecaro-duplicate-summary-main > .d-flex {
-    flex-wrap: wrap !important;
-    white-space: normal;
-  }
-
-  .xdecaro-duplicates .xdecaro-duplicate-summary-main > .small,
-  .xdecaro-duplicates .xdecaro-duplicate-difference-summary {
-    display: block;
-    margin-top: .12rem !important;
-    overflow: visible;
-    text-overflow: clip;
-    white-space: normal;
-  }
-
+  .xdecaro-duplicates .xdecaro-duplicate-summary-right,
   .xdecaro-duplicates .xdecaro-duplicate-summary-counts {
-    grid-column: 2;
     justify-content: flex-start;
     flex-wrap: wrap;
+    white-space: normal;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-summary-line2 {
+    display: grid;
+    gap: .12rem;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-name-comparison,
+  .xdecaro-duplicates .xdecaro-duplicate-match-summary {
+    overflow: visible;
+    text-overflow: clip;
     white-space: normal;
   }
 }

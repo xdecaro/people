@@ -1,0 +1,1 @@
+-- People 1.7.23 improves the duplicate list summary layout; no database schema change is required.
