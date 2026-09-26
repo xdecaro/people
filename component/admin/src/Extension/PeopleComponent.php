@@ -17,6 +17,7 @@ use xdecaro\Component\People\Administrator\Service\OrganizationsIntegrationServi
 use xdecaro\Component\People\Administrator\Service\MembershipIntegrationService;
 use xdecaro\Component\People\Administrator\Service\PersonProviderService;
 use xdecaro\Component\People\Administrator\Service\PersonTrashService;
+use xdecaro\Component\People\Administrator\Service\RestoreService;
 
 final class PeopleComponent extends MVCComponent
 {
@@ -32,84 +33,32 @@ final class PeopleComponent extends MVCComponent
     private ?PersonTrashService $trash = null;
     private ?BackupStorageService $backupStorage = null;
     private ?BackupService $backup = null;
+    private ?RestoreService $restore = null;
 
     public function setCoreIntegrationService(CoreIntegrationService $service): void { $this->core = $service; }
     public function getCoreIntegrationService(): CoreIntegrationService { return $this->core ??= new CoreIntegrationService(); }
-
     public function setPersonProviderService(PersonProviderService $service): void { $this->provider = $service; }
-    public function getPersonProviderService(): PersonProviderService
-    {
-        if (!$this->provider) throw new RuntimeException('People provider not initialized.');
-        return $this->provider;
-    }
-
+    public function getPersonProviderService(): PersonProviderService { if (!$this->provider) throw new RuntimeException('People provider not initialized.'); return $this->provider; }
     public function setDuplicateService(DuplicateService $service): void { $this->duplicates = $service; }
-    public function getDuplicateService(): DuplicateService
-    {
-        if (!$this->duplicates) throw new RuntimeException('Duplicate service not initialized.');
-        return $this->duplicates;
-    }
-
+    public function getDuplicateService(): DuplicateService { if (!$this->duplicates) throw new RuntimeException('Duplicate service not initialized.'); return $this->duplicates; }
     public function setImportService(ImportService $service): void { $this->importer = $service; }
-    public function getImportService(): ImportService
-    {
-        if (!$this->importer) throw new RuntimeException('People import service not initialized.');
-        return $this->importer;
-    }
-
+    public function getImportService(): ImportService { if (!$this->importer) throw new RuntimeException('People import service not initialized.'); return $this->importer; }
     public function setNotificationIntegrationService(NotificationIntegrationService $service): void { $this->notifications = $service; }
-    public function getNotificationIntegrationService(): NotificationIntegrationService
-    {
-        if (!$this->notifications) throw new RuntimeException('People notification integration service not initialized.');
-        return $this->notifications;
-    }
-
+    public function getNotificationIntegrationService(): NotificationIntegrationService { if (!$this->notifications) throw new RuntimeException('People notification integration service not initialized.'); return $this->notifications; }
     public function setCompetitionsIntegrationService(CompetitionsIntegrationService $service): void { $this->competitions = $service; }
-    public function getCompetitionsIntegrationService(): CompetitionsIntegrationService
-    {
-        if (!$this->competitions) throw new RuntimeException('People Competitions integration service not initialized.');
-        return $this->competitions;
-    }
-
+    public function getCompetitionsIntegrationService(): CompetitionsIntegrationService { if (!$this->competitions) throw new RuntimeException('People Competitions integration service not initialized.'); return $this->competitions; }
     public function setOrganizationsIntegrationService(OrganizationsIntegrationService $service): void { $this->organizations = $service; }
-    public function getOrganizationsIntegrationService(): OrganizationsIntegrationService
-    {
-        if (!$this->organizations) throw new RuntimeException('People Organizations integration service not initialized.');
-        return $this->organizations;
-    }
-
+    public function getOrganizationsIntegrationService(): OrganizationsIntegrationService { if (!$this->organizations) throw new RuntimeException('People Organizations integration service not initialized.'); return $this->organizations; }
     public function setMembershipIntegrationService(MembershipIntegrationService $service): void { $this->membership = $service; }
-    public function getMembershipIntegrationService(): MembershipIntegrationService
-    {
-        if (!$this->membership) throw new RuntimeException('People Membership integration service not initialized.');
-        return $this->membership;
-    }
-
+    public function getMembershipIntegrationService(): MembershipIntegrationService { if (!$this->membership) throw new RuntimeException('People Membership integration service not initialized.'); return $this->membership; }
     public function setMaintenanceLogService(MaintenanceLogService $service): void { $this->maintenanceLog = $service; }
-    public function getMaintenanceLogService(): MaintenanceLogService
-    {
-        if (!$this->maintenanceLog) throw new RuntimeException('People maintenance log service not initialized.');
-        return $this->maintenanceLog;
-    }
-
+    public function getMaintenanceLogService(): MaintenanceLogService { if (!$this->maintenanceLog) throw new RuntimeException('People maintenance log service not initialized.'); return $this->maintenanceLog; }
     public function setPersonTrashService(PersonTrashService $service): void { $this->trash = $service; }
-    public function getPersonTrashService(): PersonTrashService
-    {
-        if (!$this->trash) throw new RuntimeException('People trash service not initialized.');
-        return $this->trash;
-    }
-
+    public function getPersonTrashService(): PersonTrashService { if (!$this->trash) throw new RuntimeException('People trash service not initialized.'); return $this->trash; }
     public function setBackupStorageService(BackupStorageService $service): void { $this->backupStorage = $service; }
-    public function getBackupStorageService(): BackupStorageService
-    {
-        if (!$this->backupStorage) throw new RuntimeException('People backup storage service not initialized.');
-        return $this->backupStorage;
-    }
-
+    public function getBackupStorageService(): BackupStorageService { if (!$this->backupStorage) throw new RuntimeException('People backup storage service not initialized.'); return $this->backupStorage; }
     public function setBackupService(BackupService $service): void { $this->backup = $service; }
-    public function getBackupService(): BackupService
-    {
-        if (!$this->backup) throw new RuntimeException('People backup service not initialized.');
-        return $this->backup;
-    }
+    public function getBackupService(): BackupService { if (!$this->backup) throw new RuntimeException('People backup service not initialized.'); return $this->backup; }
+    public function setRestoreService(RestoreService $service): void { $this->restore = $service; }
+    public function getRestoreService(): RestoreService { if (!$this->restore) throw new RuntimeException('People restore service not initialized.'); return $this->restore; }
 }
