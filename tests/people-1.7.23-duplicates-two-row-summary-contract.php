@@ -37,7 +37,7 @@ foreach ([
     '.xdecaro-duplicate-name-comparison',
     '.xdecaro-duplicate-match-summary',
     '.xdecaro-duplicate-summary-right',
-    'grid-template-columns: minmax(0, 1fr) auto;',
+    'grid-template-columns: auto minmax(0, 1fr);',
 ] as $needle) {
     $contains($css, $needle);
 }
