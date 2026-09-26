@@ -156,9 +156,9 @@ final class DatabaseSchemaInspector
     {
         $expectedType = '';
         if (preg_match('/^`[^`]+`\s+(.+?)(?=\s+NOT NULL|\s+DEFAULT|\s+AUTO_INCREMENT|$)/i', trim($fragment), $m)) {
-            $expectedType = strtolower(preg_replace('/\s+/', ' ', trim($m[1])) ?? '');
+            $expectedType = $this->normalizeColumnType((string) $m[1]);
         }
-        $actualType = strtolower(preg_replace('/\s+/', ' ', trim((string) ($actual['Type'] ?? ''))) ?? '');
+        $actualType = $this->normalizeColumnType((string) ($actual['Type'] ?? ''));
         if ($expectedType !== '' && $expectedType !== $actualType) {
             return false;
         }
@@ -184,6 +184,19 @@ final class DatabaseSchemaInspector
         }
 
         return true;
+    }
+
+    private function normalizeColumnType(string $type): string
+    {
+        $type = strtolower(preg_replace('/\s+/', ' ', trim($type)) ?? '');
+        $type = preg_replace(
+            '/\b(tinyint|smallint|mediumint|int|integer|bigint)\s*\(\d+\)/i',
+            '$1',
+            $type
+        ) ?? $type;
+        $type = preg_replace('/\binteger\b/i', 'int', $type) ?? $type;
+
+        return strtolower(preg_replace('/\s+/', ' ', trim($type)) ?? '');
     }
 
     private function indexCompatible(string $fragment, array $actual): bool

@@ -1,0 +1,2 @@
+-- People 1.7.31 MariaDB integer-width normalization marker
+-- Inspector-only release: no database schema changes are required.
