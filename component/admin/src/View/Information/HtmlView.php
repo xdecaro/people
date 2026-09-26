@@ -33,12 +33,14 @@ final class HtmlView extends BaseHtmlView
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
 
-        $assets = $app->getDocument()->getWebAssetManager();
+        $document = $app->getDocument();
+        $assets = $document->getWebAssetManager();
         $assets->useStyle('com_xdecaropeople.information');
         $assets->useScript('com_xdecaropeople.database-maintenance');
         $this->diagnostics = (array) $this->get('Diagnostics');
         $this->databaseSummary = (array) $this->get('DatabaseSummary');
         $this->databaseSchemaStatus = (array) $this->get('DatabaseSchemaStatus');
+        $document->addScriptOptions('com_xdecaropeople.schema-differences', $this->databaseSchemaStatus);
         $this->connectedComponents = (array) $this->get('ConnectedComponents');
         $this->backups = (array) $this->get('Backups');
         $this->recentTrashed = (array) $this->get('RecentTrashed');

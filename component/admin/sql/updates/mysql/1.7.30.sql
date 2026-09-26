@@ -1,0 +1,2 @@
+-- People 1.7.30 schema differences UI marker
+-- UI-only release: no database schema changes are required.
