@@ -57,6 +57,14 @@ final class BackupService
         $payloadSha256 = hash('sha256', $dataJson);
         $componentVersion = $this->componentVersion();
         $createdUtc = gmdate('c');
+        $normalizedReason = trim($reason) !== '' ? trim($reason) : 'manual';
+        $peopleCount = (int) ($counts['#__xdecaropeople_people'] ?? 0);
+        $readableFilename = $this->buildReadableFilename(
+            $normalizedReason,
+            $componentVersion,
+            $peopleCount,
+            $createdUtc
+        );
 
         $manifest = [
             'format' => self::FORMAT,
@@ -67,10 +75,10 @@ final class BackupService
             'joomla_version' => JVERSION,
             'created_utc' => $createdUtc,
             'created_by' => max(0, $actorUserId),
-            'reason' => trim($reason) !== '' ? trim($reason) : 'manual',
+            'reason' => $normalizedReason,
             'tables' => self::PAYLOAD_TABLES,
             'table_counts' => $counts,
-            'people_count' => $counts['#__xdecaropeople_people'] ?? 0,
+            'people_count' => $peopleCount,
             'payload_sha256' => $payloadSha256,
         ];
         $manifestJson = $this->encodeJson($manifest);
@@ -103,11 +111,11 @@ final class BackupService
 
         $record = (object) [
             'uuid' => $backupUuid,
-            'filename' => basename($path),
+            'filename' => $readableFilename,
             'storage_path' => $path,
             'sha256' => $fileSha256,
             'size_bytes' => (int) $sizeBytes,
-            'people_count' => (int) ($manifest['people_count'] ?? 0),
+            'people_count' => $peopleCount,
             'component_version' => $componentVersion,
             'schema_version' => self::SCHEMA_VERSION,
             'created' => Factory::getDate()->toSql(),
@@ -124,6 +132,7 @@ final class BackupService
 
         $this->log->log('backup_create', null, $actorUserId, [
             'backup_uuid' => $backupUuid,
+            'filename' => $readableFilename,
             'people_count' => (int) $record->people_count,
             'size_bytes' => (int) $sizeBytes,
             'reason' => $manifest['reason'],
@@ -132,7 +141,7 @@ final class BackupService
         return [
             'id' => (int) ($record->id ?? 0),
             'uuid' => $backupUuid,
-            'filename' => (string) $record->filename,
+            'filename' => $readableFilename,
             'path' => $path,
             'sha256' => $fileSha256,
             'payload_sha256' => $payloadSha256,
@@ -195,6 +204,7 @@ final class BackupService
         $actorUserId = (int) (Factory::getApplication()->getIdentity()->id ?? 0);
         $this->log->log('backup_download', null, $actorUserId, [
             'backup_uuid' => (string) $row['uuid'],
+            'filename' => (string) ($row['filename'] ?? ''),
             'size_bytes' => (int) $row['size_bytes'],
         ]);
         return $row;
@@ -221,6 +231,7 @@ final class BackupService
 
         $this->log->log('backup_delete', null, $actorUserId, [
             'backup_uuid' => $uuid,
+            'filename' => (string) ($row['filename'] ?? ''),
             'size_bytes' => (int) ($row['size_bytes'] ?? 0),
         ]);
     }
@@ -256,6 +267,42 @@ final class BackupService
         $record = ExtensionHelper::getExtensionRecord('com_xdecaropeople', 'component', 1);
         $manifest = new Registry($record->manifest_cache ?? '{}');
         return (string) $manifest->get('version', self::SCHEMA_VERSION);
+    }
+
+    private function buildReadableFilename(string $reason, string $componentVersion, int $peopleCount, string $createdUtc): string
+    {
+        $reasonSlug = match ($reason) {
+            'manual' => 'manuale',
+            'pre-restore' => 'pre-restore',
+            'before_empty_database' => 'pre-svuota',
+            'before_recreate_database' => 'pre-ricrea',
+            default => trim((string) preg_replace('/[^a-z0-9]+/i', '-', strtolower($reason)), '-'),
+        };
+        if ($reasonSlug === '') {
+            $reasonSlug = 'automatico';
+        }
+
+        $version = trim((string) preg_replace('/[^0-9A-Za-z._-]+/', '-', $componentVersion), '-');
+        if ($version === '') {
+            $version = self::SCHEMA_VERSION;
+        }
+
+        try {
+            $date = new \DateTimeImmutable($createdUtc);
+            $timezone = (string) Factory::getApplication()->get('offset', 'UTC');
+            $date = $date->setTimezone(new \DateTimeZone($timezone !== '' ? $timezone : 'UTC'));
+            $stamp = $date->format('Y-m-d_H-i-s');
+        } catch (\Throwable) {
+            $stamp = gmdate('Y-m-d_H-i-s');
+        }
+
+        return sprintf(
+            'people-backup-%s-%s-v%s-%d-persone.zip',
+            $reasonSlug,
+            $stamp,
+            $version,
+            max(0, $peopleCount)
+        );
     }
 
     private function encodeJson(array $value): string
