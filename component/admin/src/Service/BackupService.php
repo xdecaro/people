@@ -289,7 +289,10 @@ final class BackupService
 
         try {
             $date = new \DateTimeImmutable($createdUtc);
-            $timezone = (string) Factory::getApplication()->get('offset', 'UTC');
+            $app = Factory::getApplication();
+            $identity = $app->getIdentity();
+            $userTimezone = trim((string) $identity->getParam('timezone', ''));
+            $timezone = $userTimezone !== '' ? $userTimezone : (string) $app->get('offset', 'UTC');
             $date = $date->setTimezone(new \DateTimeZone($timezone !== '' ? $timezone : 'UTC'));
             $stamp = $date->format('Y-m-d_H-i-s');
         } catch (\Throwable) {
