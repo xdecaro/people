@@ -62,6 +62,72 @@ final class DatabaseMaintenanceService
         ];
     }
 
+    public function emptyFunctionalData(int $actorUserId, string $confirmation): array
+    {
+        if ($confirmation !== 'SVUOTA') {
+            throw new RuntimeException('Per svuotare i dati People devi digitare esattamente SVUOTA.', 400);
+        }
+
+        $safetyBackup = $this->backup->create($actorUserId, 'before_empty_database');
+        $safetyUuid = (string) ($safetyBackup['uuid'] ?? '');
+        if ($safetyUuid === '') {
+            throw new RuntimeException('Backup di sicurezza non creato. Svuotamento annullato.');
+        }
+        $this->backup->verify($safetyUuid);
+
+        $deleteOrder = [
+            '#__xdecaropeople_history',
+            '#__xdecaropeople_duplicate_ignores',
+            '#__xdecaropeople_merges',
+            '#__xdecaropeople_people',
+        ];
+        $removedCounts = [];
+        foreach ($deleteOrder as $table) {
+            $this->assertFunctionalTable($table);
+            $removedCounts[$table] = $this->countRows($table);
+        }
+
+        $this->db->transactionStart();
+        try {
+            foreach ($deleteOrder as $table) {
+                $query = $this->db->getQuery(true)->delete($this->db->quoteName($table));
+                $this->db->setQuery($query)->execute();
+            }
+            $this->db->transactionCommit();
+        } catch (\Throwable $e) {
+            $this->db->transactionRollback();
+            throw new RuntimeException(
+                'Svuotamento People non completato. Backup di sicurezza: ' . $safetyUuid . '.',
+                0,
+                $e
+            );
+        }
+
+        foreach ($deleteOrder as $table) {
+            try {
+                $this->db->setQuery('ALTER TABLE ' . $this->db->quoteName($table) . ' AUTO_INCREMENT = 1')->execute();
+            } catch (\Throwable) {
+                // Reset counter is best-effort; emptied data and safety backup remain valid.
+            }
+        }
+
+        $schema = $this->inspector->inspect();
+        $integrity = $this->integrity->check($actorUserId, false);
+        $this->log->log('database_empty', null, $actorUserId, [
+            'safety_backup_uuid' => $safetyUuid,
+            'removed_counts' => $removedCounts,
+            'schema_status' => (string) ($schema['status'] ?? 'Errore'),
+            'integrity_ok' => (bool) ($integrity['ok'] ?? false),
+        ]);
+
+        return [
+            'safety_backup_uuid' => $safetyUuid,
+            'removed_counts' => $removedCounts,
+            'schema_status' => (string) ($schema['status'] ?? 'Errore'),
+            'integrity' => $integrity,
+        ];
+    }
+
     private function buildRepairPlan(array $inspection): array
     {
         $plan = [];
@@ -155,6 +221,13 @@ final class DatabaseMaintenanceService
         return $plan;
     }
 
+    private function countRows(string $table): int
+    {
+        $this->assertCanonicalTable($table);
+        $query = $this->db->getQuery(true)->select('COUNT(*)')->from($this->db->quoteName($table));
+        return (int) $this->db->setQuery($query)->loadResult();
+    }
+
     private function indexFragment(array $spec, string $index): string
     {
         $fragment = (string) (($spec['unique_indexes'][$index] ?? $spec['indexes'][$index] ?? ''));
@@ -168,6 +241,13 @@ final class DatabaseMaintenanceService
     {
         if (!array_key_exists($table, $this->definition->tables())) {
             throw new RuntimeException('Database maintenance attempted outside canonical People tables: ' . $table);
+        }
+    }
+
+    private function assertFunctionalTable(string $table): void
+    {
+        if (!in_array($table, $this->definition->functionalTables(), true)) {
+            throw new RuntimeException('Destructive database maintenance attempted outside functional People tables: ' . $table);
         }
     }
 }
