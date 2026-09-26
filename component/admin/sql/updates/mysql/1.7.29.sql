@@ -1,0 +1,1 @@
+-- People 1.7.29 improves restore error handling; no database schema change is required.
