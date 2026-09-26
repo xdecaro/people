@@ -17,6 +17,13 @@
       "dependencies": ["com_xdecaropeople.admin"]
     },
     {
+      "name": "com_xdecaropeople.information",
+      "type": "style",
+      "uri": "com_xdecaropeople/information.css",
+      "version": "1.7.28",
+      "dependencies": ["com_xdecaropeople.admin"]
+    },
+    {
       "name": "com_xdecaropeople.duplicates-compact",
       "type": "style",
       "uri": "com_xdecaropeople/duplicates-compact.css",
