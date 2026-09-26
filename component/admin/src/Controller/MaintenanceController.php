@@ -126,6 +126,83 @@ final class MaintenanceController extends BaseController
         $this->redirectInformation($result['ok'] ? 'Controllo integrità completato: nessuna anomalia.' : 'Controllo integrità completato: sono presenti elementi da verificare.', $result['ok'] ? 'success' : 'warning');
     }
 
+    public function checkDatabase(): void
+    {
+        $this->checkToken();
+        $this->requirePermission('core.manage');
+
+        try {
+            $result = $this->component()->getDatabaseMaintenanceService()->check((int) $this->app->getIdentity()->id, true);
+            $this->redirectInformation(
+                !empty($result['ok']) ? 'Controllo database completato: schema People aggiornato.' : 'Controllo database completato: sono presenti differenze da verificare.',
+                !empty($result['ok']) ? 'success' : 'warning'
+            );
+        } catch (\Throwable $e) {
+            $this->redirectInformation('Controllo database non completato: ' . $e->getMessage(), 'error');
+        }
+    }
+
+    public function repairDatabase(): void
+    {
+        $this->checkToken();
+        $this->requirePermission('core.manage');
+        $this->requirePermission('people.database_repair');
+
+        try {
+            $result = $this->component()->getDatabaseMaintenanceService()->repair((int) $this->app->getIdentity()->id);
+            $count = count((array) ($result['operations'] ?? []));
+            $ok = !empty($result['after']['ok']);
+            $this->redirectInformation(
+                $ok ? 'Riparazione database completata. Operazioni applicate: ' . $count . '.' : 'Riparazione completata, ma restano differenze da verificare.',
+                $ok ? 'success' : 'warning'
+            );
+        } catch (\Throwable $e) {
+            $this->redirectInformation('Riparazione database non completata: ' . $e->getMessage(), 'error');
+        }
+    }
+
+    public function emptyDatabase(): void
+    {
+        $this->checkToken();
+        $this->requirePermission('core.manage');
+        $this->requirePermission('people.database_destructive');
+        $confirmation = $this->input->getString('database_confirmation');
+
+        try {
+            $result = $this->component()->getDatabaseMaintenanceService()->emptyFunctionalData(
+                (int) $this->app->getIdentity()->id,
+                $confirmation
+            );
+            $this->redirectInformation(
+                'Dati People svuotati. Backup di sicurezza: ' . ($result['safety_backup_uuid'] ?? '-') . '.',
+                'success'
+            );
+        } catch (\Throwable $e) {
+            $this->redirectInformation('Svuotamento database non completato: ' . $e->getMessage(), 'error');
+        }
+    }
+
+    public function recreateDatabase(): void
+    {
+        $this->checkToken();
+        $this->requirePermission('core.manage');
+        $this->requirePermission('people.database_destructive');
+        $confirmation = $this->input->getString('database_confirmation');
+
+        try {
+            $result = $this->component()->getDatabaseMaintenanceService()->recreateFunctionalDatabase(
+                (int) $this->app->getIdentity()->id,
+                $confirmation
+            );
+            $this->redirectInformation(
+                'Database People ricreato dallo schema canonico. Backup di sicurezza: ' . ($result['safety_backup_uuid'] ?? '-') . '.',
+                'success'
+            );
+        } catch (\Throwable $e) {
+            $this->redirectInformation('Ricreazione database non completata: ' . $e->getMessage(), 'error');
+        }
+    }
+
     private function restorePath(): string
     {
         $backupUuid = strtolower(trim($this->input->getString('backup_uuid')));
