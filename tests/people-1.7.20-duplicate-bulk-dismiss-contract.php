@@ -17,8 +17,8 @@ $contains = static function (string $path, string $needle) use ($fail): void {
     }
 };
 
-if ($version !== '1.7.20') {
-    $fail('People 1.7.20 version expected.');
+if (version_compare($version, '1.7.20', '<')) {
+    $fail('People 1.7.20+ version expected.');
 }
 
 $service = $root . '/component/admin/src/Service/DuplicateService.php';
@@ -109,4 +109,4 @@ foreach ([
     $contains($root . '/component/admin/language/en-GB/com_xdecaropeople.ini', $key);
 }
 
-echo "People 1.7.20 bulk duplicate dismissal contract OK\n";
+echo "People 1.7.20+ bulk duplicate dismissal contract OK\n";
