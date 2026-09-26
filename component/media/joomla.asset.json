@@ -1,19 +1,19 @@
 {
   "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
   "name": "com_xdecaropeople",
-  "version": "1.7.22",
+  "version": "1.7.23",
   "assets": [
     {
       "name": "com_xdecaropeople.admin",
       "type": "style",
       "uri": "com_xdecaropeople/admin.css",
-      "version": "1.7.22"
+      "version": "1.7.23"
     },
     {
       "name": "com_xdecaropeople.duplicates-compact",
       "type": "style",
       "uri": "com_xdecaropeople/duplicates-compact.css",
-      "version": "1.7.22",
+      "version": "1.7.23",
       "dependencies": [
         "com_xdecaropeople.admin"
       ]
@@ -22,7 +22,7 @@
       "name": "com_xdecaropeople.person-form",
       "type": "script",
       "uri": "com_xdecaropeople/person-form.js",
-      "version": "1.7.22",
+      "version": "1.7.23",
       "dependencies": [
         "core"
       ],
@@ -34,7 +34,7 @@
       "name": "com_xdecaropeople.person-cancel-fix",
       "type": "script",
       "uri": "com_xdecaropeople/person-cancel-fix.js",
-      "version": "1.7.22",
+      "version": "1.7.23",
       "dependencies": [
         "com_xdecaropeople.person-form"
       ],
@@ -46,7 +46,7 @@
       "name": "com_xdecaropeople.import",
       "type": "script",
       "uri": "com_xdecaropeople/import.js",
-      "version": "1.7.22",
+      "version": "1.7.23",
       "dependencies": [
         "core"
       ],
@@ -58,7 +58,7 @@
       "name": "com_xdecaropeople.export",
       "type": "script",
       "uri": "com_xdecaropeople/export.js",
-      "version": "1.7.22",
+      "version": "1.7.23",
       "dependencies": [
         "core"
       ],
@@ -70,7 +70,7 @@
       "name": "com_xdecaropeople.duplicates",
       "type": "script",
       "uri": "com_xdecaropeople/duplicates.js",
-      "version": "1.7.22",
+      "version": "1.7.23",
       "dependencies": [
         "core"
       ],
