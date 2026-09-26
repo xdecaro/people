@@ -26,7 +26,7 @@ jobs:
       - name: Build People package
         run: chmod +x build/build.sh && build/build.sh
 
-  trash-runtime:
+  maintenance-runtime:
     runs-on: ubuntu-latest
     needs: contract
     services:
@@ -78,3 +78,9 @@ jobs:
           set -euo pipefail
           cd joomla
           php "$GITHUB_WORKSPACE/tests/people-1.7.28-trash-runtime.php"
+      - name: Run People backup runtime probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          php "$GITHUB_WORKSPACE/tests/people-1.7.28-backup-runtime.php"
