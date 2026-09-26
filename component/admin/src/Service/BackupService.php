@@ -16,7 +16,7 @@ final class BackupService
 {
     private const FORMAT = 'xdecaro.people.backup';
     private const FORMAT_VERSION = 1;
-    private const SCHEMA_VERSION = '1.7.28';
+    private const SCHEMA_VERSION = '1.7.29';
 
     private const PAYLOAD_TABLES = [
         '#__xdecaropeople_people',
