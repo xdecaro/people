@@ -25,6 +25,7 @@ jobs:
           set -euo pipefail
           php tests/people-1.7.28-information-maintenance-contract.php
           php tests/people-1.7.28-restore-contract.php
+          php tests/people-1.7.28-information-ui-contract.php
 
   runtime:
     runs-on: ubuntu-latest
