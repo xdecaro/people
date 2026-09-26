@@ -68,6 +68,17 @@ return new class implements ServiceProviderInterface
             )
         );
         $container->share(
+            DatabaseSchemaDefinition::class,
+            static fn(): DatabaseSchemaDefinition => new DatabaseSchemaDefinition()
+        );
+        $container->share(
+            DatabaseSchemaInspector::class,
+            static fn(Container $container): DatabaseSchemaInspector => new DatabaseSchemaInspector(
+                $container->get(DatabaseInterface::class),
+                $container->get(DatabaseSchemaDefinition::class)
+            )
+        );
+        $container->share(
             MaintenanceLogService::class,
             static fn(Container $container): MaintenanceLogService => new MaintenanceLogService(
                 $container->get(DatabaseInterface::class)
@@ -125,6 +136,8 @@ return new class implements ServiceProviderInterface
                 $component->setCompetitionsIntegrationService($container->get(CompetitionsIntegrationService::class));
                 $component->setOrganizationsIntegrationService($container->get(OrganizationsIntegrationService::class));
                 $component->setMembershipIntegrationService($container->get(MembershipIntegrationService::class));
+                $component->setDatabaseSchemaDefinition($container->get(DatabaseSchemaDefinition::class));
+                $component->setDatabaseSchemaInspector($container->get(DatabaseSchemaInspector::class));
                 $component->setMaintenanceLogService($container->get(MaintenanceLogService::class));
                 $component->setPersonTrashService($container->get(PersonTrashService::class));
                 $component->setBackupStorageService($container->get(BackupStorageService::class));
