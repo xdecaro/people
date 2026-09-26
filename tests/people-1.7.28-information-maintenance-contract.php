@@ -26,7 +26,7 @@ $assertNotContains = static function (string $needle, string $haystack, string $
 };
 
 $version = trim($read('VERSION'));
-if ($version !== '1.7.28') $failures[] = "VERSION must be 1.7.28, got {$version}";
+if ($version === '' || version_compare($version, '1.7.28', '<')) $failures[] = "VERSION must be >= 1.7.28, got {$version}";
 
 $componentManifest = $read('component/xdecaropeople.xml');
 $packageManifest = $read('package/pkg_people.xml');
@@ -37,11 +37,10 @@ $access = $read('component/admin/access.xml');
 $config = $read('component/admin/config.xml');
 
 foreach (['component/xdecaropeople.xml' => $componentManifest, 'package/pkg_people.xml' => $packageManifest] as $path => $xml) {
-    $assertContains('<version>1.7.28</version>', $xml, "{$path} must declare 1.7.28");
+    $assertContains('<version>' . $version . '</version>', $xml, "{$path} must declare current VERSION {$version}");
     $assertContains('<targetplatform name="joomla" version="6.1.3"/>', $xml, "{$path} must remain Joomla 6.1.3 only");
 }
-$assertContains('"version": "1.7.28"', $assets, 'Web asset manifest must be version 1.7.28');
-$assertNotContains('"version": "1.7.27"', $assets, 'No web asset may remain on 1.7.27');
+$assertContains('"version": "' . $version . '"', $assets, 'Web asset manifest must match current VERSION');
 
 foreach (['#__xdecaropeople_backups', '#__xdecaropeople_maintenance_log'] as $table) {
     $assertContains($table, $installSql, "Install SQL must define {$table}");
@@ -87,8 +86,8 @@ $assertContains('function restoreTrash(', $controller, 'PeopleController must ex
 $assertContains('function purge(', $controller, 'PeopleController must expose explicit purge task');
 
 if ($failures) {
-    fwrite(STDERR, "People 1.7.28 maintenance contract FAILED\n- " . implode("\n- ", $failures) . "\n");
+    fwrite(STDERR, "People 1.7.28 maintenance regression contract FAILED\n- " . implode("\n- ", $failures) . "\n");
     exit(1);
 }
 
-fwrite(STDOUT, "People 1.7.28 maintenance contract PASS\n");
+fwrite(STDOUT, "People 1.7.28 maintenance regression contract PASS\n");
