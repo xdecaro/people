@@ -11,7 +11,7 @@ Trasformare la vista amministrativa **Informazioni** di `com_xdecaropeople` da s
 La stessa release introduce:
 
 - informazioni complete su ambiente, database e componenti collegati;
-- backup logico completo dei dati People;
+- backup logico completo dei dati funzionali People;
 - restore con anteprima, validazione e backup automatico pre-ripristino;
 - vero cestino recuperabile per le persone eliminate;
 - eliminazione definitiva solo esplicita e protetta;
@@ -48,9 +48,9 @@ Una persona nel cestino non appare negli elenchi ordinari, nei picker o nelle AP
 
 ### Azioni cestino
 
-- **Sposta nel cestino**: `state = -2`, registra attore e data nel log di manutenzione/storico.
-- **Ripristina**: riporta la persona allo stato precedente, conservando ID e UUID.
-- **Elimina definitivamente**: disponibile solo dal cestino, con `core.delete`, token CSRF e conferma esplicita. Prima della cancellazione si crea una voce audit con UUID, nome visualizzato, ID e data.
+- **Sposta nel cestino**: `state = -2`; il log di manutenzione registra ID, UUID, attore, data e stato precedente.
+- **Ripristina**: riporta la persona allo stato precedente registrato dal trash; in assenza del dato usa lo stato pubblicato standard, conservando sempre ID e UUID.
+- **Elimina definitivamente**: disponibile solo dal cestino, con `core.delete`, token CSRF e conferma esplicita. Prima della cancellazione si registra un audit tecnico con ID e UUID, senza copiare inutilmente dati personali completi.
 
 La cancellazione definitiva deve mostrare un avviso forte: eventuali riferimenti esterni possono diventare non risolvibili. Se Core EntityReference o capability pubbliche collegate permettono un controllo sicuro dei riferimenti, la UI mostra il risultato; non si interrogano tabelle private di altri componenti.
 
@@ -76,15 +76,16 @@ Il manifest include:
 - elenco esplicito delle tabelle incluse;
 - checksum del payload.
 
-Il payload include solo dati posseduti da People e deve conservare i valori tecnici necessari al ripristino, inclusi ID, UUID, stati, metadati, storico, merge e ignore duplicati.
+Il payload ripristinabile include solo dati funzionali posseduti da People e conserva i valori tecnici necessari al ripristino, inclusi ID, UUID, stati, metadati, storico, merge e ignore duplicati.
 
-Tabelle incluse nella prima versione:
+### Dataset ripristinabile 1.7.28
 
 - `#__xdecaropeople_people`
 - `#__xdecaropeople_history`
 - `#__xdecaropeople_duplicate_ignores`
 - `#__xdecaropeople_merges`
-- nuove tabelle People di backup/manutenzione introdotte dalla release, con esclusione del payload binario del backup corrente per evitare backup ricorsivi.
+
+Le nuove tabelle operative `#__xdecaropeople_backups` e `#__xdecaropeople_maintenance_log` **non vengono sostituite da un restore completo**. Restano locali all'installazione corrente, così il sistema conserva la cronologia di backup/restore e non crea riferimenti a file di backup inesistenti sul server corrente.
 
 Non vengono incluse tabelle di Core, Organizations, Membership, Competitions, Photos, Documents o Notifications.
 
@@ -156,10 +157,11 @@ Prima di ogni restore completo:
 1. viene creato automaticamente un **backup di sicurezza dello stato corrente**;
 2. si richiede conferma esplicita;
 3. il restore avviene in transazione dove supportato;
-4. si ripristinano esclusivamente le tabelle People previste dal formato;
+4. si ripristinano esclusivamente le quattro tabelle funzionali People previste dal formato;
 5. ID e UUID vengono conservati esattamente per mantenere coerenza interna;
-6. al termine si esegue una verifica di integrità;
-7. se il restore fallisce, si esegue rollback e il database corrente non deve rimanere in stato parziale.
+6. le tabelle backup e maintenance log locali non vengono sostituite;
+7. al termine si esegue una verifica di integrità;
+8. se il restore fallisce, si esegue rollback e il database corrente non deve rimanere in stato parziale.
 
 Il restore completo non modifica mai tabelle di altri componenti.
 
@@ -172,6 +174,8 @@ Regole:
 - se lo stesso UUID esiste nel cestino, si preferisce il normale Ripristina dal cestino;
 - se lo UUID non esiste, si reinserisce la persona preservando UUID;
 - se l'ID originale è libero può essere riutilizzato, altrimenti viene assegnato un nuovo ID;
+- lo storico della singola persona può essere ripristinato rimappando `person_id` quando necessario;
+- merge e ignore duplicati non vengono ricreati automaticamente dal restore singolo, perché possono coinvolgere altre persone; la preview segnala le relazioni presenti nel backup;
 - i riferimenti esterni devono basarsi sull'UUID pubblico, non sull'ID locale;
 - prima di sovrascrivere una persona esistente si mostra un confronto e si richiede conferma.
 
@@ -184,6 +188,7 @@ Campi minimi:
 - `id`
 - `action`
 - `subject_uuid` nullable
+- `subject_id` nullable
 - `actor_user_id`
 - `created`
 - `metadata` JSON/TEXT
@@ -265,7 +270,7 @@ Controlli almeno su:
 - storico con person_id non più esistente;
 - merge con riferimenti interni non risolvibili;
 - storage backup scrivibile e privato;
-- estensioni PHP richieste per ZIP/JSON;
+- supporto ZIP/JSON richiesto;
 - ultimo esito controllo integrità.
 
 Ogni voce usa stato chiaro: OK / Avviso / Errore.
@@ -305,7 +310,7 @@ Mostra:
 - ultimi record cestinati;
 - nome;
 - UUID abbreviato;
-- data cancellazione se disponibile dal maintenance log;
+- data cancellazione dal maintenance log;
 - autore;
 - azioni Ripristina e Apri cestino.
 
@@ -371,8 +376,9 @@ Il passaggio al cestino non modifica automaticamente record esistenti. Le person
 ### Restore
 
 - preview non modifica dati;
-- restore completo ricostruisce dataset identico;
+- restore completo ricostruisce dataset funzionale identico;
 - backup automatico pre-restore creato;
+- backup metadata e maintenance log locali non vengono sovrascritti;
 - rollback su errore;
 - restore singola persona per UUID;
 - nessuna modifica a tabelle esterne.
@@ -381,7 +387,7 @@ Il passaggio al cestino non modifica automaticamente record esistenti. Le person
 
 - trash conserva ID e UUID;
 - persona cestinata sparisce dagli elenchi/picker normali;
-- restore cestino riporta lo stesso record;
+- restore cestino riporta lo stesso record e stato precedente;
 - eliminazione definitiva richiede permesso e conferma;
 - log manutenzione registra le operazioni.
 
