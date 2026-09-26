@@ -94,3 +94,9 @@ jobs:
           set -euo pipefail
           cd joomla
           php "$GITHUB_WORKSPACE/tests/people-1.7.28-restore-preview-runtime.php"
+      - name: Run People full restore probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd joomla
+          php "$GITHUB_WORKSPACE/tests/people-1.7.28-restore-full-runtime.php"
