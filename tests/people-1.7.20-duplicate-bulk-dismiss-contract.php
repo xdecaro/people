@@ -27,6 +27,7 @@ $template = $root . '/component/admin/tmpl/duplicates/default.php';
 $view = $root . '/component/admin/src/View/Duplicates/HtmlView.php';
 $css = $root . '/component/media/css/admin.css';
 $rowCss = $root . '/component/media/css/duplicates-row.css';
+$assetsPath = $root . '/component/media/joomla.asset.json';
 $js = $root . '/component/media/js/duplicates.js';
 
 foreach ([
@@ -75,11 +76,7 @@ foreach ([
     $contains($template, $needle);
 }
 
-foreach ([
-    "useScript('com_xdecaropeople.duplicates')",
-] as $needle) {
-    $contains($view, $needle);
-}
+$contains($view, "useScript('com_xdecaropeople.duplicates')");
 
 foreach ([
     '[data-duplicate-bulk-form]',
@@ -91,9 +88,15 @@ foreach ([
     $contains($js, $needle);
 }
 
-if (version_compare($version, '1.7.21', '>=') || is_file($rowCss)) {
-    if (!is_file($rowCss)) {
-        $fail('People 1.7.21 compact duplicate row stylesheet is missing.');
+if (version_compare($version, '1.7.21', '>=')) {
+    foreach ([
+        $root . '/component/admin/sql/updates/mysql/1.7.21.sql',
+        $rowCss,
+        $assetsPath,
+    ] as $path) {
+        if (!is_file($path)) {
+            $fail('Missing People 1.7.21 compact duplicate row file: ' . $path);
+        }
     }
 
     foreach ([
@@ -113,6 +116,8 @@ if (version_compare($version, '1.7.21', '>=') || is_file($rowCss)) {
     }
 
     $contains($view, "useStyle('com_xdecaropeople.duplicates-row')");
+    $contains($assetsPath, '"name": "com_xdecaropeople.duplicates-row"');
+    $contains($assetsPath, '"uri": "com_xdecaropeople/duplicates-row.css"');
 }
 
 foreach ([
