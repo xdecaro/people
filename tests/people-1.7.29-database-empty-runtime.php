@@ -10,6 +10,14 @@ require JPATH_BASE . '/includes/defines.php'; require JPATH_BASE . '/includes/fr
 define('JPATH_COMPONENT', JPATH_ADMINISTRATOR . '/components/com_xdecaropeople');
 define('JPATH_COMPONENT_ADMINISTRATOR', JPATH_COMPONENT);
 
+$uuidV4 = static function (): string {
+    $data = random_bytes(16);
+    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
+    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
+    $hex = bin2hex($data);
+    return substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-' . substr($hex, 12, 4) . '-' . substr($hex, 16, 4) . '-' . substr($hex, 20, 12);
+};
+
 $container = \Joomla\CMS\Factory::getContainer();
 $container->alias('session','session.cli')->alias('JSession','session.cli')->alias(\Joomla\CMS\Session\Session::class,'session.cli')->alias(\Joomla\Session\Session::class,'session.cli')->alias(\Joomla\Session\SessionInterface::class,'session.cli');
 $app = $container->get('JApplicationAdministrator'); \Joomla\CMS\Factory::$application = $app; $app->createExtensionNamespaceMap();
@@ -21,10 +29,10 @@ $maintenance = $component->getDatabaseMaintenanceService();
 $backup = $component->getBackupService();
 $now = \Joomla\CMS\Factory::getDate()->toSql();
 
-$row = (object)['uuid'=>'99999999-9999-4999-8999-999999999991','display_name'=>'Empty Test','first_name'=>'Empty','last_name'=>'Test','person_status'=>'active','state'=>1,'access'=>1,'created'=>$now,'created_by'=>$adminId];
+$row = (object)['uuid'=>$uuidV4(),'display_name'=>'Empty Test','first_name'=>'Empty','last_name'=>'Test','person_status'=>'active','state'=>1,'access'=>1,'created'=>$now,'created_by'=>$adminId];
 $db->insertObject('#__xdecaropeople_people',$row,'id');
 $history=(object)['person_id'=>(int)$row->id,'action'=>'create','changed_fields'=>'[]','actor_user_id'=>$adminId,'created'=>$now]; $db->insertObject('#__xdecaropeople_history',$history);
-$ignore=(object)['signature'=>str_repeat('e',64),'match_type'=>'runtime-empty','record_ids'=>'['.(int)$row->id.']','created_by'=>$adminId,'created'=>$now]; $db->insertObject('#__xdecaropeople_duplicate_ignores',$ignore);
+$ignore=(object)['signature'=>hash('sha256', random_bytes(32)),'match_type'=>'runtime-empty','record_ids'=>'['.(int)$row->id.']','created_by'=>$adminId,'created'=>$now]; $db->insertObject('#__xdecaropeople_duplicate_ignores',$ignore);
 $merge=(object)['source_person_id'=>(int)$row->id,'source_uuid'=>$row->uuid,'target_person_id'=>(int)$row->id,'target_uuid'=>$row->uuid,'copied_fields'=>'[]','created_by'=>$adminId,'created'=>$now]; $db->insertObject('#__xdecaropeople_merges',$merge);
 
 $wrongRejected=false;
