@@ -11,5 +11,7 @@
     <action name="people.view_sensitive" title="COM_XDECAROPEOPLE_ACTION_VIEW_SENSITIVE"/>
     <action name="people.backup" title="COM_XDECAROPEOPLE_ACTION_BACKUP"/>
     <action name="people.restore" title="COM_XDECAROPEOPLE_ACTION_RESTORE"/>
+    <action name="people.database_repair" title="COM_XDECAROPEOPLE_ACTION_DATABASE_REPAIR"/>
+    <action name="people.database_destructive" title="COM_XDECAROPEOPLE_ACTION_DATABASE_DESTRUCTIVE"/>
   </section>
 </access>
