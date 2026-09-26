@@ -37,8 +37,9 @@ $backup = $read('component/admin/src/Service/BackupService.php');
 $contains($template, 'id="personAccordion"', 'Person edit must render one accordion container');
 $contains($template, 'xdecaro-person-section', 'Person edit accordion section marker is missing');
 $contains($template, 'data-bs-parent="#personAccordion"', 'Person edit accordion must keep one section open at a time');
-$contains($template, 'person-section-identity', 'Identity accordion section is missing');
-$contains($template, 'accordion-collapse collapse show', 'Identity section must be open initially');
+$contains($template, "'person-section-' . \$safeId", 'Accordion sections must receive stable generated IDs');
+$contains($template, "\$accordionStart('identity', Text::_('COM_XDECAROPEOPLE_FIELDSET_IDENTITY'), true)", 'Identity section must be the initially open accordion section');
+$contains($template, "(\$open ? ' show' : '')", 'Accordion helper must render the open section with Bootstrap show state');
 $notContains($template, "HTMLHelper::_('uitab.startTabSet'", 'Person edit must no longer render Joomla tabs');
 
 $contains($js, "closest('.accordion-collapse')", 'Validation must locate the accordion section containing an invalid field');
