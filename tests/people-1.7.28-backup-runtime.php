@@ -50,9 +50,12 @@ foreach ($people as $data) {
     $db->insertObject('#__xdecaropeople_people', $row, 'id');
     $ids[] = (int) $row->id;
 }
-$db->insertObject('#__xdecaropeople_history', (object) ['person_id'=>$ids[0],'action'=>'create','changed_fields'=>'["created"]','actor_user_id'=>$adminId,'created'=>$now]);
-$db->insertObject('#__xdecaropeople_duplicate_ignores', (object) ['signature'=>str_repeat('a',64),'match_type'=>'runtime','record_ids'=>json_encode($ids),'created_by'=>$adminId,'created'=>$now]);
-$db->insertObject('#__xdecaropeople_merges', (object) ['source_person_id'=>$ids[1],'source_uuid'=>$people[1]['uuid'],'target_person_id'=>$ids[0],'target_uuid'=>$people[0]['uuid'],'copied_fields'=>'[]','created_by'=>$adminId,'created'=>$now]);
+$historyRow = (object) ['person_id'=>$ids[0],'action'=>'create','changed_fields'=>'["created"]','actor_user_id'=>$adminId,'created'=>$now];
+$ignoreRow = (object) ['signature'=>str_repeat('a',64),'match_type'=>'runtime','record_ids'=>json_encode($ids),'created_by'=>$adminId,'created'=>$now];
+$mergeRow = (object) ['source_person_id'=>$ids[1],'source_uuid'=>$people[1]['uuid'],'target_person_id'=>$ids[0],'target_uuid'=>$people[0]['uuid'],'copied_fields'=>'[]','created_by'=>$adminId,'created'=>$now];
+$db->insertObject('#__xdecaropeople_history', $historyRow);
+$db->insertObject('#__xdecaropeople_duplicate_ignores', $ignoreRow);
+$db->insertObject('#__xdecaropeople_merges', $mergeRow);
 
 $first = $backup->create($adminId, 'runtime-test');
 foreach (['uuid','path','payload_sha256','people_count'] as $key) {
