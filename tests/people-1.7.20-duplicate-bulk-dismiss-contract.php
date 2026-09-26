@@ -69,8 +69,15 @@ foreach ([
     'data-duplicate-bulk-dismiss',
     'data-duplicate-select',
     'task=duplicate.dismissBatch',
+    'xdecaro-duplicate-row',
+    'xdecaro-duplicate-row-select',
+    'xdecaro-duplicate-row-details',
 ] as $needle) {
     $contains($template, $needle);
+}
+
+if (str_contains((string) file_get_contents($template), 'class="xdecaro-duplicate-select-row"')) {
+    $fail('The selection checkbox must be inside the duplicate row, not in an external column.');
 }
 
 foreach ([
@@ -81,13 +88,24 @@ foreach ([
 
 foreach ([
     '.xdecaro-duplicate-bulkbar',
+    '.xdecaro-duplicate-groups {',
+    'gap: .2rem;',
+    '.xdecaro-duplicate-row {',
+    '.xdecaro-duplicate-row-select {',
+    'padding: .45rem .55rem;',
+    'border-radius: .35rem;',
+] as $needle) {
+    $contains($css, $needle);
+}
+
+foreach ([
     '[data-duplicate-bulk-form]',
     '[data-duplicate-select-all]',
     '[data-duplicate-select]',
     "signatures.join(',')",
     'window.confirm',
 ] as $needle) {
-    $contains(str_starts_with($needle, '.') ? $css : $js, $needle);
+    $contains($js, $needle);
 }
 
 foreach ([
@@ -99,30 +117,6 @@ foreach ([
 ] as $key) {
     $contains($root . '/component/admin/language/it-IT/com_xdecaropeople.ini', $key);
     $contains($root . '/component/admin/language/en-GB/com_xdecaropeople.ini', $key);
-}
-
-if (version_compare($version, '1.7.21', '>=')) {
-    foreach ([
-        'xdecaro-duplicate-row',
-        'xdecaro-duplicate-row-select',
-        'xdecaro-duplicate-row-details',
-    ] as $needle) {
-        $contains($template, $needle);
-    }
-
-    if (str_contains((string) file_get_contents($template), 'class="xdecaro-duplicate-select-row"')) {
-        $fail('People 1.7.21 must keep the selection checkbox inside the duplicate row.');
-    }
-
-    foreach ([
-        'gap: .2rem;',
-        '.xdecaro-duplicate-row {',
-        '.xdecaro-duplicate-row-select {',
-        'padding: .45rem .55rem;',
-        'border-radius: .35rem;',
-    ] as $needle) {
-        $contains($css, $needle);
-    }
 }
 
 echo "People 1.7.20+ bulk duplicate dismissal contract OK\n";
