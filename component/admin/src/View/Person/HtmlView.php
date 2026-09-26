@@ -125,6 +125,7 @@ final class HtmlView extends BaseHtmlView
 
         $assets = $this->document->getWebAssetManager();
         $assets->useStyle('com_xdecaropeople.admin');
+        $assets->useStyle('com_xdecaropeople.person-accordion');
         $assets->useScript('com_xdecaropeople.person-form');
         $assets->useScript('com_xdecaropeople.person-cancel-fix');
 

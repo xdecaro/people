@@ -1,0 +1,2 @@
+-- People 1.7.33 person accordion and timezone marker
+-- UX-only release: no database schema changes are required.

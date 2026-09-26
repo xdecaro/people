@@ -152,20 +152,43 @@
     select.dispatchEvent(new Event('change', { bubbles: true }));
   };
 
-  const revealAndReport = (entry) => {
-    const input = entry.input;
-    const pane = input.closest('.tab-pane');
+  const accordionTriggerFor = (collapse) => {
+    if (!collapse?.id) return null;
+    const escapedId = window.CSS?.escape ? CSS.escape(collapse.id) : collapse.id.replace(/([:.])/g, '\\$1');
+    return document.querySelector(`[data-bs-target="#${escapedId}"]`);
+  };
 
-    if (pane && pane.id && !pane.classList.contains('active')) {
-      const escapedId = window.CSS?.escape ? CSS.escape(pane.id) : pane.id.replace(/([:.])/g, '\\$1');
-      const trigger = document.querySelector(`[data-bs-target="#${escapedId}"], [href="#${escapedId}"]`);
-      trigger?.click();
+  const openAccordionForField = (field, callback) => {
+    const collapse = field?.closest('.accordion-collapse') || null;
+    if (!collapse || collapse.classList.contains('show')) {
+      callback();
+      return;
     }
 
-    window.setTimeout(() => {
+    const trigger = accordionTriggerFor(collapse);
+    if (!trigger) {
+      callback();
+      return;
+    }
+
+    let completed = false;
+    const finish = () => {
+      if (completed) return;
+      completed = true;
+      callback();
+    };
+
+    collapse.addEventListener('shown.bs.collapse', finish, { once: true });
+    trigger.click();
+    window.setTimeout(finish, 450);
+  };
+
+  const revealAndReport = (entry) => {
+    const input = entry.input;
+    openAccordionForField(input, () => {
       input.focus();
       entry.validate(true);
-    }, 0);
+    });
   };
 
   const validateAllLocations = (report = false) => {
@@ -191,13 +214,9 @@
       || 'Campo';
   };
 
-  const tabLabelFor = (field) => {
-    const pane = field?.closest('.tab-pane');
-    if (!pane?.id) return '';
-
-    const escapedId = window.CSS?.escape ? CSS.escape(pane.id) : pane.id.replace(/([:.])/g, '\\$1');
-    const trigger = document.querySelector(`[data-bs-target="#${escapedId}"], [href="#${escapedId}"]`);
-    return trigger?.textContent?.trim() || '';
+  const sectionLabelFor = (field) => {
+    const collapse = field?.closest('.accordion-collapse') || null;
+    return accordionTriggerFor(collapse)?.textContent?.trim() || '';
   };
 
   const collectInvalidFields = (form) => {
@@ -214,7 +233,7 @@
         return {
           field,
           label: fieldLabelFor(field),
-          tab: tabLabelFor(field),
+          section: sectionLabelFor(field),
         };
       })
       .filter(Boolean);
@@ -223,23 +242,16 @@
   const revealInvalidField = (field) => {
     if (!field) return;
 
-    const pane = field.closest('.tab-pane');
-    if (pane && pane.id && !pane.classList.contains('active')) {
-      const escapedId = window.CSS?.escape ? CSS.escape(pane.id) : pane.id.replace(/([:.])/g, '\\$1');
-      const trigger = document.querySelector(`[data-bs-target="#${escapedId}"], [href="#${escapedId}"]`);
-      trigger?.click();
-    }
-
-    window.setTimeout(() => {
+    openAccordionForField(field, () => {
       field.focus({ preventScroll: true });
       field.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }, 0);
+    });
   };
 
   const showValidationSummary = (invalidFields) => {
     if (!invalidFields.length) return;
 
-    const details = invalidFields.map(({ label, tab }) => tab ? `${tab} → ${label}` : label);
+    const details = invalidFields.map(({ label, section }) => section ? `${section} → ${label}` : label);
     const title = options.validationSummaryTitle || 'Impossibile salvare: controlla i campi indicati.';
     const intro = options.validationSummaryIntro || 'Controlla:';
     const message = `${title} ${intro} ${details.join('; ')}.`;
@@ -542,8 +554,8 @@
       close();
     }, true);
 
-    document.addEventListener('show.bs.tab', close);
-    document.addEventListener('hide.bs.tab', close);
+    document.addEventListener('show.bs.collapse', close);
+    document.addEventListener('hide.bs.collapse', close);
 
     locationValidators.push({ input, validate: validateSelection, close });
 
