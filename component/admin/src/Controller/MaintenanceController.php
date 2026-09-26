@@ -57,8 +57,15 @@ final class MaintenanceController extends BaseController
     {
         $this->checkToken();
         $this->requirePermission('people.restore');
-        $path = $this->restorePath();
-        $preview = $this->component()->getRestoreService()->preview($path, (int) $this->app->getIdentity()->id);
+
+        try {
+            $path = $this->restorePath();
+            $preview = $this->component()->getRestoreService()->preview($path, (int) $this->app->getIdentity()->id);
+        } catch (RuntimeException $e) {
+            $this->redirectInformation($this->restoreFailureMessage($e), 'warning');
+            return;
+        }
+
         $summary = sprintf(
             'Backup valido: %d persone (%d attive, %d nel cestino). Versione People %s.',
             (int) ($preview['counts']['#__xdecaropeople_people'] ?? 0),
@@ -76,7 +83,17 @@ final class MaintenanceController extends BaseController
         if (!$this->input->getBool('confirm_restore')) {
             throw new RuntimeException('Il ripristino completo richiede conferma esplicita.', 400);
         }
-        $result = $this->component()->getRestoreService()->restoreFull($this->restorePath(), (int) $this->app->getIdentity()->id);
+
+        try {
+            $result = $this->component()->getRestoreService()->restoreFull(
+                $this->restorePath(),
+                (int) $this->app->getIdentity()->id
+            );
+        } catch (RuntimeException $e) {
+            $this->redirectInformation($this->restoreFailureMessage($e), 'warning');
+            return;
+        }
+
         $this->redirectInformation('Ripristino completo terminato. È stato creato automaticamente un backup di sicurezza ' . ($result['safety_backup_uuid'] ?? '') . '.', 'success');
     }
 
@@ -88,12 +105,19 @@ final class MaintenanceController extends BaseController
         if ($uuid === '') {
             throw new RuntimeException('UUID persona obbligatorio.', 400);
         }
-        $result = $this->component()->getRestoreService()->restorePerson(
-            $this->restorePath(),
-            $uuid,
-            (int) $this->app->getIdentity()->id,
-            $this->input->getBool('overwrite_person')
-        );
+
+        try {
+            $result = $this->component()->getRestoreService()->restorePerson(
+                $this->restorePath(),
+                $uuid,
+                (int) $this->app->getIdentity()->id,
+                $this->input->getBool('overwrite_person')
+            );
+        } catch (RuntimeException $e) {
+            $this->redirectInformation($this->restoreFailureMessage($e), 'warning');
+            return;
+        }
+
         $this->redirectInformation('Persona ripristinata: ' . ($result['uuid'] ?? $uuid) . '.', 'success');
     }
 
@@ -139,6 +163,11 @@ final class MaintenanceController extends BaseController
             throw new RuntimeException('Seleziona un backup People valido.', 400);
         }
         return $path;
+    }
+
+    private function restoreFailureMessage(RuntimeException $e): string
+    {
+        return Text::_('COM_XDECAROPEOPLE_RESTORE_INVALID_BACKUP');
     }
 
     private function requirePermission(string $action): void
