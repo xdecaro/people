@@ -1,0 +1,118 @@
+.xdecaro-people-dashboard .xdecaro-dashboard-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-kpi {
+  min-width: 0;
+  overflow: hidden;
+  border-inline-start: .22rem solid var(--bs-secondary, currentColor);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.xdecaro-people-dashboard a.xdecaro-dashboard-kpi:hover {
+  box-shadow: 0 .2rem .65rem rgba(0, 0, 0, .08);
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-kpi.is-primary {
+  border-inline-start-color: var(--bs-primary, currentColor);
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-kpi.is-danger {
+  border-inline-start-color: var(--bs-danger, currentColor);
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-kpi.is-warning {
+  border-inline-start-color: var(--bs-warning, currentColor);
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-kpi.is-neutral {
+  border-inline-start-color: var(--bs-secondary, currentColor);
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-kpi .card-body {
+  display: flex;
+  min-height: 6.1rem;
+  flex-direction: column;
+  justify-content: center;
+  gap: .15rem;
+  padding: .9rem 1rem;
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-kpi-label {
+  color: var(--body-color, inherit);
+  opacity: .7;
+  line-height: 1.2;
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-kpi strong {
+  color: var(--body-color, inherit);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-review-grid,
+.xdecaro-people-dashboard .xdecaro-dashboard-quality-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .6rem;
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-quality-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-review-grid > div,
+.xdecaro-people-dashboard .xdecaro-dashboard-quality-item {
+  min-width: 0;
+  padding: .65rem .7rem;
+  border: 1px solid var(--border-color, rgba(127, 127, 127, .2));
+  border-radius: .5rem;
+  background: var(--bs-tertiary-bg, transparent);
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-review-grid strong,
+.xdecaro-people-dashboard .xdecaro-dashboard-quality-item strong {
+  display: block;
+  margin-bottom: .15rem;
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-review-grid span,
+.xdecaro-people-dashboard .xdecaro-dashboard-quality-item span {
+  display: block;
+  font-size: .86rem;
+  line-height: 1.25;
+  opacity: .78;
+}
+
+.xdecaro-people-dashboard .xdecaro-dashboard-integrations .card-body {
+  min-height: 9.5rem;
+}
+
+@media (max-width: 1199.98px) {
+  .xdecaro-people-dashboard .xdecaro-dashboard-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .xdecaro-people-dashboard .xdecaro-dashboard-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .xdecaro-people-dashboard .xdecaro-dashboard-quality-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 419.98px) {
+  .xdecaro-people-dashboard .xdecaro-dashboard-kpis,
+  .xdecaro-people-dashboard .xdecaro-dashboard-review-grid,
+  .xdecaro-people-dashboard .xdecaro-dashboard-quality-grid {
+    grid-template-columns: 1fr;
+  }
+}

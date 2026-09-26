@@ -1,0 +1,1 @@
+-- People 1.7.27 adds the richer dashboard; no database schema change is required.
