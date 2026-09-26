@@ -80,3 +80,4 @@ jobs:
           cd joomla
           php ../tests/people-1.7.28-trash-runtime.php
           php ../tests/people-1.7.28-backup-runtime.php
+          php ../tests/people-1.7.28-restore-preview-runtime.php
