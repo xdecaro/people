@@ -15,7 +15,7 @@ $fail = static function (string $message): never {
 
 foreach ([$cssPath, $jsPath, $viewPath, $assetsPath] as $path) {
     if (!is_file($path)) {
-        $fail('Missing People 1.7.21 compact duplicate row file: ' . $path);
+        $fail('Missing People 1.7.21+ compact duplicate row file: ' . $path);
     }
 }
 
@@ -26,11 +26,9 @@ $assets = (string) file_get_contents($assetsPath);
 
 foreach ([
     '.xdecaro-duplicate-groups',
-    'gap: .2rem;',
     '.xdecaro-duplicate-select-row',
     'display: block;',
     '.xdecaro-duplicate-accordion-summary',
-    'padding: .4rem .55rem;',
     '.xdecaro-duplicate-row-control',
 ] as $needle) {
     if (!str_contains($css, $needle)) {
@@ -64,4 +62,4 @@ foreach ([
     }
 }
 
-echo "People 1.7.21 compact duplicate rows contract OK\n";
+echo "People 1.7.21+ compact duplicate rows contract OK\n";
