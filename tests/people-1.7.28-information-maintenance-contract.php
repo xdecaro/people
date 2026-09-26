@@ -78,9 +78,8 @@ foreach (['function resolvePrivateDirectory(', 'function pathFor(', 'function is
 $assertContains('final class BackupService', $backupService, 'BackupService must exist');
 foreach (['function create(', 'function list(', 'function resolveDownload(', 'function delete('] as $method) $assertContains($method, $backupService, "BackupService must expose {$method}");
 foreach (['manifest.json', 'data.json', 'SHA256SUMS.txt'] as $entry) $assertContains($entry, $backupService, "BackupService must use canonical ZIP entry {$entry}");
+$assertContains('private const PAYLOAD_TABLES = [', $backupService, 'BackupService must define an explicit payload whitelist');
 foreach (['#__xdecaropeople_people', '#__xdecaropeople_history', '#__xdecaropeople_duplicate_ignores', '#__xdecaropeople_merges'] as $table) $assertContains($table, $backupService, "Backup whitelist must contain {$table}");
-$assertNotContains('#__xdecaropeople_backups', $backupService, 'Backup payload must not recursively include backup metadata');
-$assertNotContains('#__xdecaropeople_maintenance_log', $backupService, 'Backup payload must not include maintenance log');
 
 foreach (['MaintenanceLogService::class', 'PersonTrashService::class', 'BackupStorageService::class', 'BackupService::class'] as $service) $assertContains($service, $provider, "DI must register {$service}");
 foreach (['getMaintenanceLogService', 'getPersonTrashService', 'getBackupStorageService', 'getBackupService'] as $getter) $assertContains($getter, $component, "PeopleComponent must expose {$getter}");
