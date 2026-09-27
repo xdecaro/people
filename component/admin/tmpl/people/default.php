@@ -24,33 +24,33 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
         </header>
 
         <div class="xdecaro-suite__metrics mb-4">
-            <div class="card xdecaro-suite__metric">
+            <div class="card xdecaro-suite__metric is-primary">
                 <div class="card-body">
-                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_PEOPLE'); ?></div>
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_TOTAL'); ?></div>
                     <strong class="fs-3"><?php echo (int) ($this->statusSummary['total'] ?? 0); ?></strong>
                 </div>
             </div>
-            <div class="card xdecaro-suite__metric">
+            <div class="card xdecaro-suite__metric is-success">
                 <div class="card-body">
-                    <div class="small text-body-secondary mb-1"><?php echo Text::_('JPUBLISHED'); ?></div>
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_PUBLISHED'); ?></div>
                     <strong class="fs-3"><?php echo (int) ($this->statusSummary['published'] ?? 0); ?></strong>
                 </div>
             </div>
-            <div class="card xdecaro-suite__metric">
+            <div class="card xdecaro-suite__metric is-neutral">
                 <div class="card-body">
-                    <div class="small text-body-secondary mb-1"><?php echo Text::_('JUNPUBLISHED'); ?></div>
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_UNPUBLISHED'); ?></div>
                     <strong class="fs-3"><?php echo (int) ($this->statusSummary['suspended'] ?? 0); ?></strong>
                 </div>
             </div>
-            <div class="card xdecaro-suite__metric">
+            <div class="card xdecaro-suite__metric is-danger">
                 <div class="card-body">
-                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'); ?></div>
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_TRASHED'); ?></div>
                     <strong class="fs-3"><?php echo (int) ($this->statusSummary['trashed'] ?? 0); ?></strong>
                 </div>
             </div>
             <a class="card xdecaro-suite__metric is-warning text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
                 <div class="card-body">
-                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATES'); ?></div>
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_DUPLICATES'); ?></div>
                     <strong class="fs-3"><?php echo (int) $this->duplicateGroups; ?></strong>
                 </div>
             </a>
