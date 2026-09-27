@@ -8,6 +8,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Throwable;
 use xdecaro\Component\People\Administrator\Extension\PeopleComponent;
 
 final class HtmlView extends BaseHtmlView
@@ -17,6 +18,13 @@ final class HtmlView extends BaseHtmlView
     public $state;
     public bool $canIdentityDetails = false;
     public bool $canSensitive = false;
+    public array $statusSummary = [
+        'total' => 0,
+        'published' => 0,
+        'suspended' => 0,
+        'trashed' => 0,
+    ];
+    public int $duplicateGroups = 0;
 
     public function display($tpl = null): void
     {
@@ -28,6 +36,7 @@ final class HtmlView extends BaseHtmlView
         $this->items = (array) $this->get('Items');
         $this->pagination = $this->get('Pagination');
         $this->state = $this->get('State');
+        $this->statusSummary = (array) $this->get('StatusSummary');
         $this->canSensitive = $user->authorise('people.view_sensitive', 'com_xdecaropeople')
             || $user->authorise('core.admin', 'com_xdecaropeople');
         $this->canIdentityDetails = $user->authorise('people.view_identity_details', 'com_xdecaropeople')
@@ -37,6 +46,12 @@ final class HtmlView extends BaseHtmlView
         $component = Factory::getApplication()->bootComponent('com_xdecaropeople');
         if ($component instanceof PeopleComponent) {
             $component->getCoreIntegrationService()->enableUi($this->document->getWebAssetManager());
+
+            try {
+                $this->duplicateGroups = count((array) $component->getDuplicateService()->find(500));
+            } catch (Throwable) {
+                $this->duplicateGroups = 0;
+            }
         }
 
         $this->document->getWebAssetManager()
@@ -77,8 +92,6 @@ final class HtmlView extends BaseHtmlView
             }
         }
 
-        // Permanent deletion is intentionally available only from the Trash
-        // view, preventing an active person from being deleted by mistake.
         if ($isTrashed && $user->authorise('core.delete', 'com_xdecaropeople')) {
             ToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'people.delete');
         }
