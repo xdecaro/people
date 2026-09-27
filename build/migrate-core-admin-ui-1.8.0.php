@@ -39,6 +39,7 @@ $replace('component/admin/tmpl/information/default.php', [
     ['class="xdecaro-scope ', 'class="xdecaro-scope xdecaro-suite '],
     ['class="xdecaro-info-grid ', 'class="xdecaro-suite__info-grid xdecaro-info-grid '],
     ['class="xdecaro-info-card', 'class="xdecaro-suite__info-card xdecaro-info-card'],
+    ['class="xdecaro-suite__info-card xdecaro-info-card__head"', 'class="xdecaro-suite__card-heading xdecaro-info-card__head"'],
 ]);
 
 $replace('component/admin/tmpl/person/edit.php', [
