@@ -12,105 +12,158 @@ $filterState = (string) $this->state->get('filter.state');
 $currentLimit = (int) $this->state->get('list.limit', 20);
 $limitChoices = [20, 50, 100, 200, 500, 1000, 999999];
 $totalItems = (int) ($this->pagination->total ?? 0);
+$peopleUrl = Route::_('index.php?option=com_xdecaropeople&view=people');
+$duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
 ?>
-<form action="<?php echo Route::_('index.php?option=com_xdecaropeople&view=people'); ?>" method="post" name="adminForm" id="adminForm">
+<form action="<?php echo $peopleUrl; ?>" method="post" name="adminForm" id="adminForm">
     <div class="xdecaro-scope xdecaro-suite">
-        <div class="xdecaro-filterbar xdecaro-people-filters mb-3">
-            <div class="xdecaro-filterbar__search xdecaro-people-filter-search">
-                <input
-                    type="search"
-                    name="filter_search"
-                    class="form-control"
-                    value="<?php echo $this->escape((string) $this->state->get('filter.search')); ?>"
-                    placeholder="<?php echo Text::_('JSEARCH_FILTER'); ?>"
-                >
+        <header class="xdecaro-people-pagehead mb-4">
+            <div class="text-primary fw-semibold text-uppercase small mb-1"><?php echo Text::_('COM_XDECAROPEOPLE'); ?></div>
+            <h1 class="h2 mb-2"><?php echo Text::_('COM_XDECAROPEOPLE_PEOPLE'); ?></h1>
+            <p class="text-body-secondary mb-0"><?php echo Text::_('COM_XDECAROPEOPLE_XML_DESCRIPTION'); ?></p>
+        </header>
+
+        <div class="xdecaro-suite__metrics mb-4">
+            <div class="card xdecaro-suite__metric">
+                <div class="card-body">
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_PEOPLE'); ?></div>
+                    <strong class="fs-3"><?php echo (int) ($this->statusSummary['total'] ?? 0); ?></strong>
+                </div>
             </div>
-            <div class="xdecaro-filterbar__filter xdecaro-people-filter-state">
-                <select name="filter_state" class="form-select" onchange="this.form.requestSubmit()">
-                    <option value=""><?php echo Text::_('JOPTION_SELECT_PUBLISHED'); ?></option>
-                    <option value="1" <?php echo $filterState === '1' ? 'selected' : ''; ?>><?php echo Text::_('JPUBLISHED'); ?></option>
-                    <option value="0" <?php echo $filterState === '0' ? 'selected' : ''; ?>><?php echo Text::_('JUNPUBLISHED'); ?></option>
-                    <option value="-2" <?php echo $filterState === '-2' ? 'selected' : ''; ?>><?php echo Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'); ?></option>
-                </select>
+            <div class="card xdecaro-suite__metric">
+                <div class="card-body">
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('JPUBLISHED'); ?></div>
+                    <strong class="fs-3"><?php echo (int) ($this->statusSummary['published'] ?? 0); ?></strong>
+                </div>
             </div>
-            <div class="xdecaro-filterbar__actions xdecaro-people-filter-submit">
-                <button class="btn btn-primary" type="submit"><?php echo Text::_('JSEARCH_FILTER_SUBMIT'); ?></button>
+            <div class="card xdecaro-suite__metric">
+                <div class="card-body">
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('JUNPUBLISHED'); ?></div>
+                    <strong class="fs-3"><?php echo (int) ($this->statusSummary['suspended'] ?? 0); ?></strong>
+                </div>
             </div>
+            <div class="card xdecaro-suite__metric">
+                <div class="card-body">
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'); ?></div>
+                    <strong class="fs-3"><?php echo (int) ($this->statusSummary['trashed'] ?? 0); ?></strong>
+                </div>
+            </div>
+            <a class="card xdecaro-suite__metric text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
+                <div class="card-body">
+                    <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATES'); ?></div>
+                    <strong class="fs-3"><?php echo (int) $this->duplicateGroups; ?></strong>
+                </div>
+            </a>
         </div>
 
-        <div class="xdecaro-suite__responsive-wrap table-responsive">
-            <table class="xdecaro-suite__responsive-table table table-striped align-middle">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" name="checkall-toggle" onclick="Joomla.checkAll(this)"></th>
-                        <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME'); ?></th>
-                        <?php if ($this->canIdentityDetails) : ?>
-                            <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE'); ?></th>
-                            <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE'); ?></th>
-                        <?php endif; ?>
-                        <th><?php echo Text::_('JGLOBAL_EMAIL'); ?></th>
-                        <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'); ?></th>
-                        <th><?php echo Text::_('JSTATUS'); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($this->items as $i => $item) : ?>
-                        <?php
-                        $state = (int) $item->state;
-                        $stateLabel = match ($state) {
-                            1 => Text::_('JPUBLISHED'),
-                            -2 => Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'),
-                            default => Text::_('JUNPUBLISHED'),
-                        };
-                        ?>
-                        <tr>
-                            <td data-label="<?php echo $this->escape(Text::_('JSELECT')); ?>"><?php echo HTMLHelper::_('grid.id', $i, (int) $item->id); ?></td>
-                            <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME')); ?>">
-                                <a href="<?php echo Route::_('index.php?option=com_xdecaropeople&task=person.edit&id=' . (int) $item->id); ?>">
-                                    <?php echo $this->escape($item->display_name); ?>
-                                </a>
-                            </td>
-                            <?php if ($this->canIdentityDetails) : ?>
-                                <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE')); ?>"><?php echo !empty($item->birth_date) ? $this->escape(HTMLHelper::_('date', $item->birth_date, Text::_('DATE_FORMAT_FILTER_DATE'))) : '—'; ?></td>
-                                <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE')); ?>"><?php echo $this->escape((string) ($item->birth_place ?? '')); ?></td>
-                            <?php endif; ?>
-                            <td data-label="<?php echo $this->escape(Text::_('JGLOBAL_EMAIL')); ?>"><?php echo $this->escape((string) $item->email); ?></td>
-                            <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PHONE')); ?>"><?php echo $this->escape((string) $item->phone); ?></td>
-                            <td data-label="<?php echo $this->escape(Text::_('JSTATUS')); ?>"><?php echo $stateLabel; ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+        <section class="card xdecaro-suite__section">
+            <div class="card-body">
+                <div class="xdecaro-filterbar xdecaro-people-filters mb-3">
+                    <div class="xdecaro-filterbar__search xdecaro-people-filter-search">
+                        <input
+                            type="search"
+                            name="filter_search"
+                            class="form-control"
+                            value="<?php echo $this->escape((string) $this->state->get('filter.search')); ?>"
+                            placeholder="<?php echo Text::_('JSEARCH_FILTER'); ?>"
+                        >
+                    </div>
+                    <div class="xdecaro-filterbar__filter xdecaro-people-filter-state">
+                        <select name="filter_state" class="form-select" onchange="this.form.requestSubmit()">
+                            <option value=""><?php echo Text::_('JOPTION_SELECT_PUBLISHED'); ?></option>
+                            <option value="1" <?php echo $filterState === '1' ? 'selected' : ''; ?>><?php echo Text::_('JPUBLISHED'); ?></option>
+                            <option value="0" <?php echo $filterState === '0' ? 'selected' : ''; ?>><?php echo Text::_('JUNPUBLISHED'); ?></option>
+                            <option value="-2" <?php echo $filterState === '-2' ? 'selected' : ''; ?>><?php echo Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'); ?></option>
+                        </select>
+                    </div>
+                    <div class="xdecaro-filterbar__actions xdecaro-people-filter-submit d-flex gap-2">
+                        <button class="btn btn-primary" type="submit"><?php echo Text::_('JSEARCH_FILTER_SUBMIT'); ?></button>
+                        <a class="btn btn-outline-secondary" href="<?php echo $peopleUrl; ?>"><?php echo Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
+                    </div>
+                </div>
 
-        <div class="xdecaro-people-pagination-footer mt-3">
-            <div class="xdecaro-people-page-size d-flex flex-wrap align-items-center gap-2">
-                <label for="xdecaro-people-page-size" class="form-label mb-0">
-                    <?php echo Text::_('COM_XDECAROPEOPLE_PAGINATION_SHOW'); ?>
-                </label>
-                <select
-                    id="xdecaro-people-page-size"
-                    name="list[limit]"
-                    class="form-select form-select-sm"
-                    onchange="this.form.requestSubmit()"
-                >
-                    <?php foreach ($limitChoices as $limitChoice) : ?>
-                        <option value="<?php echo (int) $limitChoice; ?>" <?php echo $currentLimit === $limitChoice ? 'selected' : ''; ?>>
-                            <?php if ($limitChoice === 999999) : ?>
-                                <?php echo Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL', $totalItems); ?>
-                            <?php else : ?>
-                                <?php echo (int) $limitChoice; ?>
-                            <?php endif; ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <span class="text-body-secondary"><?php echo Text::_('COM_XDECAROPEOPLE_PAGINATION_PER_PAGE'); ?></span>
-            </div>
+                <div class="xdecaro-suite__responsive-wrap table-responsive">
+                    <table class="xdecaro-suite__responsive-table table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" name="checkall-toggle" onclick="Joomla.checkAll(this)"></th>
+                                <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME'); ?></th>
+                                <?php if ($this->canIdentityDetails) : ?>
+                                    <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE'); ?></th>
+                                    <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE'); ?></th>
+                                <?php endif; ?>
+                                <th><?php echo Text::_('JGLOBAL_EMAIL'); ?></th>
+                                <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'); ?></th>
+                                <th><?php echo Text::_('JSTATUS'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($this->items as $i => $item) : ?>
+                                <?php
+                                $state = (int) $item->state;
+                                $stateLabel = match ($state) {
+                                    1 => Text::_('JPUBLISHED'),
+                                    -2 => Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'),
+                                    default => Text::_('JUNPUBLISHED'),
+                                };
+                                $stateClass = match ($state) {
+                                    1 => 'bg-success-subtle text-success-emphasis',
+                                    -2 => 'bg-danger-subtle text-danger-emphasis',
+                                    default => 'bg-warning-subtle text-warning-emphasis',
+                                };
+                                ?>
+                                <tr>
+                                    <td data-label="<?php echo $this->escape(Text::_('JSELECT')); ?>"><?php echo HTMLHelper::_('grid.id', $i, (int) $item->id); ?></td>
+                                    <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME')); ?>">
+                                        <a class="fw-semibold" href="<?php echo Route::_('index.php?option=com_xdecaropeople&task=person.edit&id=' . (int) $item->id); ?>">
+                                            <?php echo $this->escape($item->display_name); ?>
+                                        </a>
+                                    </td>
+                                    <?php if ($this->canIdentityDetails) : ?>
+                                        <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE')); ?>"><?php echo !empty($item->birth_date) ? $this->escape(HTMLHelper::_('date', $item->birth_date, Text::_('DATE_FORMAT_FILTER_DATE'))) : '—'; ?></td>
+                                        <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE')); ?>"><?php echo $this->escape((string) ($item->birth_place ?? '')); ?></td>
+                                    <?php endif; ?>
+                                    <td data-label="<?php echo $this->escape(Text::_('JGLOBAL_EMAIL')); ?>"><?php echo $this->escape((string) $item->email); ?></td>
+                                    <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PHONE')); ?>"><?php echo $this->escape((string) $item->phone); ?></td>
+                                    <td data-label="<?php echo $this->escape(Text::_('JSTATUS')); ?>">
+                                        <span class="badge rounded-pill <?php echo $stateClass; ?>"><?php echo $stateLabel; ?></span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
 
-            <div class="xdecaro-people-pagination-links">
-                <?php echo $this->pagination->getListFooter(); ?>
+                <div class="xdecaro-people-pagination-footer mt-3">
+                    <div class="xdecaro-people-page-size d-flex flex-wrap align-items-center gap-2">
+                        <label for="xdecaro-people-page-size" class="form-label mb-0">
+                            <?php echo Text::_('COM_XDECAROPEOPLE_PAGINATION_SHOW'); ?>
+                        </label>
+                        <select
+                            id="xdecaro-people-page-size"
+                            name="list[limit]"
+                            class="form-select form-select-sm"
+                            onchange="this.form.requestSubmit()"
+                        >
+                            <?php foreach ($limitChoices as $limitChoice) : ?>
+                                <option value="<?php echo (int) $limitChoice; ?>" <?php echo $currentLimit === $limitChoice ? 'selected' : ''; ?>>
+                                    <?php if ($limitChoice === 999999) : ?>
+                                        <?php echo Text::sprintf('COM_XDECAROPEOPLE_PAGINATION_ALL', $totalItems); ?>
+                                    <?php else : ?>
+                                        <?php echo (int) $limitChoice; ?>
+                                    <?php endif; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span class="text-body-secondary"><?php echo Text::_('COM_XDECAROPEOPLE_PAGINATION_PER_PAGE'); ?></span>
+                    </div>
+
+                    <div class="xdecaro-people-pagination-links">
+                        <?php echo $this->pagination->getListFooter(); ?>
+                    </div>
+                </div>
             </div>
-        </div>
+        </section>
     </div>
 
     <input type="hidden" name="task" value="">
