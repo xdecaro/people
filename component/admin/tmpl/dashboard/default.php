@@ -9,37 +9,37 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
 $peopleUrl = Route::_('index.php?option=com_xdecaropeople&view=people');
 $informationUrl = Route::_('index.php?option=com_xdecaropeople&view=information');
 ?>
-<div class="xdecaro-scope xdecaro-people-dashboard">
-    <div class="xdecaro-dashboard-kpis mb-4">
-        <div class="card xdecaro-dashboard-kpi is-primary">
+<div class="xdecaro-scope xdecaro-suite xdecaro-people-dashboard">
+    <div class="xdecaro-suite__metrics xdecaro-dashboard-kpis mb-4">
+        <div class="card xdecaro-suite__metric xdecaro-dashboard-kpi is-primary">
             <div class="card-body">
                 <div class="xdecaro-dashboard-kpi-label"><?php echo Text::_('COM_XDECAROPEOPLE_PEOPLE'); ?></div>
                 <strong><?php echo (int) $this->total; ?></strong>
             </div>
         </div>
 
-        <a class="card xdecaro-dashboard-kpi is-primary text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
+        <a class="card xdecaro-suite__metric xdecaro-dashboard-kpi is-primary text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
             <div class="card-body">
                 <div class="xdecaro-dashboard-kpi-label"><?php echo Text::_('COM_XDECAROPEOPLE_DASHBOARD_DUPLICATE_GROUPS'); ?></div>
                 <strong><?php echo (int) $this->duplicateStats['total']; ?></strong>
             </div>
         </a>
 
-        <a class="card xdecaro-dashboard-kpi is-danger text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
+        <a class="card xdecaro-suite__metric xdecaro-dashboard-kpi is-danger text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
             <div class="card-body">
                 <div class="xdecaro-dashboard-kpi-label"><?php echo Text::_('COM_XDECAROPEOPLE_DASHBOARD_CONFLICTS'); ?></div>
                 <strong><?php echo (int) $this->duplicateStats['conflict']; ?></strong>
             </div>
         </a>
 
-        <a class="card xdecaro-dashboard-kpi is-warning text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
+        <a class="card xdecaro-suite__metric xdecaro-dashboard-kpi is-warning text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
             <div class="card-body">
                 <div class="xdecaro-dashboard-kpi-label"><?php echo Text::_('COM_XDECAROPEOPLE_DASHBOARD_POSSIBLE'); ?></div>
                 <strong><?php echo (int) $this->duplicateStats['possible']; ?></strong>
             </div>
         </a>
 
-        <a class="card xdecaro-dashboard-kpi is-neutral text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
+        <a class="card xdecaro-suite__metric xdecaro-dashboard-kpi is-neutral text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
             <div class="card-body">
                 <div class="xdecaro-dashboard-kpi-label"><?php echo Text::_('COM_XDECAROPEOPLE_DASHBOARD_RECORDS_INVOLVED'); ?></div>
                 <strong><?php echo (int) $this->duplicateStats['records']; ?></strong>
@@ -120,7 +120,7 @@ $informationUrl = Route::_('index.php?option=com_xdecaropeople&view=information'
         </div>
     </div>
 
-    <section class="xdecaro-dashboard-integrations mb-4" aria-labelledby="xdecaro-dashboard-integrations-title">
+    <section class="xdecaro-suite__section xdecaro-dashboard-integrations mb-4" aria-labelledby="xdecaro-dashboard-integrations-title">
         <h2 class="h5 mb-3" id="xdecaro-dashboard-integrations-title"><?php echo Text::_('COM_XDECAROPEOPLE_DASHBOARD_INTEGRATIONS'); ?></h2>
         <div class="row g-3">
             <div class="col-12 col-lg-6">
@@ -171,10 +171,10 @@ $informationUrl = Route::_('index.php?option=com_xdecaropeople&view=information'
         </div>
     </section>
 
-    <div class="card">
+    <div class="card xdecaro-suite__section">
         <div class="card-body">
             <h2 class="h5 mb-3"><?php echo Text::_('COM_XDECAROPEOPLE_QUICK_ACTIONS'); ?></h2>
-            <div class="d-flex flex-wrap gap-2">
+            <div class="xdecaro-suite__actions d-flex flex-wrap gap-2">
                 <?php if ($this->canCreate) : ?>
                     <a class="btn btn-primary" href="<?php echo Route::_('index.php?option=com_xdecaropeople&task=person.add'); ?>">
                         <?php echo Text::_('COM_XDECAROPEOPLE_DASHBOARD_NEW_PERSON'); ?>
