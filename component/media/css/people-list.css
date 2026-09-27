@@ -1,0 +1,116 @@
+/* People 1.8.2 - list-view bridge to the finalized Core 2.2.2 admin UI. */
+
+.xdecaro-suite > .xdecaro-suite__page-header.mb-4,
+.xdecaro-suite > .xdecaro-suite__metrics.mb-4 {
+    margin-bottom: 0 !important;
+}
+
+.xdecaro-suite .card.xdecaro-suite__metric {
+    border: 1px solid var(--xdecaro-color-border);
+    border-radius: var(--xdecaro-radius-lg);
+    background: var(--xdecaro-color-surface);
+    box-shadow: var(--xdecaro-shadow-sm);
+    color: var(--xdecaro-color-text);
+}
+
+.xdecaro-suite .xdecaro-suite__metric > .card-body {
+    display: flex;
+    min-width: 0;
+    padding: 0;
+    flex-direction: column;
+    gap: var(--xdecaro-space-2, .5rem);
+}
+
+.xdecaro-suite .xdecaro-suite__metric > .card-body > .small {
+    margin: 0 !important;
+    color: var(--xdecaro-color-muted) !important;
+    font-size: .8125rem !important;
+    font-weight: 650;
+    line-height: 1.25;
+}
+
+.xdecaro-suite .xdecaro-suite__metric > .card-body > strong.fs-3 {
+    color: var(--xdecaro-color-text);
+    font-size: clamp(1.65rem, 2vw, 1.875rem) !important;
+    font-weight: 750;
+    line-height: 1;
+}
+
+.xdecaro-suite .card.xdecaro-suite__section {
+    overflow: clip;
+    border: 1px solid var(--xdecaro-color-border);
+    border-radius: var(--xdecaro-radius-lg);
+    background: var(--xdecaro-color-surface);
+    box-shadow: var(--xdecaro-shadow-sm);
+    color: var(--xdecaro-color-text);
+}
+
+.xdecaro-suite .card.xdecaro-suite__section > .card-body {
+    padding: 1.25rem;
+}
+
+.xdecaro-suite .xdecaro-people-filters {
+    gap: var(--xdecaro-space-2, .5rem);
+}
+
+.xdecaro-suite .xdecaro-people-filter-search {
+    flex: 1 1 18rem;
+    min-width: min(100%, 12rem);
+}
+
+.xdecaro-suite .xdecaro-people-filter-state {
+    flex: 0 1 13rem;
+    min-width: min(100%, 10rem);
+}
+
+.xdecaro-suite .xdecaro-people-filter-submit {
+    flex: 0 0 auto;
+}
+
+.xdecaro-suite .xdecaro-suite__responsive-wrap.table-responsive {
+    border-radius: .75rem;
+}
+
+.xdecaro-suite .xdecaro-suite__responsive-table.table {
+    --bs-table-bg: var(--xdecaro-color-surface);
+    --bs-table-striped-bg: var(--xdecaro-color-surface);
+    --bs-table-striped-color: var(--xdecaro-color-text);
+    --bs-table-hover-bg: color-mix(in srgb, var(--xdecaro-color-primary) 3%, var(--xdecaro-color-surface));
+    --bs-table-hover-color: var(--xdecaro-color-text);
+    margin-bottom: 0;
+    color: var(--xdecaro-color-text);
+}
+
+.xdecaro-suite .xdecaro-suite__responsive-table.table > :not(caption) > * > * {
+    background-color: var(--xdecaro-color-surface);
+    box-shadow: none;
+}
+
+.xdecaro-suite .xdecaro-suite__responsive-table.table > thead > tr > th {
+    background-color: var(--xdecaro-color-surface-subtle);
+    color: var(--xdecaro-color-muted);
+    font-size: .75rem;
+    font-weight: 750;
+}
+
+.xdecaro-suite .xdecaro-suite__responsive-table.table > tbody > tr:hover > * {
+    background-color: color-mix(in srgb, var(--xdecaro-color-primary) 3%, var(--xdecaro-color-surface));
+}
+
+.xdecaro-suite .xdecaro-suite__responsive-table .badge {
+    min-height: 1.625rem;
+    padding: .25rem .6rem;
+    font-size: .75rem;
+    font-weight: 750;
+    line-height: 1.15;
+}
+
+@container xdecaro-suite (max-width: 38rem) {
+    .xdecaro-suite .xdecaro-people-filter-state,
+    .xdecaro-suite .xdecaro-people-filter-search,
+    .xdecaro-suite .xdecaro-people-filter-submit {
+        width: 100%;
+        min-width: 0;
+        flex-basis: auto;
+    }
+}
