@@ -13,6 +13,10 @@ $currentLimit = (int) $this->state->get('list.limit', 20);
 $limitChoices = [20, 50, 100, 200, 500, 1000, 999999];
 $totalItems = (int) ($this->pagination->total ?? 0);
 $peopleUrl = Route::_('index.php?option=com_xdecaropeople&view=people');
+$allPeopleUrl = Route::_('index.php?option=com_xdecaropeople&view=people&filter_state=');
+$publishedPeopleUrl = Route::_('index.php?option=com_xdecaropeople&view=people&filter_state=1');
+$suspendedPeopleUrl = Route::_('index.php?option=com_xdecaropeople&view=people&filter_state=0');
+$trashedPeopleUrl = Route::_('index.php?option=com_xdecaropeople&view=people&filter_state=-2');
 $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
 ?>
 <form action="<?php echo $peopleUrl; ?>" method="post" name="adminForm" id="adminForm">
@@ -24,31 +28,31 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
         </header>
 
         <div class="xdecaro-suite__metrics mb-4">
-            <div class="card xdecaro-suite__metric is-primary">
+            <a class="card xdecaro-suite__metric xdecaro-people-kpi-link is-primary<?php echo $filterState === '' ? ' is-active' : ''; ?> text-decoration-none" href="<?php echo $allPeopleUrl; ?>"<?php echo $filterState === '' ? ' aria-current="page"' : ''; ?>>
                 <div class="card-body">
                     <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_TOTAL'); ?></div>
                     <strong class="fs-3"><?php echo (int) ($this->statusSummary['total'] ?? 0); ?></strong>
                 </div>
-            </div>
-            <div class="card xdecaro-suite__metric is-success">
+            </a>
+            <a class="card xdecaro-suite__metric xdecaro-people-kpi-link is-success<?php echo $filterState === '1' ? ' is-active' : ''; ?> text-decoration-none" href="<?php echo $publishedPeopleUrl; ?>"<?php echo $filterState === '1' ? ' aria-current="page"' : ''; ?>>
                 <div class="card-body">
                     <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_PUBLISHED'); ?></div>
                     <strong class="fs-3"><?php echo (int) ($this->statusSummary['published'] ?? 0); ?></strong>
                 </div>
-            </div>
-            <div class="card xdecaro-suite__metric is-neutral">
+            </a>
+            <a class="card xdecaro-suite__metric xdecaro-people-kpi-link is-neutral<?php echo $filterState === '0' ? ' is-active' : ''; ?> text-decoration-none" href="<?php echo $suspendedPeopleUrl; ?>"<?php echo $filterState === '0' ? ' aria-current="page"' : ''; ?>>
                 <div class="card-body">
                     <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_UNPUBLISHED'); ?></div>
                     <strong class="fs-3"><?php echo (int) ($this->statusSummary['suspended'] ?? 0); ?></strong>
                 </div>
-            </div>
-            <div class="card xdecaro-suite__metric is-danger">
+            </a>
+            <a class="card xdecaro-suite__metric xdecaro-people-kpi-link is-danger<?php echo $filterState === '-2' ? ' is-active' : ''; ?> text-decoration-none" href="<?php echo $trashedPeopleUrl; ?>"<?php echo $filterState === '-2' ? ' aria-current="page"' : ''; ?>>
                 <div class="card-body">
                     <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_TRASHED'); ?></div>
                     <strong class="fs-3"><?php echo (int) ($this->statusSummary['trashed'] ?? 0); ?></strong>
                 </div>
-            </div>
-            <a class="card xdecaro-suite__metric is-warning text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
+            </a>
+            <a class="card xdecaro-suite__metric xdecaro-people-kpi-link is-warning text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
                 <div class="card-body">
                     <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_DUPLICATES'); ?></div>
                     <strong class="fs-3"><?php echo (int) $this->duplicateGroups; ?></strong>
@@ -78,7 +82,7 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                     </div>
                     <div class="xdecaro-filterbar__actions xdecaro-people-filter-submit d-flex gap-2">
                         <button class="btn btn-primary" type="submit"><?php echo Text::_('JSEARCH_FILTER_SUBMIT'); ?></button>
-                        <a class="btn btn-outline-secondary" href="<?php echo $peopleUrl; ?>"><?php echo Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
+                        <a class="btn btn-outline-secondary" href="<?php echo $allPeopleUrl; ?>"><?php echo Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
                     </div>
                 </div>
 
@@ -94,7 +98,7 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                                 <?php endif; ?>
                                 <th><?php echo Text::_('JGLOBAL_EMAIL'); ?></th>
                                 <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'); ?></th>
-                                <th><?php echo Text::_('JSTATUS'); ?></th>
+                                <th class="xdecaro-people-status-heading"><?php echo Text::_('JSTATUS'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -106,10 +110,15 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                                     -2 => Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'),
                                     default => Text::_('JUNPUBLISHED'),
                                 };
-                                $stateClass = match ($state) {
-                                    1 => 'bg-success-subtle text-success-emphasis',
-                                    -2 => 'bg-danger-subtle text-danger-emphasis',
-                                    default => 'bg-warning-subtle text-warning-emphasis',
+                                $stateTone = match ($state) {
+                                    1 => 'is-success',
+                                    -2 => 'is-danger',
+                                    default => 'is-warning',
+                                };
+                                $stateUrl = match ($state) {
+                                    1 => $publishedPeopleUrl,
+                                    -2 => $trashedPeopleUrl,
+                                    default => $suspendedPeopleUrl,
                                 };
                                 ?>
                                 <tr>
@@ -125,8 +134,10 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                                     <?php endif; ?>
                                     <td data-label="<?php echo $this->escape(Text::_('JGLOBAL_EMAIL')); ?>"><?php echo $this->escape((string) $item->email); ?></td>
                                     <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PHONE')); ?>"><?php echo $this->escape((string) $item->phone); ?></td>
-                                    <td data-label="<?php echo $this->escape(Text::_('JSTATUS')); ?>">
-                                        <span class="badge rounded-pill <?php echo $stateClass; ?>"><?php echo $stateLabel; ?></span>
+                                    <td class="xdecaro-people-status-cell" data-label="<?php echo $this->escape(Text::_('JSTATUS')); ?>">
+                                        <a class="xdecaro-people-status-link" href="<?php echo $stateUrl; ?>" title="<?php echo $this->escape(Text::_('JSEARCH_FILTER')); ?>: <?php echo $this->escape($stateLabel); ?>">
+                                            <span class="xdecaro-people-status-badge <?php echo $stateTone; ?>"><?php echo $stateLabel; ?></span>
+                                        </a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
