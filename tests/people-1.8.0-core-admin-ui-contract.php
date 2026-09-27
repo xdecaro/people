@@ -25,17 +25,25 @@ $assertContains("public const MINIMUM_CORE = '2.2.0';", $service, 'People 1.8.0 
 $assertContains('useAdminUi($wam)', $service, 'People must load the public Core administrator UI through AssetService.');
 $assertNotContains('useComponents($wam)', $service, 'People 1.8.0 must not stop at the old components-only Core UI layer.');
 
-foreach ([
+$templates = [
     'component/admin/tmpl/dashboard/default.php',
     'component/admin/tmpl/people/default.php',
-] as $template) {
+    'component/admin/tmpl/duplicates/default.php',
+    'component/admin/tmpl/import/default.php',
+    'component/admin/tmpl/information/default.php',
+    'component/admin/tmpl/person/edit.php',
+];
+
+foreach ($templates as $template) {
     $assertContains('xdecaro-scope', $template, basename(dirname($template)) . ' must remain scoped.');
     $assertContains('xdecaro-suite', $template, basename(dirname($template)) . ' must opt into the shared Core administrator suite.');
 }
 
-$assertContains('xdecaro-suite__metrics', 'component/admin/tmpl/dashboard/default.php', 'Dashboard KPIs must use the shared Core metric grid.');
-$assertContains('xdecaro-suite__metric', 'component/admin/tmpl/dashboard/default.php', 'Dashboard KPI cards must use the shared Core metric primitive.');
-$assertContains('xdecaro-suite__actions', 'component/admin/tmpl/dashboard/default.php', 'Dashboard quick actions must use the shared Core action group.');
+$dashboard = 'component/admin/tmpl/dashboard/default.php';
+$assertContains('xdecaro-suite__metrics', $dashboard, 'Dashboard KPIs must use the shared Core metric grid.');
+$assertContains('xdecaro-suite__metric', $dashboard, 'Dashboard KPI cards must use the shared Core metric primitive.');
+$assertContains('xdecaro-suite__section', $dashboard, 'Dashboard sections must use the shared Core section primitive.');
+$assertContains('xdecaro-suite__actions', $dashboard, 'Dashboard quick actions must use the shared Core action group.');
 
 $people = 'component/admin/tmpl/people/default.php';
 $assertContains('xdecaro-filterbar', $people, 'People list filters must use the shared Core filter bar.');
@@ -46,4 +54,17 @@ $assertContains('xdecaro-suite__responsive-wrap', $people, 'People list must use
 $assertContains('xdecaro-suite__responsive-table', $people, 'People list must use the shared responsive table primitive.');
 $assertContains('data-label=', $people, 'People table cells must retain labels for mobile card presentation.');
 
-fwrite(STDOUT, "People 1.8.0 Core admin UI phase 1 contract: OK\n");
+$person = 'component/admin/tmpl/person/edit.php';
+$assertContains('xdecaro-form', $person, 'Person editor must use the shared Core form contract.');
+$assertContains('xdecaro-accordion', $person, 'Person editor must use the shared Core accordion contract.');
+$assertContains('xdecaro-accordion__item', $person, 'Person accordion items must use the shared Core item primitive.');
+$assertContains('xdecaro-accordion__button', $person, 'Person accordion toggles must use the shared Core button primitive.');
+$assertContains('xdecaro-accordion__body', $person, 'Person accordion bodies must use the shared Core body primitive.');
+
+$information = 'component/admin/tmpl/information/default.php';
+$assertContains('xdecaro-suite__info-grid', $information, 'Information page must use the shared Core information grid.');
+$assertContains('xdecaro-suite__info-card', $information, 'Information page must use the shared Core information card.');
+$assertContains('xdecaro-suite__card-heading', $information, 'Information card headings must use the shared Core heading primitive.');
+$assertNotContains('xdecaro-suite__info-card xdecaro-info-card__head', $information, 'Information headings must not masquerade as cards.');
+
+fwrite(STDOUT, "People 1.8.0 Core admin UI contract: OK\n");
