@@ -1,0 +1,1 @@
+-- People 1.8.2: UI-only release. No database changes required.
