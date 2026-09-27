@@ -1,0 +1,1 @@
+-- People 1.8.0: shared administrator UI migration. No database changes required.
