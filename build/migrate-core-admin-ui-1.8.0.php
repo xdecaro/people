@@ -45,9 +45,9 @@ $replace('component/admin/tmpl/person/edit.php', [
     ['class="form-validate"', 'class="form-validate xdecaro-form"'],
     ['class="xdecaro-scope xdecaro-people-person-edit"', 'class="xdecaro-scope xdecaro-suite xdecaro-people-person-edit"'],
     ['class="accordion xdecaro-person-accordion"', 'class="accordion xdecaro-accordion xdecaro-person-accordion"'],
-    ['class=\"accordion-item xdecaro-person-section\"', 'class=\"accordion-item xdecaro-accordion__item xdecaro-person-section\"'],
-    ['class=\"accordion-button', 'class=\"accordion-button xdecaro-accordion__button'],
-    ['class=\"accordion-body\"', 'class=\"accordion-body xdecaro-accordion__body\"'],
+    ['class="accordion-item xdecaro-person-section"', 'class="accordion-item xdecaro-accordion__item xdecaro-person-section"'],
+    ['class="accordion-button', 'class="accordion-button xdecaro-accordion__button'],
+    ['class="accordion-body"', 'class="accordion-body xdecaro-accordion__body"'],
 ]);
 
 fwrite(STDOUT, "People 1.8.0 Core admin UI template migration applied.\n");
