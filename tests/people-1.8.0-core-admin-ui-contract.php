@@ -21,7 +21,7 @@ $assertNotContains = static function (string $needle, string $path, string $mess
 };
 
 $service = 'component/admin/src/Service/CoreIntegrationService.php';
-$assertContains("public const MINIMUM_CORE = '2.2.0';", $service, 'People 1.8.0 must require Core 2.2.0 for the shared administrator UI.');
+$assertContains("public const MINIMUM_CORE = '2.2.1';", $service, 'People 1.8.0 must require Core 2.2.0 for the shared administrator UI.');
 $assertContains('useAdminUi($wam)', $service, 'People must load the public Core administrator UI through AssetService.');
 $assertNotContains('useComponents($wam)', $service, 'People 1.8.0 must not stop at the old components-only Core UI layer.');
 
@@ -46,6 +46,15 @@ $assertContains('xdecaro-suite__section', $dashboard, 'Dashboard sections must u
 $assertContains('xdecaro-suite__actions', $dashboard, 'Dashboard quick actions must use the shared Core action group.');
 
 $people = 'component/admin/tmpl/people/default.php';
+$assertContains('is-warning', $people, 'People list must use shared Core UI: is-warning');
+$assertContains('is-danger', $people, 'People list must use shared Core UI: is-danger');
+$assertContains('is-neutral', $people, 'People list must use shared Core UI: is-neutral');
+$assertContains('is-success', $people, 'People list must use shared Core UI: is-success');
+$assertContains('is-primary', $people, 'People list must use shared Core UI: is-primary');
+$assertContains('xdecaro-suite__description', $people, 'People list must use shared Core UI: xdecaro-suite__description');
+$assertContains('xdecaro-suite__title', $people, 'People list must use shared Core UI: xdecaro-suite__title');
+$assertContains('xdecaro-suite__eyebrow', $people, 'People list must use shared Core UI: xdecaro-suite__eyebrow');
+$assertContains('xdecaro-suite__page-header', $people, 'People list must use shared Core UI: xdecaro-suite__page-header');
 $assertContains('xdecaro-people-pagehead', $people, 'People list must expose the shared page heading block.');
 $assertContains('xdecaro-suite__metrics', $people, 'People list must show shared KPI cards above the filters.');
 $assertContains('xdecaro-suite__metric', $people, 'People list KPI cards must use the shared Core metric primitive.');

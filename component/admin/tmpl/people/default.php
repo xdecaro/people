@@ -17,10 +17,10 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
 ?>
 <form action="<?php echo $peopleUrl; ?>" method="post" name="adminForm" id="adminForm">
     <div class="xdecaro-scope xdecaro-suite">
-        <header class="xdecaro-people-pagehead mb-4">
-            <div class="text-primary fw-semibold text-uppercase small mb-1"><?php echo Text::_('COM_XDECAROPEOPLE'); ?></div>
-            <h1 class="h2 mb-2"><?php echo Text::_('COM_XDECAROPEOPLE_PEOPLE'); ?></h1>
-            <p class="text-body-secondary mb-0"><?php echo Text::_('COM_XDECAROPEOPLE_XML_DESCRIPTION'); ?></p>
+        <header class="xdecaro-suite__page-header mb-4">
+            <div class="xdecaro-suite__eyebrow"><?php echo Text::_('COM_XDECAROPEOPLE'); ?></div>
+            <h1 class="xdecaro-suite__title"><?php echo Text::_('COM_XDECAROPEOPLE_PEOPLE'); ?></h1>
+            <p class="xdecaro-suite__description"><?php echo Text::_('COM_XDECAROPEOPLE_XML_DESCRIPTION'); ?></p>
         </header>
 
         <div class="xdecaro-suite__metrics mb-4">
@@ -48,7 +48,7 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                     <strong class="fs-3"><?php echo (int) ($this->statusSummary['trashed'] ?? 0); ?></strong>
                 </div>
             </div>
-            <a class="card xdecaro-suite__metric text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
+            <a class="card xdecaro-suite__metric is-warning text-decoration-none" href="<?php echo $duplicatesUrl; ?>">
                 <div class="card-body">
                     <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATES'); ?></div>
                     <strong class="fs-3"><?php echo (int) $this->duplicateGroups; ?></strong>

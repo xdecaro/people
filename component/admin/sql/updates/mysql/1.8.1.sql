@@ -1,0 +1,1 @@
+-- People 1.8.1: shared Core 2.2.1 UI refinement; no schema changes.

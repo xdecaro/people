@@ -8,7 +8,7 @@ use Joomla\Database\ParameterType;
 
 final class pkg_peopleInstallerScript
 {
-    private const MINIMUM_CORE = '2.2.0';
+    private const MINIMUM_CORE = '2.2.1';
 
     public function preflight($type, $parent): bool
     {
