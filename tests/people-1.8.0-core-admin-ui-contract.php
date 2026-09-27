@@ -21,9 +21,9 @@ $assertNotContains = static function (string $needle, string $path, string $mess
 };
 
 $service = 'component/admin/src/Service/CoreIntegrationService.php';
-$assertContains("public const MINIMUM_CORE = '2.2.1';", $service, 'People 1.8.1 must require Core 2.2.1 for the shared administrator UI.');
+$assertContains("public const MINIMUM_CORE = '2.2.2';", $service, 'People 1.8.2 must require Core 2.2.2 for the finalized shared administrator UI.');
 $assertContains('useAdminUi($wam)', $service, 'People must load the public Core administrator UI through AssetService.');
-$assertNotContains('useComponents($wam)', $service, 'People 1.8.1 must not stop at the old components-only Core UI layer.');
+$assertNotContains('useComponents($wam)', $service, 'People 1.8.2 must not stop at the old components-only Core UI layer.');
 
 $templates = [
     'component/admin/tmpl/dashboard/default.php',
@@ -56,17 +56,26 @@ $assertContains('xdecaro-suite__metric is-success', $people, 'Published KPI must
 $assertContains('xdecaro-suite__metric is-neutral', $people, 'Suspended KPI must use neutral accent.');
 $assertContains('xdecaro-suite__metric is-danger', $people, 'Trashed KPI must use danger accent.');
 $assertContains('xdecaro-suite__metric is-warning', $people, 'Duplicate review KPI must use warning accent.');
+$assertContains('is-selected', $people, 'People status KPIs must expose the active filter using the shared selected state.');
 $assertContains('COM_XDECAROPEOPLE_KPI_TOTAL', $people, 'People list must use the total KPI language key.');
 $assertContains('COM_XDECAROPEOPLE_KPI_DUPLICATES', $people, 'People list must use the duplicate-review KPI language key.');
-$assertContains('xdecaro-suite__section', $people, 'People filters and table must live in the shared Core section card.');
+$assertContains('xdecaro-card xdecaro-suite__section', $people, 'People filters and table must live in the shared Core card, not a Bootstrap-specific panel.');
+$assertContains('xdecaro-card__body', $people, 'People list panel must use shared Core card padding.');
 $assertContains('xdecaro-filterbar', $people, 'People list filters must use the shared Core filter bar.');
 $assertContains('xdecaro-filterbar__search', $people, 'People search must use the shared Core filter search slot.');
 $assertContains('xdecaro-filterbar__filter', $people, 'People state filter must use the shared Core filter slot.');
 $assertContains('xdecaro-filterbar__actions', $people, 'People search action must use the shared Core filter action slot.');
+$assertContains('xdecaro-button xdecaro-button--primary', $people, 'People search must use the shared Core primary button.');
+$assertContains('xdecaro-button', $people, 'People reset action must use the shared Core button.');
 $assertContains('xdecaro-suite__responsive-wrap', $people, 'People list must use the shared responsive table wrapper.');
 $assertContains('xdecaro-suite__responsive-table', $people, 'People list must use the shared responsive table primitive.');
 $assertContains('data-label=', $people, 'People table cells must retain labels for mobile card presentation.');
-$assertContains('badge rounded-pill', $people, 'People state must be rendered as a compact badge.');
+$assertContains('xdecaro-badge xdecaro-badge--', $people, 'People state must be rendered through shared Core semantic badges.');
+$assertNotContains('table-striped', $people, 'People list must not reintroduce Bootstrap zebra striping over the shared Core table surface.');
+$assertNotContains('badge rounded-pill', $people, 'People status must not use Bootstrap-specific badge styling.');
+
+$peopleCss = 'component/media/css/admin.css';
+$assertNotContains('flex: 0 1 16rem', $peopleCss, 'People must not duplicate the shared Core state-filter width.');
 
 $peopleView = 'component/admin/src/View/People/HtmlView.php';
 $assertContains('public array $statusSummary', $peopleView, 'People view must expose status KPI values.');
@@ -89,4 +98,4 @@ $assertContains('xdecaro-suite__info-card', $information, 'Information page must
 $assertContains('xdecaro-suite__card-heading', $information, 'Information card headings must use the shared Core heading primitive.');
 $assertNotContains('xdecaro-suite__info-card xdecaro-info-card__head', $information, 'Information headings must not masquerade as cards.');
 
-fwrite(STDOUT, "People 1.8.1 Core admin UI contract: OK\n");
+fwrite(STDOUT, "People 1.8.2 Core admin UI contract: OK\n");
