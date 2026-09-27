@@ -56,6 +56,7 @@ final class HtmlView extends BaseHtmlView
 
         $this->document->getWebAssetManager()
             ->useStyle('com_xdecaropeople.admin')
+            ->useStyle('com_xdecaropeople.people-list')
             ->useScript('com_xdecaropeople.export');
 
         ToolbarHelper::title(Text::_('COM_XDECAROPEOPLE_PEOPLE'), 'users');
