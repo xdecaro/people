@@ -1,4 +1,4 @@
-/* People 1.8.2 - list-view bridge to the finalized Core 2.2.2 admin UI. */
+/* People 1.8.3 - list-view bridge to the finalized Core 2.2.2 admin UI. */
 
 .xdecaro-suite > .xdecaro-suite__page-header.mb-4,
 .xdecaro-suite > .xdecaro-suite__metrics.mb-4 {
@@ -11,6 +11,34 @@
     background: var(--xdecaro-color-surface);
     box-shadow: var(--xdecaro-shadow-sm);
     color: var(--xdecaro-color-text);
+}
+
+.xdecaro-suite .card.xdecaro-suite__metric.is-primary { border-inline-start: 4px solid var(--xdecaro-color-primary); }
+.xdecaro-suite .card.xdecaro-suite__metric.is-success { border-inline-start: 4px solid var(--xdecaro-color-success); }
+.xdecaro-suite .card.xdecaro-suite__metric.is-neutral { border-inline-start: 4px solid var(--xdecaro-color-muted); }
+.xdecaro-suite .card.xdecaro-suite__metric.is-danger { border-inline-start: 4px solid var(--xdecaro-color-danger); }
+.xdecaro-suite .card.xdecaro-suite__metric.is-warning { border-inline-start: 4px solid var(--xdecaro-color-warning); }
+
+.xdecaro-suite .xdecaro-people-kpi-link {
+    color: inherit;
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.xdecaro-suite .xdecaro-people-kpi-link:hover {
+    color: inherit;
+    box-shadow: var(--xdecaro-shadow-md, 0 .35rem 1rem rgba(0,0,0,.08));
+    transform: translateY(-1px);
+}
+
+.xdecaro-suite .xdecaro-people-kpi-link:focus-visible {
+    outline: 2px solid var(--xdecaro-color-primary);
+    outline-offset: 2px;
+}
+
+.xdecaro-suite .xdecaro-people-kpi-link.is-active {
+    border-color: var(--xdecaro-color-primary);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--xdecaro-color-primary) 28%, transparent), var(--xdecaro-shadow-sm);
 }
 
 .xdecaro-suite .xdecaro-suite__metric > .card-body {
@@ -97,12 +125,62 @@
     background-color: color-mix(in srgb, var(--xdecaro-color-primary) 3%, var(--xdecaro-color-surface));
 }
 
-.xdecaro-suite .xdecaro-suite__responsive-table .badge {
+.xdecaro-suite .xdecaro-people-status-heading,
+.xdecaro-suite .xdecaro-people-status-cell {
+    width: 8.75rem;
+    min-width: 8.75rem;
+    text-align: center;
+}
+
+.xdecaro-suite .xdecaro-people-status-cell {
+    vertical-align: middle;
+}
+
+.xdecaro-suite .xdecaro-people-status-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+    border-radius: 999px;
+}
+
+.xdecaro-suite .xdecaro-people-status-link:focus-visible {
+    outline: 2px solid var(--xdecaro-color-primary);
+    outline-offset: 2px;
+}
+
+.xdecaro-suite .xdecaro-people-status-badge {
+    display: inline-flex;
     min-height: 1.625rem;
-    padding: .25rem .6rem;
+    padding: .3rem .7rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 999px;
     font-size: .75rem;
     font-weight: 750;
-    line-height: 1.15;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.xdecaro-suite .xdecaro-people-status-badge.is-success {
+    border-color: color-mix(in srgb, var(--xdecaro-color-success) 26%, transparent);
+    background: color-mix(in srgb, var(--xdecaro-color-success) 14%, var(--xdecaro-color-surface));
+    color: var(--xdecaro-color-success);
+}
+
+.xdecaro-suite .xdecaro-people-status-badge.is-warning {
+    border-color: color-mix(in srgb, var(--xdecaro-color-warning) 30%, transparent);
+    background: color-mix(in srgb, var(--xdecaro-color-warning) 16%, var(--xdecaro-color-surface));
+    color: var(--xdecaro-color-warning);
+}
+
+.xdecaro-suite .xdecaro-people-status-badge.is-danger {
+    border-color: color-mix(in srgb, var(--xdecaro-color-danger) 26%, transparent);
+    background: color-mix(in srgb, var(--xdecaro-color-danger) 14%, var(--xdecaro-color-surface));
+    color: var(--xdecaro-color-danger);
 }
 
 @container xdecaro-suite (max-width: 38rem) {
@@ -112,5 +190,18 @@
         width: 100%;
         min-width: 0;
         flex-basis: auto;
+    }
+
+    .xdecaro-suite .xdecaro-people-status-heading,
+    .xdecaro-suite .xdecaro-people-status-cell {
+        width: auto;
+        min-width: 0;
+        text-align: start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .xdecaro-suite .xdecaro-people-kpi-link {
+        transition: none;
     }
 }
