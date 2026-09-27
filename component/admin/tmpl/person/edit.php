@@ -59,15 +59,15 @@ $accordionStart = static function (string $id, string $label, bool $open = false
     $headingId = 'person-heading-' . $safeId;
     $sectionId = 'person-section-' . $safeId;
 
-    return '<div class="accordion-item xdecaro-person-section" data-xdecaro-person-section="' . $escape($safeId) . '">'
+    return '<div class="accordion-item xdecaro-accordion__item xdecaro-person-section" data-xdecaro-person-section="' . $escape($safeId) . '">'
         . '<h3 class="accordion-header" id="' . $escape($headingId) . '">'
-        . '<button class="accordion-button' . ($open ? '' : ' collapsed') . '" type="button" data-bs-toggle="collapse"'
+        . '<button class="accordion-button xdecaro-accordion__button' . ($open ? '' : ' collapsed') . '" type="button" data-bs-toggle="collapse"'
         . ' data-bs-target="#' . $escape($sectionId) . '" aria-expanded="' . ($open ? 'true' : 'false') . '"'
         . ' aria-controls="' . $escape($sectionId) . '">' . $escape($label) . '</button>'
         . '</h3>'
         . '<div id="' . $escape($sectionId) . '" class="accordion-collapse collapse' . ($open ? ' show' : '') . '"'
         . ' aria-labelledby="' . $escape($headingId) . '" data-bs-parent="#personAccordion">'
-        . '<div class="accordion-body">';
+        . '<div class="accordion-body xdecaro-accordion__body">';
 };
 $accordionEnd = static fn (): string => '</div></div></div>';
 ?>
@@ -76,14 +76,14 @@ $accordionEnd = static fn (): string => '</div></div></div>';
     method="post"
     name="adminForm"
     id="adminForm"
-    class="form-validate"
+    class="form-validate xdecaro-form"
 >
-    <div class="xdecaro-scope xdecaro-people-person-edit">
+    <div class="xdecaro-scope xdecaro-suite xdecaro-people-person-edit">
         <div class="xdecaro-person-heading">
             <h2><?php echo $escape($personHeading); ?></h2>
         </div>
 
-        <div class="accordion xdecaro-person-accordion" id="personAccordion">
+        <div class="accordion xdecaro-accordion xdecaro-person-accordion" id="personAccordion">
             <?php
             echo $accordionStart('identity', Text::_('COM_XDECAROPEOPLE_FIELDSET_IDENTITY'), true);
             echo $this->form->renderFieldset('identity');
