@@ -21,7 +21,7 @@ $assertNotContains = static function (string $needle, string $path, string $mess
 };
 
 $service = 'component/admin/src/Service/CoreIntegrationService.php';
-$assertContains("public const MINIMUM_CORE = '2.2.2';", $service, 'People 1.8.2 must require Core 2.2.2 for the finalized shared administrator UI.');
+$assertContains("public const MINIMUM_CORE = '2.2.2';", $service, 'People 1.8.3 must require Core 2.2.2 for the finalized shared administrator UI.');
 $assertContains('useAdminUi($wam)', $service, 'People must load the public Core administrator UI through AssetService.');
 $assertNotContains('useComponents($wam)', $service, 'People must not stop at the old components-only Core UI layer.');
 
@@ -51,15 +51,22 @@ foreach ([
     'xdecaro-suite__metric is-neutral',
     'xdecaro-suite__metric is-danger',
     'xdecaro-suite__metric is-warning',
+    'xdecaro-people-kpi-link',
+    'filter_state=1',
+    'filter_state=0',
+    'filter_state=-2',
     'xdecaro-filterbar',
     'xdecaro-filterbar__search',
     'xdecaro-filterbar__filter',
     'xdecaro-filterbar__actions',
     'xdecaro-suite__responsive-wrap',
     'xdecaro-suite__responsive-table',
+    'xdecaro-people-status-cell',
+    'xdecaro-people-status-link',
+    'xdecaro-people-status-badge',
     'data-label=',
 ] as $marker) {
-    $assertContains($marker, $people, 'People list missing shared Core marker: ' . $marker);
+    $assertContains($marker, $people, 'People list missing shared/filter UI marker: ' . $marker);
 }
 
 $peopleView = 'component/admin/src/View/People/HtmlView.php';
@@ -73,16 +80,20 @@ foreach ([
     '.xdecaro-suite__metric > .card-body',
     'flex: 0 1 13rem',
     '--bs-table-striped-bg: var(--xdecaro-color-surface)',
-    '.xdecaro-suite__responsive-table.table > tbody > tr:hover > *',
+    '.xdecaro-people-kpi-link',
+    '.xdecaro-people-status-cell',
+    '.xdecaro-people-status-link',
+    '.xdecaro-people-status-badge',
+    'justify-content: center',
     '@container xdecaro-suite (max-width: 38rem)',
 ] as $marker) {
-    $assertContains($marker, $listCss, 'People list bridge missing parity rule: ' . $marker);
+    $assertContains($marker, $listCss, 'People list bridge missing parity/filter rule: ' . $marker);
 }
 $assertNotContains('.dc-', $listCss, 'Courses-private selectors must never be copied into People.');
 
 $assets = 'component/media/joomla.asset.json';
 $assertContains('com_xdecaropeople.people-list', $assets, 'People list bridge must be registered in the Web Asset Manager.');
-$assertContains('"version": "1.8.2"', $assets, 'People Web Assets must match version 1.8.2.');
+$assertContains('"version": "1.8.3"', $assets, 'People Web Assets must match version 1.8.3.');
 
 $peopleModel = 'component/admin/src/Model/PeopleModel.php';
 $assertContains('public function getStatusSummary(): array', $peopleModel, 'People model must provide status counts without changing list filters.');
@@ -97,4 +108,4 @@ $assertContains('xdecaro-suite__info-grid', $information, 'Information page must
 $assertContains('xdecaro-suite__info-card', $information, 'Information page must use the shared Core information card.');
 $assertContains('xdecaro-suite__card-heading', $information, 'Information card headings must use the shared Core heading primitive.');
 
-fwrite(STDOUT, "People 1.8.2 Core admin UI contract: OK\n");
+fwrite(STDOUT, "People 1.8.3 Core admin UI contract: OK\n");
