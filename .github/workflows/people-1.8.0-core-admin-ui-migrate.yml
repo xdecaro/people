@@ -1,0 +1,41 @@
+name: People 1.8.0 Core admin UI migration
+
+on:
+  push:
+    branches:
+      - feat/people-1.8.0-core-admin-ui
+    paths:
+      - build/migrate-core-admin-ui-1.8.0.php
+      - component/admin/tmpl/duplicates/default.php
+      - component/admin/tmpl/import/default.php
+      - component/admin/tmpl/information/default.php
+      - component/admin/tmpl/person/edit.php
+      - .github/workflows/people-1.8.0-core-admin-ui-migrate.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/people-1.8.0-core-admin-ui
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Apply migration
+        run: php build/migrate-core-admin-ui-1.8.0.php
+      - name: Commit migration result
+        run: |
+          if git diff --quiet; then
+            echo "No migration changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add component/admin/tmpl/duplicates/default.php component/admin/tmpl/import/default.php component/admin/tmpl/information/default.php component/admin/tmpl/person/edit.php
+          git commit -m "feat: migrate remaining People views to Core admin UI"
+          git push origin HEAD:feat/people-1.8.0-core-admin-ui
