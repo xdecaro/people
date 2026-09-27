@@ -40,7 +40,7 @@ $actionLabel = static function (string $action): string {
 <div class="xdecaro-scope xdecaro-suite xdecaro-information">
     <section class="xdecaro-suite__info-grid xdecaro-info-grid xdecaro-info-grid--top" aria-label="Prodotto e ambiente">
         <article class="xdecaro-suite__info-card xdecaro-info-card">
-            <div class="xdecaro-suite__info-card xdecaro-info-card__head"><h2>Prodotto e ambiente</h2><span class="badge bg-primary">People <?php echo $this->escape((string) ($d['component_version'] ?? '-')); ?></span></div>
+            <div class="xdecaro-suite__card-heading xdecaro-info-card__head"><h2>Prodotto e ambiente</h2><span class="badge bg-primary">People <?php echo $this->escape((string) ($d['component_version'] ?? '-')); ?></span></div>
             <dl class="xdecaro-info-dl">
                 <div><dt>People</dt><dd><?php echo $this->escape((string) ($d['component_version'] ?? '-')); ?></dd></div>
                 <div><dt>Joomla</dt><dd><?php echo $this->escape((string) ($d['joomla_version'] ?? '-')); ?></dd></div>
@@ -50,7 +50,7 @@ $actionLabel = static function (string $action): string {
         </article>
 
         <article class="xdecaro-suite__info-card xdecaro-info-card">
-            <div class="xdecaro-suite__info-card xdecaro-info-card__head"><h2>Database People</h2><span class="badge <?php echo !empty($d['table_ok']) ? 'bg-success' : 'bg-warning text-dark'; ?>"><?php echo !empty($d['table_ok']) ? 'OK' : 'Attenzione'; ?></span></div>
+            <div class="xdecaro-suite__card-heading xdecaro-info-card__head"><h2>Database People</h2><span class="badge <?php echo !empty($d['table_ok']) ? 'bg-success' : 'bg-warning text-dark'; ?>"><?php echo !empty($d['table_ok']) ? 'OK' : 'Attenzione'; ?></span></div>
             <div class="xdecaro-stat-row">
                 <div><strong><?php echo (int) ($db['total'] ?? 0); ?></strong><span>Totale</span></div>
                 <div><strong><?php echo (int) ($db['active'] ?? 0); ?></strong><span>Pubblicate</span></div>
@@ -72,7 +72,7 @@ $actionLabel = static function (string $action): string {
     </section>
 
     <section class="xdecaro-suite__info-card xdecaro-info-card">
-        <div class="xdecaro-suite__info-card xdecaro-info-card__head"><h2>Componenti collegati</h2><span class="text-muted">Ecosistema xdecaro</span></div>
+        <div class="xdecaro-suite__card-heading xdecaro-info-card__head"><h2>Componenti collegati</h2><span class="text-muted">Ecosistema xdecaro</span></div>
         <div class="xdecaro-components-grid">
             <?php foreach ($this->connectedComponents as $component): ?>
                 <a class="xdecaro-component-tile <?php echo !empty($component['enabled']) ? 'is-ok' : 'is-off'; ?>" href="<?php echo Route::_((string) $component['url']); ?>">
@@ -85,7 +85,7 @@ $actionLabel = static function (string $action): string {
     </section>
 
     <section class="xdecaro-suite__info-card xdecaro-info-card">
-        <div class="xdecaro-suite__info-card xdecaro-info-card__head">
+        <div class="xdecaro-suite__card-heading xdecaro-info-card__head">
             <div><h2>Diagnostica e integrità</h2><p class="mb-0 text-muted">Controlli tecnici sui dati People e sullo storage privato dei backup.</p></div>
             <span class="badge <?php echo !empty($integrity['ok']) ? 'bg-success' : 'bg-warning text-dark'; ?>"><?php echo !empty($integrity['ok']) ? 'Tutto corretto' : 'Da verificare'; ?></span>
         </div>
@@ -106,7 +106,7 @@ $actionLabel = static function (string $action): string {
     </section>
 
     <section class="xdecaro-suite__info-card xdecaro-info-card xdecaro-info-card--database">
-        <div class="xdecaro-suite__info-card xdecaro-info-card__head"><div><h2>Gestione database</h2><p class="mb-0 text-muted">Backup People, restore controllato e manutenzione dello schema corrente.</p></div></div>
+        <div class="xdecaro-suite__card-heading xdecaro-info-card__head"><div><h2>Gestione database</h2><p class="mb-0 text-muted">Backup People, restore controllato e manutenzione dello schema corrente.</p></div></div>
         <div class="xdecaro-management-grid">
             <div class="xdecaro-management-panel">
                 <h3>Backup</h3>
@@ -138,7 +138,7 @@ $actionLabel = static function (string $action): string {
         </div>
 
         <div class="xdecaro-database-maintenance mt-3">
-            <div class="xdecaro-suite__info-card xdecaro-info-card__head">
+            <div class="xdecaro-suite__card-heading xdecaro-info-card__head">
                 <div>
                     <h3>Manutenzione database</h3>
                     <p class="mb-0 text-muted">Lo schema canonico corrente è la fonte unica per controllo, riparazione e ricreazione.</p>
@@ -205,7 +205,7 @@ $actionLabel = static function (string $action): string {
     </section>
 
     <section class="xdecaro-suite__info-card xdecaro-info-card">
-        <div class="xdecaro-suite__info-card xdecaro-info-card__head"><h2>Backup disponibili</h2><span class="badge bg-secondary"><?php echo count($this->backups); ?></span></div>
+        <div class="xdecaro-suite__card-heading xdecaro-info-card__head"><h2>Backup disponibili</h2><span class="badge bg-secondary"><?php echo count($this->backups); ?></span></div>
         <?php if (!$this->backups): ?>
             <p class="text-muted mb-0">Nessun backup disponibile.</p>
         <?php else: ?>
@@ -253,7 +253,7 @@ $actionLabel = static function (string $action): string {
     </section>
 
     <section class="xdecaro-suite__info-card xdecaro-info-card">
-        <div class="xdecaro-suite__info-card xdecaro-info-card__head"><div><h2>Cancellati</h2><p class="mb-0 text-muted">Le persone nel cestino restano recuperabili e mantengono ID e UUID.</p></div><span class="badge bg-secondary"><?php echo count($this->recentTrashed); ?></span></div>
+        <div class="xdecaro-suite__card-heading xdecaro-info-card__head"><div><h2>Cancellati</h2><p class="mb-0 text-muted">Le persone nel cestino restano recuperabili e mantengono ID e UUID.</p></div><span class="badge bg-secondary"><?php echo count($this->recentTrashed); ?></span></div>
         <?php if (!$this->recentTrashed): ?>
             <p class="text-muted mb-0">Nessuna persona nel cestino.</p>
         <?php else: ?>
@@ -292,7 +292,7 @@ $actionLabel = static function (string $action): string {
     </section>
 
     <section class="xdecaro-suite__info-card xdecaro-info-card">
-        <div class="xdecaro-suite__info-card xdecaro-info-card__head"><h2>Attività manutenzione</h2><span class="badge bg-secondary"><?php echo count($this->maintenanceActivity); ?></span></div>
+        <div class="xdecaro-suite__card-heading xdecaro-info-card__head"><h2>Attività manutenzione</h2><span class="badge bg-secondary"><?php echo count($this->maintenanceActivity); ?></span></div>
         <?php if (!$this->maintenanceActivity): ?>
             <p class="text-muted mb-0">Nessuna attività registrata.</p>
         <?php else: ?>
