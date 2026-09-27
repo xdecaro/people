@@ -1,0 +1,22 @@
+name: People 1.8.0 Core admin UI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - feat/people-1.8.0-core-admin-ui
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: People 1.8.0 Core admin UI contract
+        run: php tests/people-1.8.0-core-admin-ui-contract.php
