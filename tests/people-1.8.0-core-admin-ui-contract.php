@@ -46,6 +46,10 @@ $assertContains('xdecaro-suite__section', $dashboard, 'Dashboard sections must u
 $assertContains('xdecaro-suite__actions', $dashboard, 'Dashboard quick actions must use the shared Core action group.');
 
 $people = 'component/admin/tmpl/people/default.php';
+$assertContains('xdecaro-people-pagehead', $people, 'People list must expose the shared page heading block.');
+$assertContains('xdecaro-suite__metrics', $people, 'People list must show shared KPI cards above the filters.');
+$assertContains('xdecaro-suite__metric', $people, 'People list KPI cards must use the shared Core metric primitive.');
+$assertContains('xdecaro-suite__section', $people, 'People filters and table must live in the shared Core section card.');
 $assertContains('xdecaro-filterbar', $people, 'People list filters must use the shared Core filter bar.');
 $assertContains('xdecaro-filterbar__search', $people, 'People search must use the shared Core filter search slot.');
 $assertContains('xdecaro-filterbar__filter', $people, 'People state filter must use the shared Core filter slot.');
@@ -53,6 +57,16 @@ $assertContains('xdecaro-filterbar__actions', $people, 'People search action mus
 $assertContains('xdecaro-suite__responsive-wrap', $people, 'People list must use the shared responsive table wrapper.');
 $assertContains('xdecaro-suite__responsive-table', $people, 'People list must use the shared responsive table primitive.');
 $assertContains('data-label=', $people, 'People table cells must retain labels for mobile card presentation.');
+$assertContains('badge rounded-pill', $people, 'People state must be rendered as a compact badge.');
+$assertContains('COM_XDECAROPEOPLE_DUPLICATES', $people, 'People KPIs must expose duplicate groups requiring review.');
+
+$peopleView = 'component/admin/src/View/People/HtmlView.php';
+$assertContains('public array $statusSummary', $peopleView, 'People view must expose status KPI values.');
+$assertContains("get('StatusSummary')", $peopleView, 'People view must load the status summary from the model.');
+$assertContains('duplicateGroups', $peopleView, 'People view must expose duplicate groups requiring review.');
+
+$peopleModel = 'component/admin/src/Model/PeopleModel.php';
+$assertContains('public function getStatusSummary(): array', $peopleModel, 'People model must provide status counts without changing list filters.');
 
 $person = 'component/admin/tmpl/person/edit.php';
 $assertContains('xdecaro-form', $person, 'Person editor must use the shared Core form contract.');
