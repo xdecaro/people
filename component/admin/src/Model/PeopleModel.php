@@ -50,6 +50,30 @@ final class PeopleModel extends ListModel
         $this->setState('list.start', (int) (floor($start / $limit) * $limit));
     }
 
+    public function getStatusSummary(): array
+    {
+        $db = $this->getDatabase();
+        $state = $db->quoteName('state');
+
+        $query = $db->getQuery(true)
+            ->select([
+                'COUNT(*) AS total',
+                'SUM(CASE WHEN ' . $state . ' = 1 THEN 1 ELSE 0 END) AS published',
+                'SUM(CASE WHEN ' . $state . ' = 0 THEN 1 ELSE 0 END) AS suspended',
+                'SUM(CASE WHEN ' . $state . ' = -2 THEN 1 ELSE 0 END) AS trashed',
+            ])
+            ->from($db->quoteName('#__xdecaropeople_people'));
+
+        $row = (array) $db->setQuery($query)->loadAssoc();
+
+        return [
+            'total' => (int) ($row['total'] ?? 0),
+            'published' => (int) ($row['published'] ?? 0),
+            'suspended' => (int) ($row['suspended'] ?? 0),
+            'trashed' => (int) ($row['trashed'] ?? 0),
+        ];
+    }
+
     protected function getListQuery(): DatabaseQuery
     {
         $db = $this->getDatabase();
