@@ -8,7 +8,7 @@ $root = dirname(__DIR__);
 
 $core = file_get_contents($root . '/component/admin/src/Service/CoreIntegrationService.php') ?: '';
 foreach ([
-    "MINIMUM_CORE = '2.2.1'",
+    "MINIMUM_CORE = '2.2.2'",
     'people.provider',
     'people.query',
     'people.user_link',
@@ -28,8 +28,8 @@ foreach ([
 }
 
 $packageScript = file_get_contents($root . '/package/script.php') ?: '';
-if (!str_contains($packageScript, "MINIMUM_CORE = '2.2.1'")) {
-    fwrite(STDERR, "People package must require Core 2.2.1 or later.\n");
+if (!str_contains($packageScript, "MINIMUM_CORE = '2.2.2'")) {
+    fwrite(STDERR, "People package must require Core 2.2.2 or later.\n");
     exit(1);
 }
 if (!str_contains($packageScript, "'pkg_core'") || !str_contains($packageScript, "'pkg_xdecarocore'")) {
@@ -203,7 +203,7 @@ if (($assets['version'] ?? '') !== $version) {
     exit(1);
 }
 $assetNames = array_column($assets['assets'] ?? [], 'name');
-foreach (['com_xdecaropeople.admin', 'com_xdecaropeople.person-form', 'com_xdecaropeople.person-cancel-fix'] as $asset) {
+foreach (['com_xdecaropeople.admin', 'com_xdecaropeople.people-list', 'com_xdecaropeople.person-form', 'com_xdecaropeople.person-cancel-fix'] as $asset) {
     if (!in_array($asset, $assetNames, true)) {
         fwrite(STDERR, "Missing People Web Asset: {$asset}\n");
         exit(1);
