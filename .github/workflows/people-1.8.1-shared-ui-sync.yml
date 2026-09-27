@@ -1,0 +1,98 @@
+name: People 1.8.1 shared UI sync
+
+on:
+  push:
+    branches:
+      - feat/people-1.8.0-core-admin-ui
+    paths:
+      - .github/workflows/people-1.8.1-shared-ui-sync.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/people-1.8.0-core-admin-ui
+      - name: Apply shared Core 2.2.1 UI and version metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          template = Path('component/admin/tmpl/people/default.php')
+          s = template.read_text()
+          s = s.replace('''<header class="xdecaro-people-pagehead mb-4">\n            <div class="text-primary fw-semibold text-uppercase small mb-1"><?php echo Text::_('COM_XDECAROPEOPLE'); ?></div>\n            <h1 class="h2 mb-2"><?php echo Text::_('COM_XDECAROPEOPLE_PEOPLE'); ?></h1>\n            <p class="text-body-secondary mb-0"><?php echo Text::_('COM_XDECAROPEOPLE_XML_DESCRIPTION'); ?></p>\n        </header>''', '''<header class="xdecaro-suite__page-header mb-4">\n            <div class="xdecaro-suite__eyebrow"><?php echo Text::_('COM_XDECAROPEOPLE'); ?></div>\n            <h1 class="xdecaro-suite__title"><?php echo Text::_('COM_XDECAROPEOPLE_PEOPLE'); ?></h1>\n            <p class="xdecaro-suite__description"><?php echo Text::_('COM_XDECAROPEOPLE_XML_DESCRIPTION'); ?></p>\n        </header>''')
+          s = s.replace('class="card xdecaro-suite__metric">\n                    <div class="card-body">\n                        <span><?php echo Text::_(\'COM_XDECAROPEOPLE_PEOPLE\'); ?></span>', 'class="card xdecaro-suite__metric is-primary">\n                    <div class="card-body">\n                        <span><?php echo Text::_(\'COM_XDECAROPEOPLE_KPI_TOTAL\'); ?></span>', 1)
+          s = s.replace('class="card xdecaro-suite__metric">\n                    <div class="card-body">\n                        <span><?php echo Text::_(\'JPUBLISHED\'); ?></span>', 'class="card xdecaro-suite__metric is-success">\n                    <div class="card-body">\n                        <span><?php echo Text::_(\'COM_XDECAROPEOPLE_KPI_PUBLISHED\'); ?></span>', 1)
+          s = s.replace('class="card xdecaro-suite__metric">\n                    <div class="card-body">\n                        <span><?php echo Text::_(\'JUNPUBLISHED\'); ?></span>', 'class="card xdecaro-suite__metric is-neutral">\n                    <div class="card-body">\n                        <span><?php echo Text::_(\'COM_XDECAROPEOPLE_KPI_UNPUBLISHED\'); ?></span>', 1)
+          s = s.replace('class="card xdecaro-suite__metric">\n                    <div class="card-body">\n                        <span><?php echo Text::_(\'COM_XDECAROPEOPLE_FILTER_TRASHED\'); ?></span>', 'class="card xdecaro-suite__metric is-danger">\n                    <div class="card-body">\n                        <span><?php echo Text::_(\'COM_XDECAROPEOPLE_KPI_TRASHED\'); ?></span>', 1)
+          s = s.replace('class="card xdecaro-suite__metric text-decoration-none"', 'class="card xdecaro-suite__metric is-warning text-decoration-none"', 1)
+          s = s.replace("Text::_('COM_XDECAROPEOPLE_DUPLICATES'); ?></span>", "Text::_('COM_XDECAROPEOPLE_KPI_DUPLICATES'); ?></span>", 1)
+          template.write_text(s)
+
+          translations = {
+              'component/admin/language/it-IT/com_xdecaropeople.ini': [
+                  'COM_XDECAROPEOPLE_KPI_TOTAL="Totale persone"',
+                  'COM_XDECAROPEOPLE_KPI_PUBLISHED="Pubblicate"',
+                  'COM_XDECAROPEOPLE_KPI_UNPUBLISHED="Sospese"',
+                  'COM_XDECAROPEOPLE_KPI_TRASHED="Cestinate"',
+                  'COM_XDECAROPEOPLE_KPI_DUPLICATES="Duplicati da verificare"',
+              ],
+              'component/admin/language/en-GB/com_xdecaropeople.ini': [
+                  'COM_XDECAROPEOPLE_KPI_TOTAL="Total people"',
+                  'COM_XDECAROPEOPLE_KPI_PUBLISHED="Published"',
+                  'COM_XDECAROPEOPLE_KPI_UNPUBLISHED="Suspended"',
+                  'COM_XDECAROPEOPLE_KPI_TRASHED="Trashed"',
+                  'COM_XDECAROPEOPLE_KPI_DUPLICATES="Duplicates to review"',
+              ],
+          }
+          for name, lines in translations.items():
+              p = Path(name)
+              text = p.read_text()
+              marker = 'COM_XDECAROPEOPLE_PEOPLE='
+              if lines[0].split('=')[0] not in text:
+                  pos = text.find('\n', text.find(marker)) + 1
+                  text = text[:pos] + '\n'.join(lines) + '\n' + text[pos:]
+              p.write_text(text)
+
+          for name in ['component/admin/src/Service/CoreIntegrationService.php', 'package/script.php']:
+              p = Path(name)
+              p.write_text(p.read_text().replace("MINIMUM_CORE = '2.2.0'", "MINIMUM_CORE = '2.2.1'"))
+
+          Path('VERSION').write_text('1.8.1\n')
+          for name in ['component/xdecaropeople.xml', 'package/pkg_people.xml', 'updates/pkg_people.xml']:
+              p = Path(name)
+              p.write_text(p.read_text().replace('1.8.0', '1.8.1'))
+
+          p = Path('component/media/joomla.asset.json')
+          data = json.loads(p.read_text())
+          data['version'] = '1.8.1'
+          for asset in data.get('assets', []):
+              asset['version'] = '1.8.1'
+          p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+
+          test = Path('tests/people-1.8.0-core-admin-ui-contract.php')
+          t = test.read_text()
+          t = t.replace("MINIMUM_CORE = '2.2.0'", "MINIMUM_CORE = '2.2.1'")
+          for needle in ['xdecaro-suite__page-header', 'xdecaro-suite__eyebrow', 'xdecaro-suite__title', 'xdecaro-suite__description', 'is-primary', 'is-success', 'is-neutral', 'is-danger', 'is-warning']:
+              if needle not in t:
+                  t = t.replace("$people = 'component/admin/tmpl/people/default.php';", "$people = 'component/admin/tmpl/people/default.php';\n$assertContains('" + needle + "', $people, 'People list must use shared Core UI: " + needle + "');", 1)
+          test.write_text(t)
+          PY
+          cat > component/admin/sql/updates/mysql/1.8.1.sql <<'SQL'
+          -- People 1.8.1: shared Core 2.2.1 UI refinement; no schema changes.
+          SQL
+      - name: Commit People 1.8.1 shared UI
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add VERSION component package updates tests
+          git diff --cached --quiet && exit 0
+          git commit -m "feat: align People 1.8.1 list UI with Core 2.2.1"
+          git push origin HEAD:feat/people-1.8.0-core-admin-ui
