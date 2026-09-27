@@ -14,9 +14,9 @@ $limitChoices = [20, 50, 100, 200, 500, 1000, 999999];
 $totalItems = (int) ($this->pagination->total ?? 0);
 ?>
 <form action="<?php echo Route::_('index.php?option=com_xdecaropeople&view=people'); ?>" method="post" name="adminForm" id="adminForm">
-    <div class="xdecaro-scope">
-        <div class="xdecaro-people-filters mb-3">
-            <div class="xdecaro-people-filter-search">
+    <div class="xdecaro-scope xdecaro-suite">
+        <div class="xdecaro-filterbar xdecaro-people-filters mb-3">
+            <div class="xdecaro-filterbar__search xdecaro-people-filter-search">
                 <input
                     type="search"
                     name="filter_search"
@@ -25,7 +25,7 @@ $totalItems = (int) ($this->pagination->total ?? 0);
                     placeholder="<?php echo Text::_('JSEARCH_FILTER'); ?>"
                 >
             </div>
-            <div class="xdecaro-people-filter-state">
+            <div class="xdecaro-filterbar__filter xdecaro-people-filter-state">
                 <select name="filter_state" class="form-select" onchange="this.form.requestSubmit()">
                     <option value=""><?php echo Text::_('JOPTION_SELECT_PUBLISHED'); ?></option>
                     <option value="1" <?php echo $filterState === '1' ? 'selected' : ''; ?>><?php echo Text::_('JPUBLISHED'); ?></option>
@@ -33,13 +33,13 @@ $totalItems = (int) ($this->pagination->total ?? 0);
                     <option value="-2" <?php echo $filterState === '-2' ? 'selected' : ''; ?>><?php echo Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'); ?></option>
                 </select>
             </div>
-            <div class="xdecaro-people-filter-submit">
+            <div class="xdecaro-filterbar__actions xdecaro-people-filter-submit">
                 <button class="btn btn-primary" type="submit"><?php echo Text::_('JSEARCH_FILTER_SUBMIT'); ?></button>
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-striped align-middle">
+        <div class="xdecaro-suite__responsive-wrap table-responsive">
+            <table class="xdecaro-suite__responsive-table table table-striped align-middle">
                 <thead>
                     <tr>
                         <th><input type="checkbox" name="checkall-toggle" onclick="Joomla.checkAll(this)"></th>
@@ -64,19 +64,19 @@ $totalItems = (int) ($this->pagination->total ?? 0);
                         };
                         ?>
                         <tr>
-                            <td><?php echo HTMLHelper::_('grid.id', $i, (int) $item->id); ?></td>
-                            <td>
+                            <td data-label="<?php echo $this->escape(Text::_('JSELECT')); ?>"><?php echo HTMLHelper::_('grid.id', $i, (int) $item->id); ?></td>
+                            <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME')); ?>">
                                 <a href="<?php echo Route::_('index.php?option=com_xdecaropeople&task=person.edit&id=' . (int) $item->id); ?>">
                                     <?php echo $this->escape($item->display_name); ?>
                                 </a>
                             </td>
                             <?php if ($this->canIdentityDetails) : ?>
-                                <td><?php echo !empty($item->birth_date) ? $this->escape(HTMLHelper::_('date', $item->birth_date, Text::_('DATE_FORMAT_FILTER_DATE'))) : '—'; ?></td>
-                                <td><?php echo $this->escape((string) ($item->birth_place ?? '')); ?></td>
+                                <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE')); ?>"><?php echo !empty($item->birth_date) ? $this->escape(HTMLHelper::_('date', $item->birth_date, Text::_('DATE_FORMAT_FILTER_DATE'))) : '—'; ?></td>
+                                <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE')); ?>"><?php echo $this->escape((string) ($item->birth_place ?? '')); ?></td>
                             <?php endif; ?>
-                            <td><?php echo $this->escape((string) $item->email); ?></td>
-                            <td><?php echo $this->escape((string) $item->phone); ?></td>
-                            <td><?php echo $stateLabel; ?></td>
+                            <td data-label="<?php echo $this->escape(Text::_('JGLOBAL_EMAIL')); ?>"><?php echo $this->escape((string) $item->email); ?></td>
+                            <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PHONE')); ?>"><?php echo $this->escape((string) $item->phone); ?></td>
+                            <td data-label="<?php echo $this->escape(Text::_('JSTATUS')); ?>"><?php echo $stateLabel; ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
