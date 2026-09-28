@@ -1,4 +1,4 @@
-/* People 1.8.5 - narrow list-view bridge on the Core 2.2.7 administrator UI. */
+/* People 1.8.6 - narrow list-view bridge on the Core 2.2.9 administrator UI. */
 
 .xdecaro-suite .xdecaro-people-kpi-link {
     color: inherit;
@@ -22,24 +22,6 @@
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--xdecaro-color-primary) 28%, transparent), var(--xdecaro-shadow-sm);
 }
 
-.xdecaro-suite .xdecaro-people-filters {
-    gap: var(--xdecaro-space-2, .5rem);
-}
-
-.xdecaro-suite .xdecaro-people-filter-search {
-    flex: 1 1 18rem;
-    min-width: min(100%, 12rem);
-}
-
-.xdecaro-suite .xdecaro-people-filter-state {
-    flex: 0 1 13rem;
-    min-width: min(100%, 10rem);
-}
-
-.xdecaro-suite .xdecaro-people-filter-submit {
-    flex: 0 0 auto;
-}
-
 .xdecaro-suite .xdecaro-people-person-status-heading,
 .xdecaro-suite .xdecaro-people-person-status-cell {
     width: 7.5rem;
@@ -49,8 +31,8 @@
 
 .xdecaro-suite .xdecaro-people-publication-heading,
 .xdecaro-suite .xdecaro-people-publication-cell {
-    width: 6.25rem;
-    min-width: 6.25rem;
+    width: 5rem;
+    min-width: 5rem;
     text-align: center;
 }
 
@@ -59,7 +41,7 @@
     vertical-align: middle;
 }
 
-.xdecaro-suite .xdecaro-people-publication-link {
+.xdecaro-suite a.xdecaro-people-publication-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -73,33 +55,43 @@
     transition: background-color .15s ease, box-shadow .15s ease;
 }
 
-.xdecaro-suite .xdecaro-people-publication-link:hover,
-.xdecaro-suite .xdecaro-people-publication-link:focus,
-.xdecaro-suite .xdecaro-people-publication-link:active {
+.xdecaro-suite a.xdecaro-people-publication-link:hover,
+.xdecaro-suite a.xdecaro-people-publication-link:focus,
+.xdecaro-suite a.xdecaro-people-publication-link:active,
+.xdecaro-suite a.xdecaro-people-publication-link:visited {
     text-decoration: none !important;
 }
 
-.xdecaro-suite .xdecaro-people-publication-link:focus-visible {
+.xdecaro-suite a.xdecaro-people-publication-link:focus-visible {
     outline: 2px solid var(--xdecaro-color-primary);
     outline-offset: 2px;
 }
 
-.xdecaro-suite .xdecaro-people-publication-link.is-success {
-    color: var(--xdecaro-color-success);
+.xdecaro-suite a.xdecaro-people-publication-link.is-success,
+.xdecaro-suite a.xdecaro-people-publication-link.is-success:visited,
+.xdecaro-suite a.xdecaro-people-publication-link.is-success:hover,
+.xdecaro-suite a.xdecaro-people-publication-link.is-success:focus {
+    color: var(--xdecaro-color-success) !important;
     background: var(--xdecaro-color-success-soft);
 }
 
-.xdecaro-suite .xdecaro-people-publication-link.is-warning {
-    color: var(--xdecaro-color-warning);
+.xdecaro-suite a.xdecaro-people-publication-link.is-warning,
+.xdecaro-suite a.xdecaro-people-publication-link.is-warning:visited,
+.xdecaro-suite a.xdecaro-people-publication-link.is-warning:hover,
+.xdecaro-suite a.xdecaro-people-publication-link.is-warning:focus {
+    color: var(--xdecaro-color-warning) !important;
     background: var(--xdecaro-color-warning-soft);
 }
 
-.xdecaro-suite .xdecaro-people-publication-link.is-danger {
-    color: var(--xdecaro-color-danger);
+.xdecaro-suite a.xdecaro-people-publication-link.is-danger,
+.xdecaro-suite a.xdecaro-people-publication-link.is-danger:visited,
+.xdecaro-suite a.xdecaro-people-publication-link.is-danger:hover,
+.xdecaro-suite a.xdecaro-people-publication-link.is-danger:focus {
+    color: var(--xdecaro-color-danger) !important;
     background: var(--xdecaro-color-danger-soft);
 }
 
-.xdecaro-suite .xdecaro-people-publication-link:hover {
+.xdecaro-suite a.xdecaro-people-publication-link:hover {
     box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 14%, transparent);
 }
 
@@ -110,14 +102,6 @@
 }
 
 @container xdecaro-suite (max-width: 38rem) {
-    .xdecaro-suite .xdecaro-people-filter-state,
-    .xdecaro-suite .xdecaro-people-filter-search,
-    .xdecaro-suite .xdecaro-people-filter-submit {
-        width: 100%;
-        min-width: 0;
-        flex-basis: auto;
-    }
-
     .xdecaro-suite .xdecaro-people-person-status-heading,
     .xdecaro-suite .xdecaro-people-person-status-cell,
     .xdecaro-suite .xdecaro-people-publication-heading,
