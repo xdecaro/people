@@ -1,23 +1,4 @@
-/* People 1.8.3 - list-view bridge to the finalized Core 2.2.2 admin UI. */
-
-.xdecaro-suite > .xdecaro-suite__page-header.mb-4,
-.xdecaro-suite > .xdecaro-suite__metrics.mb-4 {
-    margin-bottom: 0 !important;
-}
-
-.xdecaro-suite .card.xdecaro-suite__metric {
-    border: 1px solid var(--xdecaro-color-border);
-    border-radius: var(--xdecaro-radius-lg);
-    background: var(--xdecaro-color-surface);
-    box-shadow: var(--xdecaro-shadow-sm);
-    color: var(--xdecaro-color-text);
-}
-
-.xdecaro-suite .card.xdecaro-suite__metric.is-primary { border-inline-start: 4px solid var(--xdecaro-color-primary); }
-.xdecaro-suite .card.xdecaro-suite__metric.is-success { border-inline-start: 4px solid var(--xdecaro-color-success); }
-.xdecaro-suite .card.xdecaro-suite__metric.is-neutral { border-inline-start: 4px solid var(--xdecaro-color-muted); }
-.xdecaro-suite .card.xdecaro-suite__metric.is-danger { border-inline-start: 4px solid var(--xdecaro-color-danger); }
-.xdecaro-suite .card.xdecaro-suite__metric.is-warning { border-inline-start: 4px solid var(--xdecaro-color-warning); }
+/* People 1.8.4 - narrow list-view bridge on the Core 2.2.5 administrator UI. */
 
 .xdecaro-suite .xdecaro-people-kpi-link {
     color: inherit;
@@ -27,7 +8,7 @@
 
 .xdecaro-suite .xdecaro-people-kpi-link:hover {
     color: inherit;
-    box-shadow: var(--xdecaro-shadow-md, 0 .35rem 1rem rgba(0,0,0,.08));
+    box-shadow: var(--xdecaro-shadow-md, 0 .35rem 1rem rgba(0, 0, 0, .08));
     transform: translateY(-1px);
 }
 
@@ -39,42 +20,6 @@
 .xdecaro-suite .xdecaro-people-kpi-link.is-active {
     border-color: var(--xdecaro-color-primary);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--xdecaro-color-primary) 28%, transparent), var(--xdecaro-shadow-sm);
-}
-
-.xdecaro-suite .xdecaro-suite__metric > .card-body {
-    display: flex;
-    min-width: 0;
-    padding: 0;
-    flex-direction: column;
-    gap: var(--xdecaro-space-2, .5rem);
-}
-
-.xdecaro-suite .xdecaro-suite__metric > .card-body > .small {
-    margin: 0 !important;
-    color: var(--xdecaro-color-muted) !important;
-    font-size: .8125rem !important;
-    font-weight: 650;
-    line-height: 1.25;
-}
-
-.xdecaro-suite .xdecaro-suite__metric > .card-body > strong.fs-3 {
-    color: var(--xdecaro-color-text);
-    font-size: clamp(1.65rem, 2vw, 1.875rem) !important;
-    font-weight: 750;
-    line-height: 1;
-}
-
-.xdecaro-suite .card.xdecaro-suite__section {
-    overflow: clip;
-    border: 1px solid var(--xdecaro-color-border);
-    border-radius: var(--xdecaro-radius-lg);
-    background: var(--xdecaro-color-surface);
-    box-shadow: var(--xdecaro-shadow-sm);
-    color: var(--xdecaro-color-text);
-}
-
-.xdecaro-suite .card.xdecaro-suite__section > .card-body {
-    padding: 1.25rem;
 }
 
 .xdecaro-suite .xdecaro-people-filters {
@@ -95,36 +40,6 @@
     flex: 0 0 auto;
 }
 
-.xdecaro-suite .xdecaro-suite__responsive-wrap.table-responsive {
-    border-radius: .75rem;
-}
-
-.xdecaro-suite .xdecaro-suite__responsive-table.table {
-    --bs-table-bg: var(--xdecaro-color-surface);
-    --bs-table-striped-bg: var(--xdecaro-color-surface);
-    --bs-table-striped-color: var(--xdecaro-color-text);
-    --bs-table-hover-bg: color-mix(in srgb, var(--xdecaro-color-primary) 3%, var(--xdecaro-color-surface));
-    --bs-table-hover-color: var(--xdecaro-color-text);
-    margin-bottom: 0;
-    color: var(--xdecaro-color-text);
-}
-
-.xdecaro-suite .xdecaro-suite__responsive-table.table > :not(caption) > * > * {
-    background-color: var(--xdecaro-color-surface);
-    box-shadow: none;
-}
-
-.xdecaro-suite .xdecaro-suite__responsive-table.table > thead > tr > th {
-    background-color: var(--xdecaro-color-surface-subtle);
-    color: var(--xdecaro-color-muted);
-    font-size: .75rem;
-    font-weight: 750;
-}
-
-.xdecaro-suite .xdecaro-suite__responsive-table.table > tbody > tr:hover > * {
-    background-color: color-mix(in srgb, var(--xdecaro-color-primary) 3%, var(--xdecaro-color-surface));
-}
-
 .xdecaro-suite .xdecaro-people-status-heading,
 .xdecaro-suite .xdecaro-people-status-cell {
     width: 8.75rem;
@@ -134,53 +49,6 @@
 
 .xdecaro-suite .xdecaro-people-status-cell {
     vertical-align: middle;
-}
-
-.xdecaro-suite .xdecaro-people-status-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    color: inherit;
-    text-decoration: none;
-    border-radius: 999px;
-}
-
-.xdecaro-suite .xdecaro-people-status-link:focus-visible {
-    outline: 2px solid var(--xdecaro-color-primary);
-    outline-offset: 2px;
-}
-
-.xdecaro-suite .xdecaro-people-status-badge {
-    display: inline-flex;
-    min-height: 1.625rem;
-    padding: .3rem .7rem;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    font-size: .75rem;
-    font-weight: 750;
-    line-height: 1;
-    white-space: nowrap;
-}
-
-.xdecaro-suite .xdecaro-people-status-badge.is-success {
-    border-color: color-mix(in srgb, var(--xdecaro-color-success) 26%, transparent);
-    background: color-mix(in srgb, var(--xdecaro-color-success) 14%, var(--xdecaro-color-surface));
-    color: var(--xdecaro-color-success);
-}
-
-.xdecaro-suite .xdecaro-people-status-badge.is-warning {
-    border-color: color-mix(in srgb, var(--xdecaro-color-warning) 30%, transparent);
-    background: color-mix(in srgb, var(--xdecaro-color-warning) 16%, var(--xdecaro-color-surface));
-    color: var(--xdecaro-color-warning);
-}
-
-.xdecaro-suite .xdecaro-people-status-badge.is-danger {
-    border-color: color-mix(in srgb, var(--xdecaro-color-danger) 26%, transparent);
-    background: color-mix(in srgb, var(--xdecaro-color-danger) 14%, var(--xdecaro-color-surface));
-    color: var(--xdecaro-color-danger);
 }
 
 @container xdecaro-suite (max-width: 38rem) {
