@@ -11,17 +11,17 @@ $manifest = simplexml_load_file($root . '/component/xdecaropeople.xml');
 $package = simplexml_load_file($root . '/package/pkg_people.xml');
 $installer = (string) file_get_contents($root . '/package/script.php');
 
-if (trim((string) file_get_contents($root . '/VERSION')) !== '1.8.6') {
-    throw new RuntimeException('People VERSION must be 1.8.6.');
+if (trim((string) file_get_contents($root . '/VERSION')) !== '1.8.7') {
+    throw new RuntimeException('People VERSION must be 1.8.7.');
 }
-if ($manifest === false || trim((string) $manifest->version) !== '1.8.6') {
-    throw new RuntimeException('People component manifest must be 1.8.6.');
+if ($manifest === false || trim((string) $manifest->version) !== '1.8.7') {
+    throw new RuntimeException('People component manifest must be 1.8.7.');
 }
-if ($package === false || trim((string) $package->version) !== '1.8.6') {
-    throw new RuntimeException('People package manifest must be 1.8.6.');
+if ($package === false || trim((string) $package->version) !== '1.8.7') {
+    throw new RuntimeException('People package manifest must be 1.8.7.');
 }
-if (!str_contains($installer, "private const MINIMUM_CORE = '2.2.9';")) {
-    throw new RuntimeException('People 1.8.6 must require Core 2.2.9+.');
+if (!str_contains($installer, "private const MINIMUM_CORE = '2.2.10';")) {
+    throw new RuntimeException('People 1.8.7 must require Core 2.2.10+.');
 }
 
 foreach ([
@@ -33,6 +33,7 @@ foreach ([
     'filter_state',
     'xdecaro-suite__responsive-table--striped',
     "Text::_('JSTATUS')",
+    "HTMLHelper::_('searchtools.sort'",
 ] as $marker) {
     if (!str_contains($template, $marker)) {
         throw new RuntimeException('People shared list UI marker missing: ' . $marker);
@@ -83,4 +84,4 @@ foreach (['en-GB', 'it-IT'] as $tag) {
     }
 }
 
-echo "People 1.8.6 shared list UI contract passed.\n";
+echo "People 1.8.7 shared list UI contract passed.\n";
