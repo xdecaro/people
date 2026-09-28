@@ -1,4 +1,4 @@
-/* People 1.8.4 - narrow list-view bridge on the Core 2.2.5 administrator UI. */
+/* People 1.8.5 - narrow list-view bridge on the Core 2.2.7 administrator UI. */
 
 .xdecaro-suite .xdecaro-people-kpi-link {
     color: inherit;
@@ -40,15 +40,73 @@
     flex: 0 0 auto;
 }
 
-.xdecaro-suite .xdecaro-people-status-heading,
-.xdecaro-suite .xdecaro-people-status-cell {
-    width: 8.75rem;
-    min-width: 8.75rem;
+.xdecaro-suite .xdecaro-people-person-status-heading,
+.xdecaro-suite .xdecaro-people-person-status-cell {
+    width: 7.5rem;
+    min-width: 7.5rem;
     text-align: center;
 }
 
-.xdecaro-suite .xdecaro-people-status-cell {
+.xdecaro-suite .xdecaro-people-publication-heading,
+.xdecaro-suite .xdecaro-people-publication-cell {
+    width: 6.25rem;
+    min-width: 6.25rem;
+    text-align: center;
+}
+
+.xdecaro-suite .xdecaro-people-person-status-cell,
+.xdecaro-suite .xdecaro-people-publication-cell {
     vertical-align: middle;
+}
+
+.xdecaro-suite .xdecaro-people-publication-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: transparent;
+    line-height: 1;
+    text-decoration: none !important;
+    transition: background-color .15s ease, box-shadow .15s ease;
+}
+
+.xdecaro-suite .xdecaro-people-publication-link:hover,
+.xdecaro-suite .xdecaro-people-publication-link:focus,
+.xdecaro-suite .xdecaro-people-publication-link:active {
+    text-decoration: none !important;
+}
+
+.xdecaro-suite .xdecaro-people-publication-link:focus-visible {
+    outline: 2px solid var(--xdecaro-color-primary);
+    outline-offset: 2px;
+}
+
+.xdecaro-suite .xdecaro-people-publication-link.is-success {
+    color: var(--xdecaro-color-success);
+    background: var(--xdecaro-color-success-soft);
+}
+
+.xdecaro-suite .xdecaro-people-publication-link.is-warning {
+    color: var(--xdecaro-color-warning);
+    background: var(--xdecaro-color-warning-soft);
+}
+
+.xdecaro-suite .xdecaro-people-publication-link.is-danger {
+    color: var(--xdecaro-color-danger);
+    background: var(--xdecaro-color-danger-soft);
+}
+
+.xdecaro-suite .xdecaro-people-publication-link:hover {
+    box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.xdecaro-suite .xdecaro-people-publication-link > [class^="icon-"],
+.xdecaro-suite .xdecaro-people-publication-link > [class*=" icon-"] {
+    margin: 0;
+    font-size: .875rem;
 }
 
 @container xdecaro-suite (max-width: 38rem) {
@@ -60,8 +118,10 @@
         flex-basis: auto;
     }
 
-    .xdecaro-suite .xdecaro-people-status-heading,
-    .xdecaro-suite .xdecaro-people-status-cell {
+    .xdecaro-suite .xdecaro-people-person-status-heading,
+    .xdecaro-suite .xdecaro-people-person-status-cell,
+    .xdecaro-suite .xdecaro-people-publication-heading,
+    .xdecaro-suite .xdecaro-people-publication-cell {
         width: auto;
         min-width: 0;
         text-align: start;
@@ -69,7 +129,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .xdecaro-suite .xdecaro-people-kpi-link {
+    .xdecaro-suite .xdecaro-people-kpi-link,
+    .xdecaro-suite .xdecaro-people-publication-link {
         transition: none;
     }
 }
