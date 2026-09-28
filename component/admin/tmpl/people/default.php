@@ -21,13 +21,13 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
 ?>
 <form action="<?php echo $peopleUrl; ?>" method="post" name="adminForm" id="adminForm">
     <div class="xdecaro-scope xdecaro-suite">
-        <header class="xdecaro-suite__page-header mb-4">
+        <header class="xdecaro-suite__page-header">
             <div class="xdecaro-suite__eyebrow"><?php echo Text::_('COM_XDECAROPEOPLE'); ?></div>
             <h1 class="xdecaro-suite__title"><?php echo Text::_('COM_XDECAROPEOPLE_PEOPLE'); ?></h1>
             <p class="xdecaro-suite__description"><?php echo Text::_('COM_XDECAROPEOPLE_XML_DESCRIPTION'); ?></p>
         </header>
 
-        <div class="xdecaro-suite__metrics mb-4">
+        <div class="xdecaro-suite__metrics">
             <a class="card xdecaro-suite__metric xdecaro-people-kpi-link is-primary<?php echo $filterState === '' ? ' is-active' : ''; ?> text-decoration-none" href="<?php echo $allPeopleUrl; ?>"<?php echo $filterState === '' ? ' aria-current="page"' : ''; ?>>
                 <div class="card-body">
                     <div class="small text-body-secondary mb-1"><?php echo Text::_('COM_XDECAROPEOPLE_KPI_TOTAL'); ?></div>
@@ -80,14 +80,14 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                             <option value="-2" <?php echo $filterState === '-2' ? 'selected' : ''; ?>><?php echo Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'); ?></option>
                         </select>
                     </div>
-                    <div class="xdecaro-filterbar__actions xdecaro-people-filter-submit d-flex gap-2">
-                        <button class="btn btn-primary" type="submit"><?php echo Text::_('JSEARCH_FILTER_SUBMIT'); ?></button>
-                        <a class="btn btn-outline-secondary" href="<?php echo $allPeopleUrl; ?>"><?php echo Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
+                    <div class="xdecaro-filterbar__actions xdecaro-people-filter-submit">
+                        <button class="xdecaro-button xdecaro-button--primary" type="submit"><?php echo Text::_('JSEARCH_FILTER_SUBMIT'); ?></button>
+                        <a class="xdecaro-button xdecaro-button--secondary" href="<?php echo $allPeopleUrl; ?>"><?php echo Text::_('JSEARCH_FILTER_CLEAR'); ?></a>
                     </div>
                 </div>
 
                 <div class="xdecaro-suite__responsive-wrap table-responsive">
-                    <table class="xdecaro-suite__responsive-table table table-striped align-middle">
+                    <table class="xdecaro-suite__responsive-table table align-middle">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" name="checkall-toggle" onclick="Joomla.checkAll(this)"></th>
@@ -111,9 +111,9 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                                     default => Text::_('JUNPUBLISHED'),
                                 };
                                 $stateTone = match ($state) {
-                                    1 => 'is-success',
-                                    -2 => 'is-danger',
-                                    default => 'is-warning',
+                                    1 => 'xdecaro-badge--success',
+                                    -2 => 'xdecaro-badge--danger',
+                                    default => 'xdecaro-badge--warning',
                                 };
                                 $stateUrl = match ($state) {
                                     1 => $publishedPeopleUrl,
@@ -135,8 +135,8 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                                     <td data-label="<?php echo $this->escape(Text::_('JGLOBAL_EMAIL')); ?>"><?php echo $this->escape((string) $item->email); ?></td>
                                     <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PHONE')); ?>"><?php echo $this->escape((string) $item->phone); ?></td>
                                     <td class="xdecaro-people-status-cell" data-label="<?php echo $this->escape(Text::_('JSTATUS')); ?>">
-                                        <a class="xdecaro-people-status-link" href="<?php echo $stateUrl; ?>" title="<?php echo $this->escape(Text::_('JSEARCH_FILTER')); ?>: <?php echo $this->escape($stateLabel); ?>">
-                                            <span class="xdecaro-people-status-badge <?php echo $stateTone; ?>"><?php echo $stateLabel; ?></span>
+                                        <a class="xdecaro-badge <?php echo $stateTone; ?>" href="<?php echo $stateUrl; ?>" title="<?php echo $this->escape(Text::_('JSEARCH_FILTER')); ?>: <?php echo $this->escape($stateLabel); ?>">
+                                            <?php echo $stateLabel; ?>
                                         </a>
                                     </td>
                                 </tr>
@@ -289,86 +289,21 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                     <?php endif; ?>
 
                     <?php if ($this->canIdentityDetails) : ?>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="birth_date" id="xdecaro-export-column-birth-date" data-xdecaro-export-column data-visible-column checked>
-                                <label class="form-check-label" for="xdecaro-export-column-birth-date"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE'); ?></label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="birth_place" id="xdecaro-export-column-birth-place" data-xdecaro-export-column data-visible-column checked>
-                                <label class="form-check-label" for="xdecaro-export-column-birth-place"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE'); ?></label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="birth_region" id="xdecaro-export-column-birth-region" data-xdecaro-export-column>
-                                <label class="form-check-label" for="xdecaro-export-column-birth-region"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_REGION'); ?></label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="sex" id="xdecaro-export-column-sex" data-xdecaro-export-column>
-                                <label class="form-check-label" for="xdecaro-export-column-sex"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_SEX'); ?></label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="address_line" id="xdecaro-export-column-address" data-xdecaro-export-column>
-                                <label class="form-check-label" for="xdecaro-export-column-address"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_ADDRESS'); ?></label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="address_number" id="xdecaro-export-column-address-number" data-xdecaro-export-column>
-                                <label class="form-check-label" for="xdecaro-export-column-address-number"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_ADDRESS_NUMBER'); ?></label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="postal_code" id="xdecaro-export-column-postal-code" data-xdecaro-export-column>
-                                <label class="form-check-label" for="xdecaro-export-column-postal-code"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_POSTAL_CODE'); ?></label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="city" id="xdecaro-export-column-city" data-xdecaro-export-column>
-                                <label class="form-check-label" for="xdecaro-export-column-city"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_CITY'); ?></label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="region" id="xdecaro-export-column-region" data-xdecaro-export-column>
-                                <label class="form-check-label" for="xdecaro-export-column-region"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_REGION'); ?></label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="country_code" id="xdecaro-export-column-country" data-xdecaro-export-column>
-                                <label class="form-check-label" for="xdecaro-export-column-country"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_COUNTRY'); ?></label>
-                            </div>
-                        </div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="birth_date" id="xdecaro-export-column-birth-date" data-xdecaro-export-column data-visible-column checked><label class="form-check-label" for="xdecaro-export-column-birth-date"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE'); ?></label></div></div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="birth_place" id="xdecaro-export-column-birth-place" data-xdecaro-export-column data-visible-column checked><label class="form-check-label" for="xdecaro-export-column-birth-place"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE'); ?></label></div></div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="birth_region" id="xdecaro-export-column-birth-region" data-xdecaro-export-column><label class="form-check-label" for="xdecaro-export-column-birth-region"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_REGION'); ?></label></div></div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="sex" id="xdecaro-export-column-sex" data-xdecaro-export-column><label class="form-check-label" for="xdecaro-export-column-sex"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_SEX'); ?></label></div></div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="address_line" id="xdecaro-export-column-address" data-xdecaro-export-column><label class="form-check-label" for="xdecaro-export-column-address"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_ADDRESS'); ?></label></div></div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="address_number" id="xdecaro-export-column-address-number" data-xdecaro-export-column><label class="form-check-label" for="xdecaro-export-column-address-number"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_ADDRESS_NUMBER'); ?></label></div></div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="postal_code" id="xdecaro-export-column-postal-code" data-xdecaro-export-column><label class="form-check-label" for="xdecaro-export-column-postal-code"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_POSTAL_CODE'); ?></label></div></div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="city" id="xdecaro-export-column-city" data-xdecaro-export-column><label class="form-check-label" for="xdecaro-export-column-city"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_CITY'); ?></label></div></div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="region" id="xdecaro-export-column-region" data-xdecaro-export-column><label class="form-check-label" for="xdecaro-export-column-region"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_REGION'); ?></label></div></div>
+                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="country_code" id="xdecaro-export-column-country" data-xdecaro-export-column><label class="form-check-label" for="xdecaro-export-column-country"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_COUNTRY'); ?></label></div></div>
                     <?php endif; ?>
 
-                    <div class="col">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="email" id="xdecaro-export-column-email" data-xdecaro-export-column data-visible-column checked>
-                            <label class="form-check-label" for="xdecaro-export-column-email"><?php echo Text::_('JGLOBAL_EMAIL'); ?></label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="phone" id="xdecaro-export-column-phone" data-xdecaro-export-column data-visible-column checked>
-                            <label class="form-check-label" for="xdecaro-export-column-phone"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'); ?></label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="state" id="xdecaro-export-column-state" data-xdecaro-export-column data-visible-column checked>
-                            <label class="form-check-label" for="xdecaro-export-column-state"><?php echo Text::_('JSTATUS'); ?></label>
-                        </div>
-                    </div>
+                    <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="email" id="xdecaro-export-column-email" data-xdecaro-export-column data-visible-column checked><label class="form-check-label" for="xdecaro-export-column-email"><?php echo Text::_('JGLOBAL_EMAIL'); ?></label></div></div>
+                    <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="phone" id="xdecaro-export-column-phone" data-xdecaro-export-column data-visible-column checked><label class="form-check-label" for="xdecaro-export-column-phone"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'); ?></label></div></div>
+                    <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" value="state" id="xdecaro-export-column-state" data-xdecaro-export-column data-visible-column checked><label class="form-check-label" for="xdecaro-export-column-state"><?php echo Text::_('JSTATUS'); ?></label></div></div>
                 </div>
             </fieldset>
 
