@@ -10,6 +10,8 @@ HTMLHelper::_('behavior.multiselect');
 
 $filterState = (string) $this->state->get('filter.state');
 $filterPersonStatus = (string) $this->state->get('filter.person_status');
+$listOrder = (string) $this->state->get('list.ordering', 'a.last_name');
+$listDirn = (string) $this->state->get('list.direction', 'asc');
 $filtersOpen = $filterState !== '' || $filterPersonStatus !== '';
 $currentLimit = (int) $this->state->get('list.limit', 20);
 $limitChoices = [20, 50, 100, 200, 500, 1000, 999999];
@@ -98,15 +100,27 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                         <thead>
                             <tr>
                                 <th><input type="checkbox" name="checkall-toggle" onclick="Joomla.checkAll(this)"></th>
-                                <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME'); ?></th>
-                                <?php if ($this->canIdentityDetails) : ?>
-                                    <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE'); ?></th>
-                                    <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE'); ?></th>
+                                <?php if ($this->isColumnVisible('display_name')) : ?>
+                                    <th><?php echo HTMLHelper::_('searchtools.sort', 'COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME', 'a.display_name', $listDirn, $listOrder); ?></th>
                                 <?php endif; ?>
-                                <th><?php echo Text::_('JGLOBAL_EMAIL'); ?></th>
-                                <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'); ?></th>
-                                <th class="xdecaro-people-person-status-heading"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PERSON_STATUS'); ?></th>
-                                <th class="xdecaro-people-publication-heading"><?php echo Text::_('JSTATUS'); ?></th>
+                                <?php if ($this->isColumnVisible('birth_date')) : ?>
+                                    <th><?php echo HTMLHelper::_('searchtools.sort', 'COM_XDECAROPEOPLE_FIELD_BIRTH_DATE', 'a.birth_date', $listDirn, $listOrder); ?></th>
+                                <?php endif; ?>
+                                <?php if ($this->isColumnVisible('birth_place')) : ?>
+                                    <th><?php echo HTMLHelper::_('searchtools.sort', 'COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE', 'a.birth_place', $listDirn, $listOrder); ?></th>
+                                <?php endif; ?>
+                                <?php if ($this->isColumnVisible('email')) : ?>
+                                    <th><?php echo HTMLHelper::_('searchtools.sort', 'JGLOBAL_EMAIL', 'a.email', $listDirn, $listOrder); ?></th>
+                                <?php endif; ?>
+                                <?php if ($this->isColumnVisible('phone')) : ?>
+                                    <th><?php echo HTMLHelper::_('searchtools.sort', 'COM_XDECAROPEOPLE_FIELD_PHONE', 'a.phone', $listDirn, $listOrder); ?></th>
+                                <?php endif; ?>
+                                <?php if ($this->isColumnVisible('person_status')) : ?>
+                                    <th class="xdecaro-people-person-status-heading"><?php echo HTMLHelper::_('searchtools.sort', 'COM_XDECAROPEOPLE_FIELD_PERSON_STATUS', 'a.person_status', $listDirn, $listOrder); ?></th>
+                                <?php endif; ?>
+                                <?php if ($this->isColumnVisible('state')) : ?>
+                                    <th class="xdecaro-people-publication-heading"><?php echo HTMLHelper::_('searchtools.sort', 'JSTATUS', 'a.state', $listDirn, $listOrder); ?></th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -148,20 +162,32 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                                 ?>
                                 <tr>
                                     <td data-label="<?php echo $this->escape(Text::_('JSELECT')); ?>"><?php echo HTMLHelper::_('grid.id', $i, (int) $item->id); ?></td>
-                                    <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME')); ?>"><a class="fw-semibold" href="<?php echo Route::_('index.php?option=com_xdecaropeople&task=person.edit&id=' . (int) $item->id); ?>"><?php echo $this->escape($item->display_name); ?></a></td>
-                                    <?php if ($this->canIdentityDetails) : ?>
+                                    <?php if ($this->isColumnVisible('display_name')) : ?>
+                                        <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME')); ?>"><a class="fw-semibold" href="<?php echo Route::_('index.php?option=com_xdecaropeople&task=person.edit&id=' . (int) $item->id); ?>"><?php echo $this->escape($item->display_name); ?></a></td>
+                                    <?php endif; ?>
+                                    <?php if ($this->isColumnVisible('birth_date')) : ?>
                                         <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_DATE')); ?>"><?php echo !empty($item->birth_date) ? $this->escape(HTMLHelper::_('date', $item->birth_date, Text::_('DATE_FORMAT_FILTER_DATE'))) : '—'; ?></td>
+                                    <?php endif; ?>
+                                    <?php if ($this->isColumnVisible('birth_place')) : ?>
                                         <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE')); ?>"><?php echo $this->escape((string) ($item->birth_place ?? '')); ?></td>
                                     <?php endif; ?>
-                                    <td data-label="<?php echo $this->escape(Text::_('JGLOBAL_EMAIL')); ?>"><?php echo $this->escape((string) $item->email); ?></td>
-                                    <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PHONE')); ?>"><?php echo $this->escape((string) $item->phone); ?></td>
-                                    <td class="xdecaro-people-person-status-cell" data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PERSON_STATUS')); ?>"><span class="xdecaro-badge <?php echo $personStatusTone; ?>"><?php echo $personStatusLabel; ?></span></td>
-                                    <td class="xdecaro-people-publication-cell" data-label="<?php echo $this->escape(Text::_('JSTATUS')); ?>">
-                                        <a class="xdecaro-people-publication-link <?php echo $publicationTone; ?>" href="<?php echo $stateUrl; ?>" title="<?php echo $this->escape(Text::_('JSEARCH_FILTER')); ?>: <?php echo $this->escape($stateLabel); ?>" aria-label="<?php echo $this->escape($stateLabel); ?>">
-                                            <span class="<?php echo $publicationIcon; ?>" aria-hidden="true"></span>
-                                            <span class="visually-hidden"><?php echo $stateLabel; ?></span>
-                                        </a>
-                                    </td>
+                                    <?php if ($this->isColumnVisible('email')) : ?>
+                                        <td data-label="<?php echo $this->escape(Text::_('JGLOBAL_EMAIL')); ?>"><?php echo $this->escape((string) $item->email); ?></td>
+                                    <?php endif; ?>
+                                    <?php if ($this->isColumnVisible('phone')) : ?>
+                                        <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PHONE')); ?>"><?php echo $this->escape((string) $item->phone); ?></td>
+                                    <?php endif; ?>
+                                    <?php if ($this->isColumnVisible('person_status')) : ?>
+                                        <td class="xdecaro-people-person-status-cell" data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PERSON_STATUS')); ?>"><span class="xdecaro-badge <?php echo $personStatusTone; ?>"><?php echo $personStatusLabel; ?></span></td>
+                                    <?php endif; ?>
+                                    <?php if ($this->isColumnVisible('state')) : ?>
+                                        <td class="xdecaro-people-publication-cell" data-label="<?php echo $this->escape(Text::_('JSTATUS')); ?>">
+                                            <a class="xdecaro-people-publication-link <?php echo $publicationTone; ?>" href="<?php echo $stateUrl; ?>" title="<?php echo $this->escape(Text::_('JSEARCH_FILTER')); ?>: <?php echo $this->escape($stateLabel); ?>" aria-label="<?php echo $this->escape($stateLabel); ?>">
+                                                <span class="<?php echo $publicationIcon; ?>" aria-hidden="true"></span>
+                                                <span class="visually-hidden"><?php echo $stateLabel; ?></span>
+                                            </a>
+                                        </td>
+                                    <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -186,6 +212,8 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
 
     <input type="hidden" name="task" value="">
     <input type="hidden" name="boxchecked" value="0">
+    <input type="hidden" name="filter_order" value="<?php echo $this->escape($listOrder); ?>">
+    <input type="hidden" name="filter_order_Dir" value="<?php echo $this->escape($listDirn); ?>">
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
 
