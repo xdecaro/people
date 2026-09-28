@@ -21,12 +21,12 @@ $assertNotContains = static function (string $needle, string $path, string $mess
 };
 
 $service = 'component/admin/src/Service/CoreIntegrationService.php';
-$assertContains("public const MINIMUM_CORE = '2.2.9';", $service, 'People 1.8.6 must require Core 2.2.9 for shared list UI.');
+$assertContains("public const MINIMUM_CORE = '2.2.10';", $service, 'People 1.8.7 must require Core 2.2.10 for shared list UI.');
 $assertContains('useAdminUi($wam)', $service, 'People must load the public Core administrator UI through AssetService.');
 $assertNotContains('useComponents($wam)', $service, 'People must not stop at the old components-only Core UI layer.');
 
 $packageScript = 'package/script.php';
-$assertContains("MINIMUM_CORE = '2.2.9'", $packageScript, 'People package preflight must require Core 2.2.9.');
+$assertContains("MINIMUM_CORE = '2.2.10'", $packageScript, 'People package preflight must require Core 2.2.10.');
 
 $templates = [
     'component/admin/tmpl/dashboard/default.php',
@@ -74,8 +74,11 @@ foreach ([
     'xdecaro-badge--warning',
     'xdecaro-badge--neutral',
     'data-label=',
+    "HTMLHelper::_('searchtools.sort'",
+    "isColumnVisible('display_name')",
+    "isColumnVisible('state')",
 ] as $marker) {
-    $assertContains($marker, $people, 'People list missing shared status/filter UI marker: ' . $marker);
+    $assertContains($marker, $people, 'People list missing shared status/filter/sort UI marker: ' . $marker);
 }
 $assertNotContains("Text::_('JGLOBAL_FIELDSET_PUBLISHING')", $people, 'People list must use the compact Joomla Status heading.');
 $assertNotContains('xdecaro-people-status-badge', $people, 'People must use Core semantic badges instead of local status badge primitives.');
@@ -84,6 +87,7 @@ $peopleView = 'component/admin/src/View/People/HtmlView.php';
 $assertContains("useStyle('com_xdecaropeople.people-list')", $peopleView, 'People list must load its narrow component-specific bridge after Core UI.');
 $assertContains("load('com_xdecaropeople.list'", $peopleView, 'People list-specific strings must use Joomla Language.');
 $assertContains('public array $statusSummary', $peopleView, 'People view must expose status KPI values.');
+$assertContains('public array $visibleColumns', $peopleView, 'People view must expose persistent column visibility.');
 
 $listCss = 'component/media/css/people-list.css';
 foreach ([
@@ -110,11 +114,11 @@ foreach ([
 
 $assets = 'component/media/joomla.asset.json';
 $assertContains('com_xdecaropeople.people-list', $assets, 'People list bridge must be registered in WAM.');
-$assertContains('"version": "1.8.6"', $assets, 'People Web Assets must match version 1.8.6.');
+$assertContains('"version": "1.8.7"', $assets, 'People Web Assets must match version 1.8.7.');
 
 $peopleModel = 'component/admin/src/Model/PeopleModel.php';
 $assertContains('public function getStatusSummary(): array', $peopleModel, 'People model must provide status counts.');
 $assertContains("'filter.person_status'", $peopleModel, 'People model must persist the person-status filter.');
 $assertContains("['active', 'archived', 'deceased']", $peopleModel, 'People person-status filter must be whitelisted.');
 
-fwrite(STDOUT, "People 1.8.6 / Core 2.2.9 admin UI contract: OK\n");
+fwrite(STDOUT, "People 1.8.7 / Core 2.2.10 admin UI contract: OK\n");
