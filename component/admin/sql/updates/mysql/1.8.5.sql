@@ -1,0 +1,2 @@
+-- People 1.8.5
+-- UI-only release: no database schema changes.
