@@ -33,6 +33,10 @@ final class PeopleModel extends ListModel
             $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string')
         );
         $this->setState(
+            'filter.person_status',
+            $this->getUserStateFromRequest($this->context . '.filter.person_status', 'filter_person_status', '', 'cmd')
+        );
+        $this->setState(
             'filter.state',
             $this->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string')
         );
@@ -107,6 +111,12 @@ final class PeopleModel extends ListModel
             ->select($columns)
             ->from($db->quoteName('#__xdecaropeople_people', 'a'));
 
+        $personStatus = (string) $this->getState('filter.person_status');
+        if (in_array($personStatus, ['active', 'archived', 'deceased'], true)) {
+            $query->where($db->quoteName('a.person_status') . ' = :personStatus')
+                ->bind(':personStatus', $personStatus);
+        }
+
         $state = $this->getState('filter.state');
         if ($state !== '') {
             $state = (int) $state;
@@ -124,17 +134,19 @@ final class PeopleModel extends ListModel
                 $db->quoteName('a.first_name') . ' LIKE :s2',
                 $db->quoteName('a.last_name') . ' LIKE :s3',
                 $db->quoteName('a.email') . ' LIKE :s4',
+                $db->quoteName('a.phone') . ' LIKE :s5',
             ];
             if ($canIdentity) {
-                $conditions[] = $db->quoteName('a.birth_place') . ' LIKE :s5';
+                $conditions[] = $db->quoteName('a.birth_place') . ' LIKE :s6';
             }
             $query->where('(' . implode(' OR ', $conditions) . ')')
                 ->bind(':s1', $like)
                 ->bind(':s2', $like)
                 ->bind(':s3', $like)
-                ->bind(':s4', $like);
+                ->bind(':s4', $like)
+                ->bind(':s5', $like);
             if ($canIdentity) {
-                $query->bind(':s5', $like);
+                $query->bind(':s6', $like);
             }
         }
 
