@@ -21,12 +21,12 @@ $assertNotContains = static function (string $needle, string $path, string $mess
 };
 
 $service = 'component/admin/src/Service/CoreIntegrationService.php';
-$assertContains("public const MINIMUM_CORE = '2.2.5';", $service, 'People 1.8.4 must require Core 2.2.5 for the finalized shared administrator UI.');
+$assertContains("public const MINIMUM_CORE = '2.2.7';", $service, 'People 1.8.5 must require Core 2.2.7 for finalized compact semantic badges.');
 $assertContains('useAdminUi($wam)', $service, 'People must load the public Core administrator UI through AssetService.');
 $assertNotContains('useComponents($wam)', $service, 'People must not stop at the old components-only Core UI layer.');
 
 $packageScript = 'package/script.php';
-$assertContains("MINIMUM_CORE = '2.2.5'", $packageScript, 'People package preflight must require Core 2.2.5.');
+$assertContains("MINIMUM_CORE = '2.2.7'", $packageScript, 'People package preflight must require Core 2.2.7.');
 
 $templates = [
     'component/admin/tmpl/dashboard/default.php',
@@ -66,14 +66,24 @@ foreach ([
     '<a class="xdecaro-button xdecaro-button--secondary" href="<?php echo $allPeopleUrl; ?>">',
     'xdecaro-suite__responsive-wrap',
     'xdecaro-suite__responsive-table',
-    'xdecaro-people-status-heading',
-    'xdecaro-people-status-cell',
+    'xdecaro-people-person-status-heading',
+    'xdecaro-people-person-status-cell',
+    'COM_XDECAROPEOPLE_FIELD_PERSON_STATUS',
+    'COM_XDECAROPEOPLE_PERSON_STATUS_ACTIVE',
+    'COM_XDECAROPEOPLE_PERSON_STATUS_ARCHIVED',
+    'COM_XDECAROPEOPLE_PERSON_STATUS_DECEASED',
+    'xdecaro-people-publication-heading',
+    'xdecaro-people-publication-cell',
+    'COM_XDECAROPEOPLE_LIST_PUBLICATION',
+    'xdecaro-people-publication-link',
+    'icon-check',
+    'visually-hidden',
     'xdecaro-badge--success',
     'xdecaro-badge--warning',
-    'xdecaro-badge--danger',
+    'xdecaro-badge--neutral',
     'data-label=',
 ] as $marker) {
-    $assertContains($marker, $people, 'People list missing shared/filter UI marker: ' . $marker);
+    $assertContains($marker, $people, 'People list missing status/publication UI marker: ' . $marker);
 }
 $assertNotContains('xdecaro-people-status-badge', $people, 'People must use Core semantic badges instead of local status badge primitives.');
 
@@ -87,8 +97,11 @@ $listCss = 'component/media/css/people-list.css';
 foreach ([
     '.xdecaro-suite .xdecaro-people-kpi-link',
     '.xdecaro-suite .xdecaro-people-kpi-link.is-active',
-    '.xdecaro-suite .xdecaro-people-status-heading',
-    '.xdecaro-suite .xdecaro-people-status-cell',
+    '.xdecaro-suite .xdecaro-people-person-status-heading',
+    '.xdecaro-suite .xdecaro-people-person-status-cell',
+    '.xdecaro-suite .xdecaro-people-publication-heading',
+    '.xdecaro-suite .xdecaro-people-publication-cell',
+    '.xdecaro-suite .xdecaro-people-publication-link',
     '@container xdecaro-suite (max-width: 38rem)',
 ] as $marker) {
     $assertContains($marker, $listCss, 'People list bridge missing component-specific rule: ' . $marker);
@@ -102,16 +115,24 @@ foreach ([
     '.card.xdecaro-suite__metric.is-warning',
     '--bs-table-striped-bg:',
 ] as $marker) {
-    $assertNotContains($marker, $listCss, 'People list bridge must not duplicate Core 2.2.5 generic UI primitive: ' . $marker);
+    $assertNotContains($marker, $listCss, 'People list bridge must not duplicate Core generic UI primitive: ' . $marker);
 }
 $assertNotContains('.dc-', $listCss, 'Courses-private selectors must never be copied into People.');
 
 $assets = 'component/media/joomla.asset.json';
 $assertContains('com_xdecaropeople.people-list', $assets, 'People list bridge must be registered in the Web Asset Manager.');
-$assertContains('"version": "1.8.4"', $assets, 'People Web Assets must match version 1.8.4.');
+$assertContains('"version": "1.8.5"', $assets, 'People Web Assets must match version 1.8.5.');
 
 $peopleModel = 'component/admin/src/Model/PeopleModel.php';
 $assertContains('public function getStatusSummary(): array', $peopleModel, 'People model must provide status counts without changing list filters.');
+$assertContains("'a.person_status'", $peopleModel, 'People list must select the existing person_status domain field.');
+
+foreach ([
+    'component/admin/language/it-IT/com_xdecaropeople.ini',
+    'component/admin/language/en-GB/com_xdecaropeople.ini',
+] as $language) {
+    $assertContains('COM_XDECAROPEOPLE_LIST_PUBLICATION=', $language, 'Publication column label must be translated.');
+}
 
 $person = 'component/admin/tmpl/person/edit.php';
 foreach (['xdecaro-form', 'xdecaro-accordion', 'xdecaro-accordion__item', 'xdecaro-accordion__button', 'xdecaro-accordion__body'] as $marker) {
@@ -123,4 +144,4 @@ $assertContains('xdecaro-suite__info-grid', $information, 'Information page must
 $assertContains('xdecaro-suite__info-card', $information, 'Information page must use the shared Core information card.');
 $assertContains('xdecaro-suite__card-heading', $information, 'Information card headings must use the shared Core heading primitive.');
 
-fwrite(STDOUT, "People 1.8.4 Core 2.2.5 admin UI contract: OK\n");
+fwrite(STDOUT, "People 1.8.5 Core 2.2.7 admin UI contract: OK\n");
