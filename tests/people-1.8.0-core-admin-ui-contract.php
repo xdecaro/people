@@ -62,8 +62,8 @@ foreach ([
     'xdecaro-filterbar__search',
     'xdecaro-filterbar__filter',
     'xdecaro-filterbar__actions',
-    'xdecaro-button xdecaro-button--primary',
-    'xdecaro-button xdecaro-button--secondary',
+    '<button class="xdecaro-button xdecaro-button--primary" type="submit">',
+    '<a class="xdecaro-button xdecaro-button--secondary" href="<?php echo $allPeopleUrl; ?>">',
     'xdecaro-suite__responsive-wrap',
     'xdecaro-suite__responsive-table',
     'xdecaro-people-status-heading',
@@ -76,8 +76,6 @@ foreach ([
     $assertContains($marker, $people, 'People list missing shared/filter UI marker: ' . $marker);
 }
 $assertNotContains('xdecaro-people-status-badge', $people, 'People must use Core semantic badges instead of local status badge primitives.');
-$assertNotContains('btn btn-primary', $people, 'People search must use the shared Core primary button.');
-$assertNotContains('btn btn-outline-secondary', $people, 'People clear action must use the shared Core secondary button.');
 
 $peopleView = 'component/admin/src/View/People/HtmlView.php';
 $assertContains("useStyle('com_xdecaropeople.people-list')", $peopleView, 'People list must load only its narrow component-specific bridge after the base admin asset.');
