@@ -8,7 +8,7 @@ $root = dirname(__DIR__);
 
 $core = file_get_contents($root . '/component/admin/src/Service/CoreIntegrationService.php') ?: '';
 foreach ([
-    "MINIMUM_CORE = '2.2.7'",
+    "MINIMUM_CORE = '2.2.9'",
     'people.provider',
     'people.query',
     'people.user_link',
@@ -28,8 +28,8 @@ foreach ([
 }
 
 $packageScript = file_get_contents($root . '/package/script.php') ?: '';
-if (!str_contains($packageScript, "MINIMUM_CORE = '2.2.7'")) {
-    fwrite(STDERR, "People package must require Core 2.2.7 or later.\n");
+if (!str_contains($packageScript, "MINIMUM_CORE = '2.2.9'")) {
+    fwrite(STDERR, "People package must require Core 2.2.9 or later.\n");
     exit(1);
 }
 if (!str_contains($packageScript, "'pkg_core'") || !str_contains($packageScript, "'pkg_xdecarocore'")) {
