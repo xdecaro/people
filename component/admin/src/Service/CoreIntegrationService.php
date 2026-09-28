@@ -12,7 +12,7 @@ use xdecaro\Core\Integration\EntityReference;
 final class CoreIntegrationService
 {
     public const COMPONENT = 'com_xdecaropeople';
-    public const MINIMUM_CORE = '2.2.2';
+    public const MINIMUM_CORE = '2.2.5';
 
     public function getVersion(): string
     {
