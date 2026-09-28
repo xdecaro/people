@@ -18,6 +18,7 @@ final class PeopleModel extends ListModel
             'first_name',
             'last_name',
             'email',
+            'person_status',
             'state',
             'created',
         ];
@@ -91,6 +92,7 @@ final class PeopleModel extends ListModel
             'a.last_name',
             'a.email',
             'a.phone',
+            'a.person_status',
             'a.state',
             'a.access',
             'a.created',
@@ -143,6 +145,7 @@ final class PeopleModel extends ListModel
             'a.first_name',
             'a.last_name',
             'a.email',
+            'a.person_status',
             'a.state',
             'a.created',
         ];
