@@ -98,22 +98,40 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                                 <?php endif; ?>
                                 <th><?php echo Text::_('JGLOBAL_EMAIL'); ?></th>
                                 <th><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PHONE'); ?></th>
-                                <th class="xdecaro-people-status-heading"><?php echo Text::_('JSTATUS'); ?></th>
+                                <th class="xdecaro-people-person-status-heading"><?php echo Text::_('COM_XDECAROPEOPLE_FIELD_PERSON_STATUS'); ?></th>
+                                <th class="xdecaro-people-publication-heading"><?php echo Text::_('COM_XDECAROPEOPLE_LIST_PUBLICATION'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($this->items as $i => $item) : ?>
                                 <?php
+                                $personStatus = (string) ($item->person_status ?? 'active');
+                                $personStatusLabel = match ($personStatus) {
+                                    'archived' => Text::_('COM_XDECAROPEOPLE_PERSON_STATUS_ARCHIVED'),
+                                    'deceased' => Text::_('COM_XDECAROPEOPLE_PERSON_STATUS_DECEASED'),
+                                    default => Text::_('COM_XDECAROPEOPLE_PERSON_STATUS_ACTIVE'),
+                                };
+                                $personStatusTone = match ($personStatus) {
+                                    'archived' => 'xdecaro-badge--warning',
+                                    'deceased' => 'xdecaro-badge--neutral',
+                                    default => 'xdecaro-badge--success',
+                                };
+
                                 $state = (int) $item->state;
                                 $stateLabel = match ($state) {
                                     1 => Text::_('JPUBLISHED'),
                                     -2 => Text::_('COM_XDECAROPEOPLE_FILTER_TRASHED'),
                                     default => Text::_('JUNPUBLISHED'),
                                 };
-                                $stateTone = match ($state) {
-                                    1 => 'xdecaro-badge--success',
-                                    -2 => 'xdecaro-badge--danger',
-                                    default => 'xdecaro-badge--warning',
+                                $publicationTone = match ($state) {
+                                    1 => 'is-success',
+                                    -2 => 'is-danger',
+                                    default => 'is-warning',
+                                };
+                                $publicationIcon = match ($state) {
+                                    1 => 'icon-check',
+                                    -2 => 'icon-trash',
+                                    default => 'icon-pause',
                                 };
                                 $stateUrl = match ($state) {
                                     1 => $publishedPeopleUrl,
@@ -134,9 +152,18 @@ $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
                                     <?php endif; ?>
                                     <td data-label="<?php echo $this->escape(Text::_('JGLOBAL_EMAIL')); ?>"><?php echo $this->escape((string) $item->email); ?></td>
                                     <td data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PHONE')); ?>"><?php echo $this->escape((string) $item->phone); ?></td>
-                                    <td class="xdecaro-people-status-cell" data-label="<?php echo $this->escape(Text::_('JSTATUS')); ?>">
-                                        <a class="xdecaro-badge <?php echo $stateTone; ?>" href="<?php echo $stateUrl; ?>" title="<?php echo $this->escape(Text::_('JSEARCH_FILTER')); ?>: <?php echo $this->escape($stateLabel); ?>">
-                                            <?php echo $stateLabel; ?>
+                                    <td class="xdecaro-people-person-status-cell" data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_FIELD_PERSON_STATUS')); ?>">
+                                        <span class="xdecaro-badge <?php echo $personStatusTone; ?>"><?php echo $personStatusLabel; ?></span>
+                                    </td>
+                                    <td class="xdecaro-people-publication-cell" data-label="<?php echo $this->escape(Text::_('COM_XDECAROPEOPLE_LIST_PUBLICATION')); ?>">
+                                        <a
+                                            class="xdecaro-people-publication-link <?php echo $publicationTone; ?>"
+                                            href="<?php echo $stateUrl; ?>"
+                                            title="<?php echo $this->escape(Text::_('JSEARCH_FILTER')); ?>: <?php echo $this->escape($stateLabel); ?>"
+                                            aria-label="<?php echo $this->escape($stateLabel); ?>"
+                                        >
+                                            <span class="<?php echo $publicationIcon; ?>" aria-hidden="true"></span>
+                                            <span class="visually-hidden"><?php echo $stateLabel; ?></span>
                                         </a>
                                     </td>
                                 </tr>
