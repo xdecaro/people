@@ -80,8 +80,8 @@ jobs:
           assert feed.find('targetplatform').attrib['version'] == r'6\.1\.3$'
           assert feed.findtext('php_minimum') == '8.3.0'
           PY
-          grep -Fq "MINIMUM_CORE = '2.2.5'" component/admin/src/Service/CoreIntegrationService.php
-          grep -Fq "MINIMUM_CORE = '2.2.5'" package/script.php
+          grep -Fq "MINIMUM_CORE = '2.2.7'" component/admin/src/Service/CoreIntegrationService.php
+          grep -Fq "MINIMUM_CORE = '2.2.7'" package/script.php
           grep -Fq 'people.view_identity_details' component/admin/access.xml
           grep -Fq 'function searchPeopleForIdentity(' component/admin/src/Service/PersonProviderService.php
           ! grep -RniE '<targetplatform[^>]+version="(4|5|6\.0|6\.2|6\.3)' component package/pkg_people.xml updates/pkg_people.xml
@@ -129,6 +129,7 @@ jobs:
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.8.0.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.8.2.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.8.4.sql'
+          unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/sql/updates/mysql/1.8.5.sql'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Controller/ExportController.php'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'admin/src/Service/ExportService.php'
           unzip -Z1 /tmp/component.zip | grep -Fxq 'media/js/export.js'
@@ -164,16 +165,16 @@ jobs:
           coverage: none
       - name: Build current People package
         run: chmod +x build/build.sh && build/build.sh
-      - name: Build pinned Core 2.2.5 dependency
+      - name: Build pinned Core 2.2.7 dependency
         shell: bash
         run: |
           set -euo pipefail
-          CORE_SHA='c35369ce87042e13f65821052bb105b7ec337ac8'
+          CORE_SHA='0938773f3e58f691de447a09050a8aba8397e05a'
           git clone --quiet https://github.com/xdecaro/core.git /tmp/core-src
           git -C /tmp/core-src checkout --quiet "$CORE_SHA"
-          test "$(tr -d '\r\n' < /tmp/core-src/VERSION)" = '2.2.5'
+          test "$(tr -d '\r\n' < /tmp/core-src/VERSION)" = '2.2.7'
           python3 /tmp/core-src/build/build.py
-          cp /tmp/core-src/dist/pkg_core_2.2.5.zip /tmp/core.zip
+          cp /tmp/core-src/dist/pkg_core_2.2.7.zip /tmp/core.zip
           unzip -t /tmp/core.zip >/dev/null
       - name: Download Joomla and upgrade baseline
         shell: bash
