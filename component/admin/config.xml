@@ -42,6 +42,24 @@
       filter="uint"
     />
   </fieldset>
+  <fieldset name="list_view" label="COM_XDECAROPEOPLE_CONFIG_LIST_VIEW">
+    <field
+      name="list_visible_columns"
+      type="checkboxes"
+      label="COM_XDECAROPEOPLE_CONFIG_LIST_VISIBLE_COLUMNS"
+      description="COM_XDECAROPEOPLE_CONFIG_LIST_VISIBLE_COLUMNS_DESC"
+      default="display_name,birth_date,birth_place,email,phone,person_status,state"
+      filter="array"
+    >
+      <option value="display_name">COM_XDECAROPEOPLE_FIELD_DISPLAY_NAME</option>
+      <option value="birth_date">COM_XDECAROPEOPLE_FIELD_BIRTH_DATE</option>
+      <option value="birth_place">COM_XDECAROPEOPLE_FIELD_BIRTH_PLACE</option>
+      <option value="email">JGLOBAL_EMAIL</option>
+      <option value="phone">COM_XDECAROPEOPLE_FIELD_PHONE</option>
+      <option value="person_status">COM_XDECAROPEOPLE_FIELD_PERSON_STATUS</option>
+      <option value="state">JSTATUS</option>
+    </field>
+  </fieldset>
   <fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
     <field name="rules" type="rules" label="JCONFIG_PERMISSIONS_LABEL" filter="rules" validate="rules" component="com_xdecaropeople" section="component"/>
   </fieldset>
