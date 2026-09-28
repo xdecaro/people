@@ -1,0 +1,2 @@
+-- People 1.8.6
+-- UI/filter release: no database schema changes.
