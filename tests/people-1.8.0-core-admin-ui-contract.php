@@ -74,7 +74,7 @@ foreach ([
     'COM_XDECAROPEOPLE_PERSON_STATUS_DECEASED',
     'xdecaro-people-publication-heading',
     'xdecaro-people-publication-cell',
-    'COM_XDECAROPEOPLE_LIST_PUBLICATION',
+    'JGLOBAL_FIELDSET_PUBLISHING',
     'xdecaro-people-publication-link',
     'icon-check',
     'visually-hidden',
@@ -85,6 +85,7 @@ foreach ([
 ] as $marker) {
     $assertContains($marker, $people, 'People list missing status/publication UI marker: ' . $marker);
 }
+$assertNotContains('COM_XDECAROPEOPLE_LIST_PUBLICATION', $people, 'People must use Joomla multilingual publishing label rather than a hardcoded/local duplicate.');
 $assertNotContains('xdecaro-people-status-badge', $people, 'People must use Core semantic badges instead of local status badge primitives.');
 
 $peopleView = 'component/admin/src/View/People/HtmlView.php';
@@ -126,13 +127,6 @@ $assertContains('"version": "1.8.5"', $assets, 'People Web Assets must match ver
 $peopleModel = 'component/admin/src/Model/PeopleModel.php';
 $assertContains('public function getStatusSummary(): array', $peopleModel, 'People model must provide status counts without changing list filters.');
 $assertContains("'a.person_status'", $peopleModel, 'People list must select the existing person_status domain field.');
-
-foreach ([
-    'component/admin/language/it-IT/com_xdecaropeople.ini',
-    'component/admin/language/en-GB/com_xdecaropeople.ini',
-] as $language) {
-    $assertContains('COM_XDECAROPEOPLE_LIST_PUBLICATION=', $language, 'Publication column label must be translated.');
-}
 
 $person = 'component/admin/tmpl/person/edit.php';
 foreach (['xdecaro-form', 'xdecaro-accordion', 'xdecaro-accordion__item', 'xdecaro-accordion__button', 'xdecaro-accordion__body'] as $marker) {
