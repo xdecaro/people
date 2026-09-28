@@ -13,14 +13,17 @@ final class PeopleModel extends ListModel
     public function __construct($config = [])
     {
         $config['filter_fields'] ??= [
-            'id',
-            'display_name',
-            'first_name',
-            'last_name',
-            'email',
-            'person_status',
-            'state',
-            'created',
+            'id', 'a.id',
+            'display_name', 'a.display_name',
+            'first_name', 'a.first_name',
+            'last_name', 'a.last_name',
+            'birth_date', 'a.birth_date',
+            'birth_place', 'a.birth_place',
+            'email', 'a.email',
+            'phone', 'a.phone',
+            'person_status', 'a.person_status',
+            'state', 'a.state',
+            'created', 'a.created',
         ];
 
         parent::__construct($config);
@@ -156,12 +159,19 @@ final class PeopleModel extends ListModel
             'a.display_name',
             'a.first_name',
             'a.last_name',
+            'a.birth_date',
+            'a.birth_place',
             'a.email',
+            'a.phone',
             'a.person_status',
             'a.state',
             'a.created',
         ];
         if (!in_array($order, $allowed, true)) {
+            $order = 'a.last_name';
+        }
+
+        if (!$canIdentity && in_array($order, ['a.birth_date', 'a.birth_place'], true)) {
             $order = 'a.last_name';
         }
 
