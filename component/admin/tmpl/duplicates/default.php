@@ -108,7 +108,7 @@ $duplicateFilterUrl = static fn(string $filter): string => Route::_(
     'index.php?option=com_xdecaropeople&view=duplicates&duplicate_filter=' . rawurlencode($filter)
 );
 ?>
-<div class="xdecaro-scope xdecaro-duplicates">
+<div class="xdecaro-scope xdecaro-suite xdecaro-duplicates">
     <div class="alert alert-info mb-3">
         <strong><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATES_REVIEW_TITLE'); ?></strong>
         <div class="mt-1"><?php echo Text::_('COM_XDECAROPEOPLE_DUPLICATES_REVIEW_HELP'); ?></div>

@@ -1,0 +1,2 @@
+-- People 1.8.7
+-- No schema changes. Version marker for the persistent list-view configuration and ordering release.

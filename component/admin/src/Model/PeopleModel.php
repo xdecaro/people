@@ -13,13 +13,17 @@ final class PeopleModel extends ListModel
     public function __construct($config = [])
     {
         $config['filter_fields'] ??= [
-            'id',
-            'display_name',
-            'first_name',
-            'last_name',
-            'email',
-            'state',
-            'created',
+            'id', 'a.id',
+            'display_name', 'a.display_name',
+            'first_name', 'a.first_name',
+            'last_name', 'a.last_name',
+            'birth_date', 'a.birth_date',
+            'birth_place', 'a.birth_place',
+            'email', 'a.email',
+            'phone', 'a.phone',
+            'person_status', 'a.person_status',
+            'state', 'a.state',
+            'created', 'a.created',
         ];
 
         parent::__construct($config);
@@ -30,6 +34,10 @@ final class PeopleModel extends ListModel
         $this->setState(
             'filter.search',
             $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string')
+        );
+        $this->setState(
+            'filter.person_status',
+            $this->getUserStateFromRequest($this->context . '.filter.person_status', 'filter_person_status', '', 'cmd')
         );
         $this->setState(
             'filter.state',
@@ -50,6 +58,30 @@ final class PeopleModel extends ListModel
         $this->setState('list.start', (int) (floor($start / $limit) * $limit));
     }
 
+    public function getStatusSummary(): array
+    {
+        $db = $this->getDatabase();
+        $state = $db->quoteName('state');
+
+        $query = $db->getQuery(true)
+            ->select([
+                'COUNT(*) AS total',
+                'SUM(CASE WHEN ' . $state . ' = 1 THEN 1 ELSE 0 END) AS published',
+                'SUM(CASE WHEN ' . $state . ' = 0 THEN 1 ELSE 0 END) AS suspended',
+                'SUM(CASE WHEN ' . $state . ' = -2 THEN 1 ELSE 0 END) AS trashed',
+            ])
+            ->from($db->quoteName('#__xdecaropeople_people'));
+
+        $row = (array) $db->setQuery($query)->loadAssoc();
+
+        return [
+            'total' => (int) ($row['total'] ?? 0),
+            'published' => (int) ($row['published'] ?? 0),
+            'suspended' => (int) ($row['suspended'] ?? 0),
+            'trashed' => (int) ($row['trashed'] ?? 0),
+        ];
+    }
+
     protected function getListQuery(): DatabaseQuery
     {
         $db = $this->getDatabase();
@@ -67,6 +99,7 @@ final class PeopleModel extends ListModel
             'a.last_name',
             'a.email',
             'a.phone',
+            'a.person_status',
             'a.state',
             'a.access',
             'a.created',
@@ -80,6 +113,12 @@ final class PeopleModel extends ListModel
         $query = $db->getQuery(true)
             ->select($columns)
             ->from($db->quoteName('#__xdecaropeople_people', 'a'));
+
+        $personStatus = (string) $this->getState('filter.person_status');
+        if (in_array($personStatus, ['active', 'archived', 'deceased'], true)) {
+            $query->where($db->quoteName('a.person_status') . ' = :personStatus')
+                ->bind(':personStatus', $personStatus);
+        }
 
         $state = $this->getState('filter.state');
         if ($state !== '') {
@@ -98,17 +137,19 @@ final class PeopleModel extends ListModel
                 $db->quoteName('a.first_name') . ' LIKE :s2',
                 $db->quoteName('a.last_name') . ' LIKE :s3',
                 $db->quoteName('a.email') . ' LIKE :s4',
+                $db->quoteName('a.phone') . ' LIKE :s5',
             ];
             if ($canIdentity) {
-                $conditions[] = $db->quoteName('a.birth_place') . ' LIKE :s5';
+                $conditions[] = $db->quoteName('a.birth_place') . ' LIKE :s6';
             }
             $query->where('(' . implode(' OR ', $conditions) . ')')
                 ->bind(':s1', $like)
                 ->bind(':s2', $like)
                 ->bind(':s3', $like)
-                ->bind(':s4', $like);
+                ->bind(':s4', $like)
+                ->bind(':s5', $like);
             if ($canIdentity) {
-                $query->bind(':s5', $like);
+                $query->bind(':s6', $like);
             }
         }
 
@@ -118,11 +159,19 @@ final class PeopleModel extends ListModel
             'a.display_name',
             'a.first_name',
             'a.last_name',
+            'a.birth_date',
+            'a.birth_place',
             'a.email',
+            'a.phone',
+            'a.person_status',
             'a.state',
             'a.created',
         ];
         if (!in_array($order, $allowed, true)) {
+            $order = 'a.last_name';
+        }
+
+        if (!$canIdentity && in_array($order, ['a.birth_date', 'a.birth_place'], true)) {
             $order = 'a.last_name';
         }
 

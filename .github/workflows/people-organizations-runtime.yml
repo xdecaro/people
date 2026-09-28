@@ -50,8 +50,8 @@ jobs:
           set -euo pipefail
           curl -fL --retry 3 'https://github.com/joomla/joomla-cms/releases/download/6.1.3/Joomla_6.1.3-Stable-Full_Package.zip' -o /tmp/joomla.zip
           echo 'a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1  /tmp/joomla.zip' | sha256sum --check --strict
-          curl -fL --retry 3 'https://github.com/xdecaro/core/releases/download/v2.0.1/pkg_xdecarocore_2.0.1.zip' -o /tmp/core.zip
-          echo 'cec892dafeea4a0499ad1851ab0f9d0b111495c2248e0147076ad4bb648f64a9  /tmp/core.zip' | sha256sum --check --strict
+          curl -fL --retry 3 'https://github.com/xdecaro/core/releases/download/v2.2.5/pkg_core_2.2.5.zip' -o /tmp/core.zip
+          echo '86ae66087ebd30a85ff2d2e8cfc40fd62064f549083458b37ef2732cd9cf894b  /tmp/core.zip' | sha256sum --check --strict
           mkdir joomla
           unzip -q /tmp/joomla.zip -d joomla
       - name: Install Joomla, Core and People only

@@ -12,7 +12,7 @@ use xdecaro\Core\Integration\EntityReference;
 final class CoreIntegrationService
 {
     public const COMPONENT = 'com_xdecaropeople';
-    public const MINIMUM_CORE = '2.0.1';
+    public const MINIMUM_CORE = '2.2.10';
 
     public function getVersion(): string
     {
@@ -29,7 +29,7 @@ final class CoreIntegrationService
         }
 
         try {
-            return (new \xdecaro\Core\Asset\AssetService())->useComponents($wam);
+            return (new \xdecaro\Core\Asset\AssetService())->useAdminUi($wam);
         } catch (\Throwable) {
             return false;
         }

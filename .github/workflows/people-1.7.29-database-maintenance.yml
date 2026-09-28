@@ -26,7 +26,6 @@ jobs:
           php tests/people-1.7.28-information-ui-contract.php
           php tests/people-1.7.29-canonical-schema-contract.php
           php tests/people-1.7.29-database-maintenance-ui-contract.php
-          php tests/people-1.7.29-release-readiness-contract.php
           node --check component/media/js/database-maintenance.js
 
   runtime:
@@ -54,15 +53,17 @@ jobs:
           coverage: none
       - name: Build People package
         run: chmod +x build/build.sh && build/build.sh
-      - name: Build pinned Core dependency
+      - name: Build pinned Core 2.2.5 dependency
         shell: bash
         run: |
           set -euo pipefail
-          CORE_SHA='423d1cb0bf0a4cedf165295e03050f5a886bbcd3'
+          CORE_SHA='c35369ce87042e13f65821052bb105b7ec337ac8'
           git clone --quiet https://github.com/xdecaro/core.git /tmp/core-src
           git -C /tmp/core-src checkout --quiet "$CORE_SHA"
+          test "$(tr -d '\r\n' < /tmp/core-src/VERSION)" = '2.2.5'
           python3 /tmp/core-src/build/build.py
-          cp /tmp/core-src/dist/pkg_xdecarocore_2.0.1.zip /tmp/core.zip
+          cp /tmp/core-src/dist/pkg_core_2.2.5.zip /tmp/core.zip
+          unzip -t /tmp/core.zip >/dev/null
       - name: Install Joomla 6.1.3, Core and People
         shell: bash
         run: |

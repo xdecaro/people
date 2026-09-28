@@ -19,7 +19,7 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Verify People 1.7.28 contracts
+      - name: Verify People maintenance contracts
         shell: bash
         run: |
           set -euo pipefail
@@ -52,15 +52,17 @@ jobs:
           coverage: none
       - name: Build People package
         run: chmod +x build/build.sh && build/build.sh
-      - name: Build pinned Core dependency
+      - name: Build pinned Core 2.2.5 dependency
         shell: bash
         run: |
           set -euo pipefail
-          CORE_SHA='423d1cb0bf0a4cedf165295e03050f5a886bbcd3'
+          CORE_SHA='c35369ce87042e13f65821052bb105b7ec337ac8'
           git clone --quiet https://github.com/xdecaro/core.git /tmp/core-src
           git -C /tmp/core-src checkout --quiet "$CORE_SHA"
+          test "$(tr -d '\r\n' < /tmp/core-src/VERSION)" = '2.2.5'
           python3 /tmp/core-src/build/build.py
-          cp /tmp/core-src/dist/pkg_xdecarocore_2.0.1.zip /tmp/core.zip
+          cp /tmp/core-src/dist/pkg_core_2.2.5.zip /tmp/core.zip
+          unzip -t /tmp/core.zip >/dev/null
       - name: Install Joomla 6.1.3, Core and People
         shell: bash
         run: |
@@ -70,7 +72,7 @@ jobs:
           mkdir joomla
           unzip -q /tmp/joomla.zip -d joomla
           cd joomla
-          php installation/joomla.php install --site-name='People 1.7.28 CI' --admin-user='People CI Admin' --admin-username=admin --admin-password="PeopleCI-${GITHUB_RUN_ID}!" --admin-email=admin@example.invalid --db-type=mysqli --db-host=127.0.0.1 --db-user=root --db-pass='' --db-name=joomla --db-prefix=ppl_ --db-encryption=0 --no-interaction
+          php installation/joomla.php install --site-name='People CI' --admin-user='People CI Admin' --admin-username=admin --admin-password="PeopleCI-${GITHUB_RUN_ID}!" --admin-email=admin@example.invalid --db-type=mysqli --db-host=127.0.0.1 --db-user=root --db-pass='' --db-name=joomla --db-prefix=ppl_ --db-encryption=0 --no-interaction
           php cli/joomla.php extension:install --path=/tmp/core.zip -vvv
           VERSION="$(tr -d '\r\n' < "$GITHUB_WORKSPACE/VERSION")"
           php cli/joomla.php extension:install --path="$GITHUB_WORKSPACE/dist/pkg_people_${VERSION}.zip" -vvv

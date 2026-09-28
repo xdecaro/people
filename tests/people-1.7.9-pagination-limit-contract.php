@@ -141,7 +141,6 @@ foreach (($assets['assets'] ?? []) as $item) {
     }
 }
 
-
 if (version_compare($version, '1.7.11', '>=')) {
     $modelContent = (string) file_get_contents($model);
 
@@ -160,7 +159,6 @@ if (version_compare($version, '1.7.11', '>=')) {
     }
 }
 
-
 if (version_compare($version, '1.7.14', '>=')) {
     $exportJs = $root . '/component/media/js/export.js';
     $templateContent = (string) file_get_contents($template);
@@ -176,12 +174,16 @@ if (version_compare($version, '1.7.14', '>=')) {
         $contains($exportJs, $needle);
     }
 
-    if (substr_count($templateContent, 'this.form.requestSubmit()') < 2) {
-        $fail('People 1.7.14 must use requestSubmit() for list filters and page-size changes.');
+    if (!str_contains($templateContent, 'this.form.requestSubmit()')) {
+        $fail('People page-size navigation must use requestSubmit().');
+    }
+
+    if (!str_contains($templateContent, 'type="submit"')) {
+        $fail('People list filters must submit through the explicit shared Cerca button.');
     }
 
     if (str_contains($templateContent, 'onchange="this.form.submit()"')) {
-        $fail('People 1.7.14 must not bypass the submit event for list navigation.');
+        $fail('People list navigation must not bypass the submit event.');
     }
 }
 

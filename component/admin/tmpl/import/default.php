@@ -4,7 +4,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Language\Text;
 ?>
-<div class="xdecaro-scope xdecaro-people-import">
+<div class="xdecaro-scope xdecaro-suite xdecaro-people-import">
     <div class="alert alert-info" role="status">
         <?php echo Text::_('COM_XDECAROPEOPLE_IMPORT_PRIVACY_NOTICE'); ?>
     </div>
