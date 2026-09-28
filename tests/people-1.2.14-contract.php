@@ -7,6 +7,7 @@ $personForm = file_get_contents($root . '/component/admin/forms/person.xml') ?: 
 $addressForm = file_get_contents($root . '/component/admin/forms/additional_address.xml') ?: '';
 $personJs = file_get_contents($root . '/component/media/js/person-form.js') ?: '';
 $css = file_get_contents($root . '/component/media/css/admin.css') ?: '';
+$listCss = file_get_contents($root . '/component/media/css/people-list.css') ?: '';
 $listTemplate = file_get_contents($root . '/component/admin/tmpl/people/default.php') ?: '';
 $duplicatesService = file_get_contents($root . '/component/admin/src/Service/DuplicateService.php') ?: '';
 $duplicatesTemplate = file_get_contents($root . '/component/admin/tmpl/duplicates/default.php') ?: '';
@@ -37,9 +38,9 @@ $expect(str_contains($model, 'COM_XDECAROPEOPLE_ERROR_ADDITIONAL_ADDRESS_REQUIRE
 $expect(str_contains($css, 'select[name$="[country_code]"]'), 'Additional-address country dropdown overflow selector is missing.');
 $expect(str_contains($css, '.choices.is-open'), 'Fancy Select open-state overflow handling is missing.');
 
-$expect(str_contains($listTemplate, 'xdecaro-people-filters'), 'People list filter bar wrapper is missing.');
-$expect(str_contains($css, '.xdecaro-people-filters'), 'People list filter bar styles are missing.');
-$expect(str_contains($css, 'width: 100%'), 'People list filter bar must span the available width.');
+$expect(str_contains($listTemplate, 'xdecaro-filterbar--panel'), 'People list must use the shared Core filter bar wrapper.');
+$expect(str_contains($listTemplate, 'data-xdecaro-filterbar'), 'People list must opt into shared Core filter behavior.');
+$expect(!str_contains($listCss, '.xdecaro-people-filters'), 'People must not duplicate shared Core filter bar layout CSS.');
 
 foreach (['email', 'tax_identifier', 'name_birth', 'name', 'phone', 'whatsapp'] as $type) {
     $expect(str_contains($duplicatesService, "'{$type}'"), "Duplicate criterion {$type} is missing.");
