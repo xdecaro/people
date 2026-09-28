@@ -28,7 +28,10 @@ final class HtmlView extends BaseHtmlView
 
     public function display($tpl = null): void
     {
-        $user = Factory::getApplication()->getIdentity();
+        $app = Factory::getApplication();
+        $app->getLanguage()->load('com_xdecaropeople.list', JPATH_ADMINISTRATOR . '/components/com_xdecaropeople');
+
+        $user = $app->getIdentity();
         if (!$user->authorise('core.manage', 'com_xdecaropeople')) {
             throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
         }
@@ -43,7 +46,7 @@ final class HtmlView extends BaseHtmlView
             || $this->canSensitive
             || $user->authorise('core.admin', 'com_xdecaropeople');
 
-        $component = Factory::getApplication()->bootComponent('com_xdecaropeople');
+        $component = $app->bootComponent('com_xdecaropeople');
         if ($component instanceof PeopleComponent) {
             $component->getCoreIntegrationService()->enableUi($this->document->getWebAssetManager());
 
@@ -79,13 +82,7 @@ final class HtmlView extends BaseHtmlView
 
         if ($user->authorise('core.edit.state', 'com_xdecaropeople')) {
             if ($isTrashed) {
-                ToolbarHelper::custom(
-                    'people.publish',
-                    'refresh',
-                    '',
-                    Text::_('COM_XDECAROPEOPLE_TOOLBAR_RESTORE'),
-                    true
-                );
+                ToolbarHelper::custom('people.publish', 'refresh', '', Text::_('COM_XDECAROPEOPLE_TOOLBAR_RESTORE'), true);
             } else {
                 ToolbarHelper::publish('people.publish', 'JTOOLBAR_PUBLISH', true);
                 ToolbarHelper::unpublish('people.unpublish', 'JTOOLBAR_UNPUBLISH', true);
