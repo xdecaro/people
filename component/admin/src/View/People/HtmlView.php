@@ -4,6 +4,7 @@ namespace xdecaro\Component\People\Administrator\View\People;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
@@ -13,11 +14,22 @@ use xdecaro\Component\People\Administrator\Extension\PeopleComponent;
 
 final class HtmlView extends BaseHtmlView
 {
+    private const AVAILABLE_COLUMNS = [
+        'display_name',
+        'birth_date',
+        'birth_place',
+        'email',
+        'phone',
+        'person_status',
+        'state',
+    ];
+
     public array $items = [];
     public $pagination;
     public $state;
     public bool $canIdentityDetails = false;
     public bool $canSensitive = false;
+    public array $visibleColumns = self::AVAILABLE_COLUMNS;
     public array $statusSummary = [
         'total' => 0,
         'published' => 0,
@@ -45,6 +57,7 @@ final class HtmlView extends BaseHtmlView
         $this->canIdentityDetails = $user->authorise('people.view_identity_details', 'com_xdecaropeople')
             || $this->canSensitive
             || $user->authorise('core.admin', 'com_xdecaropeople');
+        $this->visibleColumns = $this->resolveVisibleColumns();
 
         $component = $app->bootComponent('com_xdecaropeople');
         if ($component instanceof PeopleComponent) {
@@ -99,5 +112,38 @@ final class HtmlView extends BaseHtmlView
         }
 
         parent::display($tpl);
+    }
+
+    public function isColumnVisible(string $column): bool
+    {
+        if (!in_array($column, self::AVAILABLE_COLUMNS, true)) {
+            return false;
+        }
+
+        if (in_array($column, ['birth_date', 'birth_place'], true) && !$this->canIdentityDetails) {
+            return false;
+        }
+
+        return in_array($column, $this->visibleColumns, true);
+    }
+
+    private function resolveVisibleColumns(): array
+    {
+        $params = ComponentHelper::getParams('com_xdecaropeople');
+        $configured = $params->get('list_visible_columns', self::AVAILABLE_COLUMNS);
+
+        if (is_string($configured)) {
+            $configured = array_filter(array_map('trim', explode(',', $configured)));
+        } elseif (is_object($configured)) {
+            $configured = (array) $configured;
+        }
+
+        if (!is_array($configured)) {
+            $configured = self::AVAILABLE_COLUMNS;
+        }
+
+        $visible = array_values(array_intersect(self::AVAILABLE_COLUMNS, array_map('strval', $configured)));
+
+        return $visible !== [] ? $visible : ['display_name'];
     }
 }
