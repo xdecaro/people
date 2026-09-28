@@ -54,6 +54,7 @@ final class ExportController extends BaseController
 
         $search = $scope === 'filtered' ? trim($this->input->getString('filter_search', '')) : '';
         $state = $scope === 'filtered' ? $this->input->getString('filter_state', '') : '';
+        $personStatus = $scope === 'filtered' ? $this->input->getCmd('filter_person_status', '') : '';
 
         $canIdentityDetails = $user->authorise('people.view_identity_details', 'com_xdecaropeople')
             || $user->authorise('people.view_sensitive', 'com_xdecaropeople')
@@ -75,7 +76,7 @@ final class ExportController extends BaseController
 
         $service = new ExportService(Factory::getContainer()->get(DatabaseInterface::class));
         $columns = $service->resolveColumns($requestedColumns, $canIdentityDetails, $canSensitive);
-        $rows = $service->loadRows($scope, $ids, $search, $state, $canIdentityDetails, $canSensitive);
+        $rows = $service->loadRows($scope, $ids, $search, $state, $canIdentityDetails, $canSensitive, $personStatus);
 
         [$mimeType, $payload] = match ($format) {
             'xlsx' => [
