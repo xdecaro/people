@@ -1,0 +1,1 @@
+-- People 1.8.4: shared Core UI migration, no database changes.
