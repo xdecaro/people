@@ -1,3 +1,7 @@
+.xdecaro-duplicates .xdecaro-duplicate-filter-form {
+  margin: 0;
+}
+
 .xdecaro-duplicates .xdecaro-duplicate-groups {
   gap: .18rem;
 }
@@ -6,15 +10,12 @@
   display: block;
 }
 
-.xdecaro-duplicates .xdecaro-duplicate-select-row > .xdecaro-duplicate-select-box {
-  display: none;
-}
-
 .xdecaro-duplicates .xdecaro-duplicate-group {
   width: 100%;
   padding: 0 !important;
+  overflow: hidden;
   border: 1px solid var(--border-color, rgba(127, 127, 127, .22));
-  border-radius: .25rem;
+  border-radius: .35rem;
   box-shadow: none;
 }
 
@@ -26,10 +27,15 @@
   gap: .5rem;
   width: 100%;
   min-height: 0;
-  padding: .42rem .55rem;
+  padding: .48rem .6rem;
   border: 0;
-  background: var(--body-bg, #fff);
+  background: var(--body-bg, transparent);
   text-align: left;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-accordion-summary:focus-visible {
+  outline: 2px solid var(--focus-color, var(--bs-primary, #0d6efd));
+  outline-offset: -2px;
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-row-control {
@@ -132,23 +138,46 @@
 
 .xdecaro-duplicates .xdecaro-duplicate-group[open] > .xdecaro-duplicate-accordion-summary {
   border-bottom: 1px solid var(--border-color, rgba(127, 127, 127, .16));
+  background: var(--bs-tertiary-bg, rgba(127, 127, 127, .06));
 }
 
 .xdecaro-duplicates .xdecaro-duplicate-group > .card-body {
-  padding: .7rem;
+  padding: .8rem;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-action-buttons,
+.xdecaro-duplicates .xdecaro-duplicate-open-records {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .45rem;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-action-buttons {
+  justify-content: flex-end;
+}
+
+.xdecaro-duplicates .xdecaro-duplicate-action-buttons form {
+  margin: 0;
 }
 
 @media (max-width: 767.98px) {
   .xdecaro-duplicates .xdecaro-duplicate-accordion-summary {
     grid-template-columns: auto minmax(0, 1fr);
-    gap: .35rem;
-    padding: .38rem .42rem;
+    align-items: start;
+    gap: .4rem;
+    padding: .48rem .5rem;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-row-control {
+    align-self: start;
+    padding-top: .05rem;
   }
 
   .xdecaro-duplicates .xdecaro-duplicate-summary-line1 {
     align-items: flex-start;
     flex-direction: column;
-    gap: .25rem;
+    gap: .3rem;
   }
 
   .xdecaro-duplicates .xdecaro-duplicate-summary-right,
@@ -164,5 +193,31 @@
     overflow: visible;
     text-overflow: clip;
     white-space: normal;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-group > .card-body {
+    padding: .65rem;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-actions {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-mobile-people,
+  .xdecaro-duplicates .xdecaro-duplicate-action-buttons,
+  .xdecaro-duplicates .xdecaro-duplicate-open-records {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .xdecaro-duplicates .xdecaro-duplicate-action-buttons > *,
+  .xdecaro-duplicates .xdecaro-duplicate-open-records > *,
+  .xdecaro-duplicates .xdecaro-duplicate-action-buttons form,
+  .xdecaro-duplicates .xdecaro-duplicate-action-buttons .btn,
+  .xdecaro-duplicates .xdecaro-duplicate-open-records .btn {
+    width: 100%;
   }
 }

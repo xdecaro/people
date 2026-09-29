@@ -36,7 +36,8 @@ foreach ([
 foreach ([
     'xdecaro-duplicate-dashboard',
     'xdecaro-duplicate-kpi',
-    'duplicate_filter=',
+    "'duplicate_filter' => \$filter",
+    'http_build_query($query)',
     'COM_XDECAROPEOPLE_DUPLICATE_DASHBOARD_TOTAL',
     'COM_XDECAROPEOPLE_DUPLICATE_DASHBOARD_CONFLICT',
     'COM_XDECAROPEOPLE_DUPLICATE_DASHBOARD_STRONG',

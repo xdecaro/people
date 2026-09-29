@@ -16,17 +16,19 @@ $contains = static function (string $path, string $needle) use ($fail): void {
     }
 };
 
-$js = $root . '/component/media/js/duplicates.js';
+$template = $root . '/component/admin/tmpl/duplicates/default.php';
 $css = $root . '/component/media/css/duplicates-compact.css';
+$js = $root . '/component/media/js/duplicates.js';
 
 foreach ([
-    "const line3 = document.createElement('div');",
-    "line3.className = 'xdecaro-duplicate-summary-line3';",
-    'line2.append(nameComparison);',
-    'line3.append(matchSummary);',
-    'summaryMain.replaceChildren(line1, line2, line3);',
+    'xdecaro-duplicate-summary-line1',
+    'xdecaro-duplicate-summary-line2',
+    'xdecaro-duplicate-summary-line3',
+    'xdecaro-duplicate-name-comparison',
+    'xdecaro-duplicate-match-summary',
+    'xdecaro-duplicate-summary-counts xdecaro-duplicate-summary-right',
 ] as $needle) {
-    $contains($js, $needle);
+    $contains($template, $needle);
 }
 
 foreach ([
@@ -38,13 +40,18 @@ foreach ([
     $contains($css, $needle);
 }
 
-$jsContent = (string) file_get_contents($js);
-if (str_contains($jsContent, 'line2.append(matchSummary);')) {
-    $fail('People 1.7.25 must keep the comparison names on row 2 and move match/difference details to row 3.');
+$templateContent = (string) file_get_contents($template);
+$line1 = strpos($templateContent, 'xdecaro-duplicate-summary-line1');
+$line2 = strpos($templateContent, 'xdecaro-duplicate-summary-line2');
+$line3 = strpos($templateContent, 'xdecaro-duplicate-summary-line3');
+
+if ($line1 === false || $line2 === false || $line3 === false || !($line1 < $line2 && $line2 < $line3)) {
+    $fail('People D+ must keep metadata/counters on row 1, names on row 2 and match/difference details on row 3.');
 }
 
-if (!str_contains($jsContent, "line1.append(identity, counts);")) {
-    $fail('People 1.7.25 must keep type/record metadata and comparison counters together on row 1.');
+$jsContent = (string) file_get_contents($js);
+if (str_contains($jsContent, 'summaryMain.replaceChildren(line1, line2, line3)')) {
+    $fail('D+ three-row summary must be rendered server-side rather than rebuilt after paint.');
 }
 
 echo "People 1.7.25 three-row duplicate summary contract OK\n";
