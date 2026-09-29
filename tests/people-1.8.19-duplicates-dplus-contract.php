@@ -50,8 +50,8 @@ foreach ([
     '$sensitiveGroupTypes',
     '$searchFields',
     'array_diff($allowedTypes, $sensitiveGroupTypes)',
-    'array_filter(',
-    '!in_array((string) ($group[\'type\'] ?? \'\'), $sensitiveGroupTypes, true)',
+    'static fn(array $group): bool => !in_array(',
+    "(string) (\$group['type'] ?? '')",
     "!in_array(\$groupType, \$sensitiveGroupTypes, true)",
 ] as $marker) {
     if (!str_contains($view, $marker)) {
