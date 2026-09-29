@@ -31,10 +31,10 @@ foreach ([
 }
 
 foreach ([
-    '<details class="card xdecaro-duplicate-group" name="xdecaro-duplicate-review">',
+    '<details class="card xdecaro-duplicate-group">',
     'xdecaro-duplicate-accordion-summary',
     'xdecaro-duplicate-summary-counts',
-    'xdecaro-duplicate-difference-summary',
+    'xdecaro-duplicate-summary-line3',
     'xdecaro-duplicate-field--',
     "merge_allowed",
     'COM_XDECAROPEOPLE_DUPLICATE_STRENGTH_CONFLICT',
@@ -44,6 +44,11 @@ foreach ([
 ] as $needle) {
     $assert(str_contains($template, $needle), 'Duplicate accordion comparison missing: ' . $needle);
 }
+
+$assert(
+    !str_contains($template, 'name="xdecaro-duplicate-review"'),
+    'D+ duplicate accordions must be independent so more than one group can stay open.'
+);
 
 foreach ([
     '.xdecaro-duplicate-accordion-summary',
