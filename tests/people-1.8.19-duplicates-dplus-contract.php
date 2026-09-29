@@ -47,6 +47,18 @@ foreach ([
 }
 
 foreach ([
+    '$sensitiveGroupTypes',
+    '$searchFields',
+    'array_diff($allowedTypes, $sensitiveGroupTypes)',
+    "\$group['value'] = '';",
+    "!in_array(\$groupType, \$sensitiveGroupTypes, true)",
+] as $marker) {
+    if (!str_contains($view, $marker)) {
+        throw new RuntimeException('Duplicates D+ sensitive-data guard missing: ' . $marker);
+    }
+}
+
+foreach ([
     '.xdecaro-duplicate-summary-line1',
     '.xdecaro-duplicate-summary-line2',
     '.xdecaro-duplicate-summary-line3',
