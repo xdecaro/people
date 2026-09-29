@@ -16,8 +16,9 @@ $contains = static function (string $path, string $needle) use ($fail): void {
     }
 };
 
-$js = $root . '/component/media/js/duplicates.js';
+$template = $root . '/component/admin/tmpl/duplicates/default.php';
 $css = $root . '/component/media/css/duplicates-compact.css';
+$js = $root . '/component/media/js/duplicates.js';
 
 foreach ([
     'xdecaro-duplicate-summary-line1',
@@ -25,10 +26,9 @@ foreach ([
     'xdecaro-duplicate-name-comparison',
     'xdecaro-duplicate-match-summary',
     'xdecaro-duplicate-summary-right',
-    ".join(' ↔ ')",
-    '.xdecaro-duplicate-person-heading h3',
+    "implode(' ↔ ', \$recordNames)",
 ] as $needle) {
-    $contains($js, $needle);
+    $contains($template, $needle);
 }
 
 foreach ([
@@ -45,6 +45,11 @@ foreach ([
 $cssContent = (string) file_get_contents($css);
 if (str_contains($cssContent, 'grid-template-columns: auto minmax(11rem, .9fr) minmax(10rem, 1.1fr);')) {
     $fail('People 1.7.23 must not keep the old compressed one-line summary grid.');
+}
+
+$jsContent = (string) file_get_contents($js);
+if (str_contains($jsContent, 'replaceChildren(line1, line2')) {
+    $fail('D+ summary rows must be rendered server-side rather than rebuilt after paint.');
 }
 
 echo "People 1.7.23 two-row duplicate summary contract OK\n";
