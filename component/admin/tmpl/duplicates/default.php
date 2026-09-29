@@ -87,7 +87,7 @@ $dashboardCards = [
 $duplicatesUrl = Route::_('index.php?option=com_xdecaropeople&view=duplicates');
 $filtersOpen = $this->filter !== 'all' || $this->typeFilter !== 'all';
 
-$duplicateFilterUrl = static function (string $filter) use ($this): string {
+$duplicateFilterUrl = function (string $filter): string {
     $query = [
         'option' => 'com_xdecaropeople',
         'view' => 'duplicates',
