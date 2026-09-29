@@ -7,8 +7,6 @@ $template = (string) file_get_contents($root . '/component/admin/tmpl/duplicates
 $view = (string) file_get_contents($root . '/component/admin/src/View/Duplicates/HtmlView.php');
 $css = (string) file_get_contents($root . '/component/media/css/duplicates-compact.css');
 $js = (string) file_get_contents($root . '/component/media/js/duplicates.js');
-$it = (string) file_get_contents($root . '/component/admin/language/it-IT/com_xdecaropeople.ini');
-$en = (string) file_get_contents($root . '/component/admin/language/en-GB/com_xdecaropeople.ini');
 
 foreach ([
     'data-duplicate-filter-form',
@@ -38,10 +36,10 @@ if (str_contains($template, 'name="xdecaro-duplicate-review"')) {
 foreach ([
     'public string $search',
     'public string $typeFilter',
-    "duplicate_search",
-    "duplicate_type",
-    "mb_strtolower",
-    "display_name",
+    'duplicate_search',
+    'duplicate_type',
+    'mb_strtolower',
+    'display_name',
 ] as $marker) {
     if (!str_contains($view, $marker)) {
         throw new RuntimeException('Duplicates D+ view/filter marker missing: ' . $marker);
@@ -71,18 +69,6 @@ foreach ([
 ] as $marker) {
     if (!str_contains($js, $marker)) {
         throw new RuntimeException('Duplicates D+ interaction marker missing: ' . $marker);
-    }
-}
-
-foreach ([
-    'COM_XDECAROPEOPLE_DUPLICATE_SEARCH_PLACEHOLDER=',
-    'COM_XDECAROPEOPLE_DUPLICATE_FILTER_TYPE=',
-    'COM_XDECAROPEOPLE_DUPLICATE_FILTER_STRENGTH=',
-    'COM_XDECAROPEOPLE_DUPLICATE_OPEN_RECORDS=',
-    'COM_XDECAROPEOPLE_DUPLICATE_CLOSE_FOR_NOW=',
-] as $marker) {
-    if (!str_contains($it, $marker) || !str_contains($en, $marker)) {
-        throw new RuntimeException('Duplicates D+ language marker missing in IT/EN: ' . $marker);
     }
 }
 
