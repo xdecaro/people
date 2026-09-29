@@ -60,6 +60,19 @@ final class HtmlView extends BaseHtmlView
         $assets->useScript('com_xdecaropeople.duplicates');
 
         $allGroups = array_values((array) $this->get('Groups'));
+        $sensitiveGroupTypes = ['tax_identifier', 'name_birth'];
+
+        if (!$this->canSensitive) {
+            $allGroups = array_values(array_filter(
+                $allGroups,
+                static fn(array $group): bool => !in_array(
+                    (string) ($group['type'] ?? ''),
+                    $sensitiveGroupTypes,
+                    true
+                )
+            ));
+        }
+
         $recordIds = [];
 
         foreach ($allGroups as $group) {
@@ -81,6 +94,14 @@ final class HtmlView extends BaseHtmlView
 
         $allowedStrengths = ['all', 'conflict', 'strong', 'possible'];
         $allowedTypes = ['all', 'email', 'tax_identifier', 'name_birth', 'name', 'phone', 'whatsapp'];
+        $searchFields = ['display_name', 'email', 'phone', 'whatsapp'];
+
+        if ($this->canSensitive) {
+            $searchFields[] = 'tax_identifier';
+            $searchFields[] = 'birth_place';
+        } else {
+            $allowedTypes = array_values(array_diff($allowedTypes, $sensitiveGroupTypes));
+        }
 
         $requestedFilter = $app->input->getCmd('duplicate_filter', 'all');
         $this->filter = in_array($requestedFilter, $allowedStrengths, true)
@@ -97,14 +118,15 @@ final class HtmlView extends BaseHtmlView
 
         $this->groups = array_values(array_filter(
             $allGroups,
-            function (array $group) use ($searchNeedle): bool {
+            function (array $group) use ($searchNeedle, $searchFields, $sensitiveGroupTypes): bool {
+                $groupType = (string) ($group['type'] ?? '');
+
                 if ($this->filter !== 'all'
                     && (string) ($group['strength'] ?? 'possible') !== $this->filter) {
                     return false;
                 }
 
-                if ($this->typeFilter !== 'all'
-                    && (string) ($group['type'] ?? '') !== $this->typeFilter) {
+                if ($this->typeFilter !== 'all' && $groupType !== $this->typeFilter) {
                     return false;
                 }
 
@@ -113,13 +135,16 @@ final class HtmlView extends BaseHtmlView
                 }
 
                 $parts = [
-                    (string) ($group['type'] ?? ''),
+                    $groupType,
                     (string) ($group['value'] ?? ''),
-                    (string) ($group['key'] ?? ''),
                 ];
 
+                if ($this->canSensitive || !in_array($groupType, $sensitiveGroupTypes, true)) {
+                    $parts[] = (string) ($group['key'] ?? '');
+                }
+
                 foreach ((array) ($group['records'] ?? []) as $record) {
-                    foreach (['display_name', 'email', 'phone', 'whatsapp', 'tax_identifier', 'birth_place'] as $field) {
+                    foreach ($searchFields as $field) {
                         $parts[] = (string) ($record[$field] ?? '');
                     }
                 }
