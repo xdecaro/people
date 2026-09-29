@@ -1,0 +1,35 @@
+name: People Duplicates D+ Contract
+
+on:
+  pull_request:
+    paths:
+      - 'component/admin/tmpl/duplicates/default.php'
+      - 'component/admin/src/View/Duplicates/HtmlView.php'
+      - 'component/media/css/duplicates-compact.css'
+      - 'component/media/js/duplicates.js'
+      - 'component/admin/language/**/com_xdecaropeople.ini'
+      - 'tests/people-1.8.19-duplicates-dplus-contract.php'
+      - '.github/workflows/people-1.8.19-duplicates-dplus.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: PHP syntax
+        run: |
+          php -l component/admin/tmpl/duplicates/default.php
+          php -l component/admin/src/View/Duplicates/HtmlView.php
+          php -l tests/people-1.8.19-duplicates-dplus-contract.php
+      - name: D+ contract
+        run: php tests/people-1.8.19-duplicates-dplus-contract.php
+      - name: JavaScript syntax
+        run: node --check component/media/js/duplicates.js
